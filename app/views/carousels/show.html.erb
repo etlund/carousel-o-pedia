@@ -2,6 +2,7 @@
 <header class="page-header">
   <h1><%= @carousel.name %></h1>
   <p class="muted"><%= @carousel.location %></p>
+  <%= render "shared/page_actions", edit: edit_carousel_path(@carousel), history: history_carousel_path(@carousel) %>
 </header>
 
 <div class="grid">
@@ -21,7 +22,7 @@
 </div>
 
 <h2>Sections</h2>
-<p class="muted">Seat codes are section number plus row letter. Row A is the outer row.</p>
+<p class="muted">Seat codes are section number plus row letter. Row A is the outer row.<% if authenticated? %> Click a seat to edit it.<% end %></p>
 <div class="table-scroll">
   <table class="sections">
     <thead>

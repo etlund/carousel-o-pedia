@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_24_173940) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_175056) do
   create_table "carousels", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -60,6 +60,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_173940) do
     t.index ["slug"], name: "index_figures_on_slug", unique: true
   end
 
+  create_table "invitations", force: :cascade do |t|
+    t.string "email_address", null: false
+    t.string "token"
+    t.integer "invited_by_id", null: false
+    t.datetime "accepted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invited_by_id"], name: "index_invitations_on_invited_by_id"
+    t.index ["token"], name: "index_invitations_on_token", unique: true
+  end
+
   create_table "makers", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -95,6 +106,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_173940) do
     t.index ["carousel_id"], name: "index_seats_on_carousel_id"
   end
 
+  create_table "sessions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email_address", null: false
+    t.string "password_digest", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "name", default: "", null: false
+    t.string "role", default: "editor", null: false
+    t.index ["email_address"], name: "index_users_on_email_address", unique: true
+  end
+
   create_table "versions", force: :cascade do |t|
     t.string "whodunnit"
     t.datetime "created_at"
@@ -109,7 +139,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_173940) do
   add_foreign_key "carousels", "makers"
   add_foreign_key "figures", "figure_types"
   add_foreign_key "figures", "makers", column: "carver_id"
+  add_foreign_key "invitations", "users", column: "invited_by_id"
   add_foreign_key "placements", "figures"
   add_foreign_key "placements", "seats"
   add_foreign_key "seats", "carousels"
+  add_foreign_key "sessions", "users"
 end

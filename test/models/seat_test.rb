@@ -9,14 +9,9 @@ class SeatTest < ActiveSupport::TestCase
   end
 
   test "code is section number plus row letter" do
-    seat = build_carousel.seats.create!(section: 3, row: "B")
+    seat = build_carousel.seat("3B")
     assert_equal "3B", seat.code
     assert_equal "3B", seat.to_param
-  end
-
-  test "a spanning seat covers rows from its outermost row inward" do
-    seat = build_carousel(rows: 3).seats.create!(section: 2, row: "A", rows_spanned: 3)
-    assert_equal %w[ A B C ], seat.rows_covered
   end
 
   test "seat must fit on its carousel" do
@@ -24,22 +19,46 @@ class SeatTest < ActiveSupport::TestCase
 
     assert_not carousel.seats.build(section: 5, row: "A").valid?
     assert_not carousel.seats.build(section: 1, row: "C").valid?
-    assert_not carousel.seats.build(section: 1, row: "B", rows_spanned: 2).valid?
-    assert carousel.seats.build(section: 4, row: "A", rows_spanned: 2).valid?
+    assert_not carousel.seat("1B").tap { _1.rows_spanned = 2 }.valid?
+    assert carousel.seat("4A").tap { _1.rows_spanned = 2 }.valid?
   end
 
   test "a seat code is unique on its carousel" do
-    carousel = build_carousel
-    carousel.seats.create!(section: 1, row: "A")
-    assert_not carousel.seats.build(section: 1, row: "A").valid?
+    assert_not build_carousel.seats.build(section: 1, row: "A").valid?
+  end
+
+  test "spanning more rows absorbs the free seats it covers" do
+    carousel = build_carousel(sections: 2, rows: 3)
+    carousel.seat("2A").update!(rows_spanned: 3)
+
+    assert_equal %w[ A B C ], carousel.seat("2A").rows_covered
+    assert_nil carousel.seat("2B")
+    assert_nil carousel.seat("2C")
+  end
+
+  test "spanning fewer rows gives back unknown seats" do
+    carousel = build_carousel(sections: 2, rows: 3)
+    carousel.seat("2A").update!(rows_spanned: 3)
+    carousel.seat("2A").update!(rows_spanned: 1)
+
+    assert_equal "unknown", carousel.seat("2B").state
+    assert_equal "unknown", carousel.seat("2C").state
+  end
+
+  test "a seat can't span over a seat that has a figure" do
+    carousel = build_carousel(sections: 2, rows: 2)
+    SeatAssignment.new(carousel.seat("1B"), create_figure("Stormy")).save!
+
+    seat = carousel.seat("1A")
+    assert_not seat.update(rows_spanned: 2)
+    assert_match "1B", seat.errors.full_messages.to_sentence
   end
 
   test "only one figure sits in a seat at a time" do
-    seat = build_carousel.seats.create!(section: 1, row: "A")
-    horse = FigureType.create!(name: "Horse", category: "horse")
-    seat.placements.create!(figure: Figure.create!(name: "First", figure_type: horse))
+    seat = build_carousel.seat("1A")
+    seat.placements.create!(figure: create_figure("First"))
 
-    second = seat.placements.build(figure: Figure.create!(name: "Second", figure_type: horse))
+    second = seat.placements.build(figure: create_figure("Second"))
     assert_not second.valid?
 
     second.ended_on = Date.new(1990, 1, 1)

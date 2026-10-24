@@ -1,0 +1,10 @@
+<%= form_with model: maker, class: "form" do |form| %>
+  <%= render "shared/errors", record: maker %>
+  <div class="field-row">
+    <div class="field"><%= form.label :name %><%= form.text_field :name, required: true %></div>
+    <div class="field"><%= form.label :kind, "Person or company" %><%= form.select :kind, Maker::KINDS.map { [ _1.capitalize, _1 ] }, include_blank: "Unknown" %></div>
+    <div class="field"><%= form.label :years_active %><%= form.text_field :years_active, placeholder: "1905–1928" %></div>
+  </div>
+  <%= render "shared/body_field", form: %>
+  <div class="actions"><%= form.submit %> <%= link_to "Cancel", maker.persisted? ? maker : makers_path %></div>
+<% end %>

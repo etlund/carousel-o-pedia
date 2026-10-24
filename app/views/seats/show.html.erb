@@ -2,6 +2,7 @@
 <header class="page-header">
   <p class="muted"><%= link_to @carousel.name, @carousel %></p>
   <h1>Seat <%= @seat.code %></h1>
+  <%= render "shared/page_actions", edit: edit_carousel_seat_path(@carousel, @seat), history: history_carousel_seat_path(@carousel, @seat) %>
 </header>
 <dl class="facts card">
   <dt>Position</dt>

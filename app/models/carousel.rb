@@ -17,6 +17,10 @@ class Carousel < ApplicationRecord
   validates :sections_count, numericality: { only_integer: true, greater_than: 0 }
   validates :rows_count, numericality: { only_integer: true, in: 1..MAX_ROWS }
 
+  blank_as_nil :city, :region, :country, :venue, :body
+
+  after_create :fill_missing_seats
+
   # Rows are lettered from the outside in: A is always the outer row.
   def row_letters = ("A"..).first(rows_count)
 
@@ -32,6 +36,17 @@ class Carousel < ApplicationRecord
       counts = FigureType::CATEGORIES.index_with { 0 }
       section_seats.each { |seat| counts[seat.category] += 1 if seat.category }
       { number:, seats: section_seats.index_by(&:row), counts: }
+    end
+  end
+
+  # Every spot on the platform not covered by a seat gets an "unknown" seat, so a new
+  # carousel starts with a full chart to fill in.
+  def fill_missing_seats
+    covered = seats.reload.flat_map { |seat| seat.rows_covered.map { |row| [ seat.section, row ] } }.to_set
+    (1..sections_count).each do |section|
+      row_letters.each do |row|
+        seats.create!(section:, row:, state: "unknown") unless covered.include?([ section, row ])
+      end
     end
   end
 

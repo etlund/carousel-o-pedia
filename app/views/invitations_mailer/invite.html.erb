@@ -1,0 +1,3 @@
+<p><%= @invitation.invited_by.name %> invited you to help document carousels on Carousel-pedia.</p>
+<p><%= link_to "Accept the invitation", edit_invitation_acceptance_url(@invitation.token) %></p>
+<p>The link works for <%= Invitation::EXPIRES_IN.inspect %>.</p>

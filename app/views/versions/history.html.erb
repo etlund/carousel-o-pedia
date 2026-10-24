@@ -1,0 +1,11 @@
+<% title = @record.is_a?(Seat) ? "#{@record.carousel.name} seat #{@record.code}" : @record.name %>
+<% content_for :title, "History of #{title}" %>
+<header class="page-header">
+  <p class="muted"><%= link_to title, @record.is_a?(Seat) ? carousel_seat_path(@record.carousel, @record) : @record %></p>
+  <h1>History</h1>
+</header>
+<% if @versions.any? %>
+  <ol class="versions"><%= render partial: "versions/version", collection: @versions %></ol>
+<% else %>
+  <p>No changes recorded yet.</p>
+<% end %>

@@ -1,0 +1,4 @@
+<% content_for :title, "Recent changes" %>
+<h1>Recent changes</h1>
+<p class="muted">The last 100 edits across the site, newest first.</p>
+<ol class="versions"><%= render partial: "versions/version", collection: @versions %></ol>

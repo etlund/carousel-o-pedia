@@ -1,0 +1,19 @@
+<%= form_with model: figure, class: "form" do |form| %>
+  <%= render "shared/errors", record: figure %>
+  <div class="field-row">
+    <div class="field"><%= form.label :name %><%= form.text_field :name, required: true %></div>
+    <div class="field"><%= form.label :short_name, "Name on the chart" %><%= form.text_field :short_name, placeholder: "Optional, for long names" %></div>
+  </div>
+  <div class="field-row">
+    <div class="field"><%= form.label :figure_type_id, "Type" %><%= form.collection_select :figure_type_id, FigureType.order(:name), :id, :name, { prompt: "Choose a type" }, required: true %></div>
+    <div class="field"><%= form.label :mount %><%= form.select :mount, Figure::MOUNTS.map { [ _1.capitalize, _1 ] }, include_blank: "Unknown" %></div>
+  </div>
+  <div class="field"><%= form.label :description %><%= form.text_area :description, rows: 3 %></div>
+  <div class="field-row">
+    <div class="field"><%= form.label :carver_id, "Carver" %><%= form.collection_select :carver_id, Maker.order(:name), :id, :name, include_blank: "Unknown" %></div>
+    <div class="field"><%= form.label :year_carved %><%= form.number_field :year_carved %></div>
+    <div class="field"><%= form.label :sponsor, "Sponsor or dedication" %><%= form.text_field :sponsor %></div>
+  </div>
+  <%= render "shared/body_field", form: %>
+  <div class="actions"><%= form.submit %> <%= link_to "Cancel", figure.persisted? ? figure : figures_path %></div>
+<% end %>

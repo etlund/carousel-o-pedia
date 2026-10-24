@@ -12,6 +12,8 @@ class Figure < ApplicationRecord
   has_one :carousel, through: :seat
 
   validates :name, presence: true
+  blank_as_nil :mount, :short_name, :sponsor, :description, :body
+
   validates :mount, inclusion: { in: MOUNTS }, allow_nil: true
 
   delegate :category, to: :figure_type
