@@ -1,0 +1,10 @@
+<% content_for :title, "Figure types" %>
+<h1>Figure types</h1>
+<% @figure_types.group_by(&:category).each do |category, types| %>
+  <h2><%= category_label(category) %></h2>
+  <ul class="type-list">
+    <% types.each do |type| %>
+      <li><%= link_to type.name, type %> <span class="muted"><%= type.figures_count %></span></li>
+    <% end %>
+  </ul>
+<% end %>

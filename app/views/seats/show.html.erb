@@ -1,0 +1,21 @@
+<% content_for :title, "#{@carousel.name} #{@seat.code}" %>
+<header class="page-header">
+  <p class="muted"><%= link_to @carousel.name, @carousel %></p>
+  <h1>Seat <%= @seat.code %></h1>
+</header>
+<dl class="facts card">
+  <dt>Position</dt>
+  <dd>Section <%= @seat.section %>, <%= @seat.rows_spanned > 1 ? "rows #{@seat.rows_covered.first} to #{@seat.rows_covered.last}" : "row #{@seat.row}" %></dd>
+  <dt>Confidence</dt><dd><%= @seat.confirmed? ? "Confirmed" : "Best reading, not yet confirmed" %></dd>
+  <dt>Figure now</dt>
+  <dd><%= @seat.figure ? link_to(@seat.figure.name, @seat.figure) : @seat.state.capitalize %></dd>
+</dl>
+<% previous = @placements.reject { |placement| placement.ended_on.nil? } %>
+<% if previous.any? %>
+  <h2>Earlier figures</h2>
+  <ul>
+    <% previous.each do |placement| %>
+      <li><%= link_to placement.figure.name, placement.figure %> until <%= placement.ended_on.year %></li>
+    <% end %>
+  </ul>
+<% end %>

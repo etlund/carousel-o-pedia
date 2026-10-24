@@ -1,0 +1,22 @@
+<% content_for :title, @figure.name %>
+<header class="page-header">
+  <h1><%= @figure.name %></h1>
+  <p class="muted"><%= link_to @figure.figure_type.name, @figure.figure_type %><% if @figure.seat %> · <%= seat_link(@figure.seat) %><% end %></p>
+</header>
+<% if @figure.description.present? %><p class="lede"><%= @figure.description %></p><% end %>
+<dl class="facts card">
+  <dt>Category</dt><dd><%= category_label(@figure.category) %></dd>
+  <% if @figure.mount %><dt>Mount</dt><dd><%= @figure.mount.capitalize %></dd><% end %>
+  <% if @figure.carver %><dt>Carver</dt><dd><%= link_to @figure.carver.name, @figure.carver %></dd><% end %>
+  <% if @figure.year_carved %><dt>Carved</dt><dd><%= @figure.year_carved %></dd><% end %>
+  <% if @figure.sponsor.present? %><dt>Sponsor</dt><dd><%= @figure.sponsor %></dd><% end %>
+</dl>
+<div class="prose"><%= wiki_body(@figure.body) %></div>
+<% if @placements.size > 1 %>
+  <h2>Seats over time</h2>
+  <ul>
+    <% @placements.each do |placement| %>
+      <li><%= seat_link(placement.seat) %><%= placement.ended_on ? " until #{placement.ended_on.year}" : " (now)" %></li>
+    <% end %>
+  </ul>
+<% end %>

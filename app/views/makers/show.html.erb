@@ -1,0 +1,14 @@
+<% content_for :title, @maker.name %>
+<header class="page-header">
+  <h1><%= @maker.name %></h1>
+  <p class="muted"><%= [ @maker.kind&.capitalize, @maker.years_active ].compact_blank.join(" · ") %></p>
+</header>
+<div class="prose"><%= wiki_body(@maker.body) %></div>
+<% if @maker.carousels.any? %>
+  <h2>Carousels</h2>
+  <ul><% @maker.carousels.each do |carousel| %><li><%= link_to carousel.name, carousel %></li><% end %></ul>
+<% end %>
+<% if @maker.figures.any? %>
+  <h2>Figures carved</h2>
+  <ul><% @maker.figures.each do |figure| %><li><%= link_to figure.name, figure %></li><% end %></ul>
+<% end %>

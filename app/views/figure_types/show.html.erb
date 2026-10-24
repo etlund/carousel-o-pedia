@@ -1,0 +1,11 @@
+<% content_for :title, @figure_type.name %>
+<header class="page-header">
+  <h1><%= @figure_type.name %></h1>
+  <p class="muted"><%= category_label(@figure_type.category) %> · <%= pluralize(@figures.size, "figure") %></p>
+</header>
+<div class="prose"><%= wiki_body(@figure_type.body) %></div>
+<ul>
+  <% @figures.each do |figure| %>
+    <li><%= link_to figure.name, figure %><% if figure.seat %> <span class="muted">· <%= seat_link(figure.seat) %></span><% end %></li>
+  <% end %>
+</ul>
