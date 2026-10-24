@@ -1,8 +1,10 @@
 module ApplicationHelper
   def category_label(category) = FigureType::CATEGORY_LABELS.fetch(category)
 
-  def seat_link(seat, text = nil)
-    link_to text || "#{seat.carousel.name}, seat #{seat.code}", carousel_seat_path(seat.carousel, seat)
+  def seat_link(seat)
+    link_to carousel_seat_path(seat.carousel, seat), class: "seat-link" do
+      safe_join([ seat_badge(seat), seat.carousel.name ])
+    end
   end
 
   # Page text is plain paragraphs for now; Markdown with [[wiki links]] comes later.
