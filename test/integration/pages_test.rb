@@ -41,4 +41,33 @@ class PagesTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
   end
+
+  test "Missoula pages show the lead and unplaced inventory without invented seating" do
+    carousel = Carousel.find_by!(slug: "a-carousel-for-missoula")
+    get carousel_path(carousel)
+    assert_response :success
+    assert_select "svg.seat-chart a.seat", 42
+    assert_select ".prose", text: /Scaffi/
+    assert_select ".prose", text: /provisional values, not verified facts/
+    assert_select ".prose h2", text: "Seating information"
+    assert_select ".prose h2", text: "Sources"
+    assert_select ".prose ul li a[href=?]", "https://www.missoulacarousel.org/building-a-community-dream-a-carousel-for-missoula/", text: "A Community Dream: The Carousel"
+    assert_select "a", text: "Columbia Belle"
+
+    patches = Figure.find_by!(slug: "a-carousel-for-missoula-patches")
+    get figure_path(patches)
+    assert_response :success
+    assert_select "h1", "Patches"
+    assert_select ".facts dd", text: "Bertlin-Mostad Family"
+    assert_select ".prose", text: /Middle-row replacement pony/
+    assert_select ".prose a[href=?]", "https://carousels.org/psp/Missoula/Patches.html"
+    assert_select "a.seat-link", 0
+
+    get figures_path
+    assert_response :success
+    assert_select "a[href=?]", figure_path(patches), text: "Patches"
+    assert_select "a", text: "Scaffi"
+    assert_select "a", text: "Lucky Red Ringer"
+    assert_select "a", text: "Titan the Hippocampus"
+  end
 end

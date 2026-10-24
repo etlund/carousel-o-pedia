@@ -64,3 +64,4 @@ group :test do
 end
 
 gem "paper_trail", "~> 17.0"
+gem "redcarpet", "~> 3.6"

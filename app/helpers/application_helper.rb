@@ -7,8 +7,10 @@ module ApplicationHelper
     end
   end
 
-  # Page text is plain paragraphs for now; Markdown with [[wiki links]] comes later.
   def wiki_body(text)
-    simple_format(text) if text.present?
+    if text.present?
+      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML.new(hard_wrap: true), autolink: true, fenced_code_blocks: true)
+      sanitize(markdown.render(text))
+    end
   end
 end

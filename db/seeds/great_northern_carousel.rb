@@ -59,35 +59,50 @@ mounts = { "Tea-cup" => "spinning", "Chariot" => "fixed" }.freeze
 
 ActiveRecord::Base.transaction do
   types = types_by_name.to_h do |name, category|
-    [ name, FigureType.find_or_create_by!(name:) { |type| type.category = category } ]
+    type = FigureType.find_or_initialize_by(slug: name.parameterize)
+    type.update!(name:, category:)
+    [ name, type ]
   end
 
-  # Once the carousel exists the wiki owns its data, so seeding again leaves it alone.
-  next if Carousel.exists?(slug: "great-northern-carousel")
-
-  carousel = Carousel.create!(slug: "great-northern-carousel") do |c|
-    c.name = "Great Northern Carousel"
-    c.city = "Helena"
-    c.region = "Montana"
-    c.country = "United States"
-    c.sections_count = 14
-    c.rows_count = 3
-    c.rotation = "counterclockwise"
-    c.body = <<~MD
+  carousel = Carousel.find_or_initialize_by(slug: "great-northern-carousel")
+  carousel.update!(
+    name: "Great Northern Carousel", city: "Helena", region: "Montana", country: "United States",
+    status: "operating", venue: nil, maker: nil, year_built: nil, year_opened: nil,
+    sections_count: 14, rows_count: 3, rotation: "counterclockwise",
+    body: <<~MD
       A hand-carved carousel in Helena, Montana, with 37 animals, a spinning tea-cup and a chariot bench on a 14-section, three-row platform. Most of its figures are Montana wildlife.
 
       Titan the hippocampus is the lead figure, in seat 1A, and sections are numbered in the order the figures pass someone standing at the rail.
     MD
+  )
+
+  seeded_figures = seats.to_h do |code, (name, short_name, type_name, description)|
+    figure = Figure.find_or_initialize_by(slug: name.parameterize)
+    figure.update!(
+      name:, short_name:, figure_type: types.fetch(type_name), description:,
+      mount: mounts[type_name], sponsor: nil, carver: nil, year_carved: nil, body: nil
+    )
+    [ code, figure ]
   end
 
-  seats.each do |code, (name, short_name, type_name, description, seat_attributes)|
-    attributes = { confidence: code.end_with?("A") ? "confirmed" : "best_reading" }.merge(seat_attributes || {})
+  Placement.current.where(figure: seeded_figures.values).or(Placement.current.where(seat: carousel.seats)).each do |placement|
+    next if placement.seat.carousel_id == carousel.id && seeded_figures[placement.seat.code] == placement.figure
+
+    SeatAssignment.new(placement.seat, nil).save!
+  end
+
+  carousel.seats.where.not(section: 1..carousel.sections_count, row: carousel.row_letters).destroy_all
+  carousel.seats.each do |seat|
+    seat_attributes = seats.fetch(seat.code, [])[4] || {}
+    expected_span = seat_attributes.fetch(:rows_spanned, 1)
+    seat.update!(rows_spanned: 1) if seat.rows_spanned != expected_span && seat.rows_spanned != 1
+  end
+  carousel.fill_missing_seats
+
+  seats.each do |code, values|
+    attributes = { confidence: code.end_with?("A") ? "confirmed" : "best_reading" }.merge(values[4] || {})
     seat = carousel.seats.find_or_initialize_by(Seat.parse_code(code))
     seat.update!(attributes)
-    next unless name
-
-    figure = Figure.find_or_initialize_by(name:, figure_type: types.fetch(type_name))
-    figure.update!(short_name:, description:, mount: mounts[type_name])
-    Placement.find_or_create_by!(figure:, seat:, ended_on: nil)
+    SeatAssignment.new(seat, seeded_figures.fetch(code)).save!
   end
 end
