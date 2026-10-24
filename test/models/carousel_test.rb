@@ -42,4 +42,29 @@ class CarouselTest < ActiveSupport::TestCase
     carousel.update!(city: "Helena")
     assert_equal 2, carousel.versions.count
   end
+
+  test "choosing a lead figure renumbers sections from it" do
+    carousel = build_carousel(sections: 4, rows: 2)
+    lead = create_figure("Titan", category: "menagerie")
+    SeatAssignment.new(carousel.seat("3A"), lead).save!
+    SeatAssignment.new(carousel.seat("2B"), create_figure("Moon Wind")).save!
+
+    carousel.renumber_from!(carousel.seat("3A"))
+
+    assert_equal lead, carousel.lead_figure
+    assert_equal "Moon Wind", carousel.seat("4B").figure.name
+    assert_equal %w[ 1A 1B 2A 2B 3A 3B 4A 4B ], carousel.seats.reload.map(&:code)
+    assert_equal [ 3, 1 ], carousel.seat("1A").versions.last.changeset["section"]
+  end
+
+  test "renumbering keeps the order and turns a full circle" do
+    carousel = load_seeds
+    carousel.renumber_from!(carousel.seat("3A"))
+    assert_equal "Cutty the Trout", carousel.lead_figure.name
+    assert_equal "Titan the Hippocampus", carousel.seat("13A").figure.name
+
+    carousel.renumber_from!(carousel.seat("13A"))
+    assert_equal "Titan the Hippocampus", carousel.lead_figure.name
+    assert_equal %w[ A B C ], carousel.seat("4A").rows_covered
+  end
 end

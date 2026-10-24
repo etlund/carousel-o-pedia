@@ -9,7 +9,7 @@ class SeatChartTest < ApplicationSystemTestCase
 
     find("svg.seat-chart a.seat", text: "Gulliver").click
 
-    assert_selector "h1", text: "Seat 7A"
+    assert_selector "h1", text: "Seat 9A"
     click_on "Gulliver"
     assert_selector "h1", text: "Gulliver"
   end

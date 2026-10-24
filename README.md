@@ -14,7 +14,7 @@ bin/rails test
 
 In development, sign in as `admin@example.com` with password `carousel`.
 
-The seeds load the Great Northern Carousel in Helena, Montana: 14 sections, 3 rows, 36 animals, a tea-cup and a chariot bench.
+The seeds load the Great Northern Carousel in Helena, Montana: 14 sections, 3 rows, 37 animals, a tea-cup and a chariot bench, with Titan the hippocampus as the lead figure in 1A.
 
 ## Data model
 

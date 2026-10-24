@@ -13,6 +13,7 @@
       <% FigureType::CATEGORIES.each do |category| %>
         <dt><%= category_label(category) %></dt><dd><%= @totals[category] %></dd>
       <% end %>
+      <% if (lead = @carousel.lead_figure) %><dt>Lead figure</dt><dd><%= link_to lead.name, lead %></dd><% end %>
       <dt>Status</dt><dd><%= @carousel.status.capitalize %></dd>
       <% if @carousel.maker %><dt>Maker</dt><dd><%= link_to @carousel.maker.name, @carousel.maker %></dd><% end %>
       <% if @carousel.year_opened %><dt>Opened</dt><dd><%= @carousel.year_opened %></dd><% end %>

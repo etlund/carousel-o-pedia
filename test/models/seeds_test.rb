@@ -6,19 +6,24 @@ class SeedsTest < ActiveSupport::TestCase
 
     assert_equal 14, carousel.sections_count
     assert_equal 3, carousel.rows_count
-    assert_equal({ "horse" => 18, "menagerie" => 18, "chariot" => 2 }, carousel.category_totals)
-    assert_equal "Cutty the Trout", carousel.seat("1A").figure.name
-    assert_equal "Gulliver", carousel.seat("7A").figure.name
-    assert_equal %w[ A B C ], carousel.seat("2A").rows_covered
-    assert_equal "unknown", carousel.seat("7C").state
-    assert carousel.seat("6C").confirmed?
-    assert_not carousel.seat("6B").confirmed?
+    assert_equal({ "horse" => 18, "menagerie" => 19, "chariot" => 2 }, carousel.category_totals)
+    assert_equal "Titan the Hippocampus", carousel.lead_figure.name
+    assert_equal "Cutty the Trout", carousel.seat("3A").figure.name
+    assert_equal "Gulliver", carousel.seat("9A").figure.name
+    assert_equal %w[ A B C ], carousel.seat("4A").rows_covered
+    assert_equal "Otter 2", carousel.seat("9C").figure.name
+    assert_equal "Sandhill Cranes", carousel.seat("11A").figure.name
+    assert_equal "Pronghorn", carousel.seat("12B").figure.figure_type.name
+    assert carousel.seat("8C").confirmed?
+    assert_not carousel.seat("8B").confirmed?
   end
 
-  test "loading seeds twice changes nothing" do
-    load_seeds
+  test "loading seeds again leaves wiki edits alone" do
+    carousel = load_seeds
+    carousel.seat("9A").figure.update!(description: "Edited on the wiki")
     assert_no_difference %w[ Seat.count Figure.count Placement.count FigureType.count ] do
       load_seeds
     end
+    assert_equal "Edited on the wiki", carousel.seat("9A").figure.description
   end
 end

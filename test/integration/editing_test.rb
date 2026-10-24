@@ -29,23 +29,23 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_select ".changes ins", "White mountain goat with a gold pan"
   end
 
-  test "an editor fills an unknown seat with a new figure" do
+  test "an editor puts a new figure in a seat" do
     sign_in_as users(:editor)
 
     post figures_path, params: { figure: { name: "Rocky the Marmot", figure_type_id: FigureType.find_by!(name: "Jackrabbit").id, mount: "" } }
     rocky = Figure.find_by!(name: "Rocky the Marmot")
     assert_nil rocky.mount
 
-    patch carousel_seat_path(@carousel, "7C"), params: { seat: { figure_id: rocky.id, confidence: "confirmed", rows_spanned: 1 } }
-    assert_redirected_to carousel_seat_path(@carousel, "7C")
-    assert_equal rocky, @carousel.seat("7C").figure
-    assert @carousel.seat("7C").confirmed?
+    patch carousel_seat_path(@carousel, "9C"), params: { seat: { figure_id: rocky.id, confidence: "confirmed", rows_spanned: 1 } }
+    assert_redirected_to carousel_seat_path(@carousel, "9C")
+    assert_equal rocky, @carousel.seat("9C").figure
+    assert @carousel.seat("9C").confirmed?
   end
 
   test "an editor can mark a seat empty" do
     sign_in_as users(:editor)
-    patch carousel_seat_path(@carousel, "7C"), params: { seat: { figure_id: "empty", confidence: "confirmed", rows_spanned: 1 } }
-    assert_equal "empty", @carousel.seat("7C").state
+    patch carousel_seat_path(@carousel, "9C"), params: { seat: { figure_id: "empty", confidence: "confirmed", rows_spanned: 1 } }
+    assert_equal "empty", @carousel.seat("9C").state
   end
 
   test "a new carousel gets a full chart of unknown seats" do
@@ -61,6 +61,17 @@ class EditingTest < ActionDispatch::IntegrationTest
     sign_in_as users(:editor)
     patch carousel_path(@carousel), params: { carousel: { name: "Great Northern Carousel", sections_count: 20 } }
     assert_equal 14, @carousel.reload.sections_count
+  end
+
+  test "an editor sets the lead figure from the carousel form" do
+    sign_in_as users(:editor)
+    cutty_seat = @carousel.seat("3A")
+
+    patch carousel_path(@carousel), params: { carousel: { name: "Great Northern Carousel", lead_seat_id: cutty_seat.id } }
+
+    assert_redirected_to carousel_path(@carousel)
+    assert_equal "Cutty the Trout", @carousel.lead_figure.name
+    assert_equal "1A", cutty_seat.reload.code
   end
 
   test "only admins can revert" do

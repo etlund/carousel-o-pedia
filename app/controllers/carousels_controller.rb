@@ -30,7 +30,9 @@ class CarouselsController < ApplicationController
   end
 
   def update
+    lead_seat = @carousel.seats.find_by(id: params.dig(:carousel, :lead_seat_id))
     if @carousel.update(carousel_params)
+      @carousel.renumber_from!(lead_seat) if lead_seat
       redirect_to @carousel, notice: "Saved."
     else
       render :edit, status: :unprocessable_entity
