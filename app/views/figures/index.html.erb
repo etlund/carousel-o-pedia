@@ -1,5 +1,8 @@
 <% content_for :title, "Figures" %>
-<h1>Figures</h1>
+<header class="page-header">
+  <h1>Figures</h1>
+  <% if authenticated? %><p class="page-actions"><%= link_to "Add a figure", new_figure_path, class: "button" %></p><% end %>
+</header>
 <div class="table-scroll">
   <table>
     <thead><tr><th>Figure</th><th>Type</th><th>Where</th></tr></thead>

@@ -1,0 +1,10 @@
+<%= form_with model: figure_type, class: "form" do |form| %>
+  <%= render "shared/errors", record: figure_type %>
+  <div class="field-row">
+    <div class="field"><%= form.label :name %><%= form.text_field :name, required: true, placeholder: "Bison, trout, sea dragon" %></div>
+    <div class="field"><%= form.label :category %><%= form.select :category, FigureType::CATEGORIES.map { [ category_label(_1), _1 ] } %></div>
+  </div>
+  <p class="hint">The category sets the figure's colour on seat charts and which count it adds to.</p>
+  <%= render "shared/body_field", form: %>
+  <div class="actions"><%= form.submit %> <%= link_to "Cancel", figure_type.persisted? ? figure_type : figure_types_path %></div>
+<% end %>

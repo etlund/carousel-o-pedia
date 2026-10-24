@@ -8,6 +8,8 @@ class FigureType < ApplicationRecord
 
   has_many :figures, dependent: :restrict_with_error
 
+  blank_as_nil :body
+
   validates :name, presence: true
   validates :category, inclusion: { in: CATEGORIES }
 end

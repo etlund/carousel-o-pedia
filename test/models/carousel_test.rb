@@ -5,23 +5,24 @@ class CarouselTest < ActiveSupport::TestCase
     assert_equal %w[ A B C D ], build_carousel(rows: 4).row_letters
   end
 
+  test "a new carousel starts with an unknown seat in every spot" do
+    carousel = build_carousel(sections: 4, rows: 2)
+    assert_equal %w[ 1A 1B 2A 2B 3A 3B 4A 4B ], carousel.seats.map(&:code)
+    assert carousel.seats.all? { _1.state == "unknown" }
+  end
+
   test "finds a seat by code" do
     carousel = build_carousel
-    seat = carousel.seats.create!(section: 2, row: "B")
-    assert_equal seat, carousel.seat("2b")
+    assert_equal "2B", carousel.seat("2b").code
     assert_nil carousel.seat("9Z")
     assert_nil carousel.seat("nonsense")
   end
 
   test "section breakdown counts figures by category" do
     carousel = build_carousel(sections: 2, rows: 2)
-    horse = FigureType.create!(name: "Horse", category: "horse")
-    bison = FigureType.create!(name: "Bison", category: "menagerie")
-    [ [ "1A", horse ], [ "1B", bison ], [ "2A", horse ] ].each do |code, type|
-      seat = carousel.seats.create!(Seat.parse_code(code))
-      seat.placements.create!(figure: Figure.create!(name: "Figure #{code}", figure_type: type))
+    [ [ "1A", "horse" ], [ "1B", "menagerie" ], [ "2A", "horse" ] ].each do |code, category|
+      SeatAssignment.new(carousel.seat(code), create_figure("Figure #{code}", category:)).save!
     end
-    carousel.seats.create!(section: 2, row: "B", state: "unknown")
 
     sections = carousel.section_breakdown
     assert_equal [ 1, 2 ], sections.map { _1[:number] }

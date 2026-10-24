@@ -12,6 +12,8 @@ bin/dev            # http://localhost:3000
 bin/rails test
 ```
 
+In development, sign in as `admin@example.com` with password `carousel`.
+
 The seeds load the Great Northern Carousel in Helena, Montana: 14 sections, 3 rows, 36 animals, a tea-cup and a chariot bench.
 
 ## Data model
@@ -23,3 +25,12 @@ The seeds load the Great Northern Carousel in Helena, Montana: 14 sections, 3 ro
 - **Maker**: carvers and companies.
 
 Every record keeps its edit history through PaperTrail.
+
+## Editing
+
+Anyone can read. Editing is invite-only:
+
+- Create the first admin on a new server with `bin/rails users:create_admin EMAIL=you@example.com NAME="Your Name"`. It asks for a password.
+- Admins invite editors from the Invitations page. Each link works for 14 days. If email isn't configured yet, copy the link from that page and send it yourself.
+- Every page has a History tab. Recent changes lists every edit, and admins can revert any edit.
+- A new carousel starts with an unknown seat in every spot. To fill a seat, click it on the chart and choose a figure. Choosing a figure that already sits somewhere else moves it, and its old seat becomes empty.

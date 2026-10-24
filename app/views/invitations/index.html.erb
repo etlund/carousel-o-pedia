@@ -1,0 +1,36 @@
+<% content_for :title, "Invitations" %>
+<h1>Invitations</h1>
+<p class="muted">Editing is invite-only. Each invitation link works for <%= Invitation::EXPIRES_IN.inspect %>.</p>
+
+<%= form_with model: @invitation, class: "form inline-form" do |form| %>
+  <%= render "shared/errors", record: @invitation %>
+  <div class="field"><%= form.label :email_address, "Invite by email" %><%= form.email_field :email_address, required: true, placeholder: "name@example.com" %></div>
+  <%= form.submit "Send invitation" %>
+<% end %>
+
+<h2>Waiting to be accepted</h2>
+<% if @invitations.any? %>
+  <table>
+    <thead><tr><th>Email</th><th>Invited by</th><th>Link</th><th></th></tr></thead>
+    <tbody>
+      <% @invitations.each do |invitation| %>
+        <tr>
+          <td><%= invitation.email_address %></td>
+          <td><%= invitation.invited_by.name %>, <%= time_ago_in_words(invitation.created_at) %> ago</td>
+          <td><input type="text" readonly value="<%= edit_invitation_acceptance_url(invitation.token) %>" aria-label="Invitation link for <%= invitation.email_address %>" class="copy-field"></td>
+          <td><%= button_to "Withdraw", invitation, method: :delete, class: "link-button" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p class="hint">If email isn't set up yet, copy a link and send it yourself.</p>
+<% else %>
+  <p>None.</p>
+<% end %>
+
+<h2>Editors</h2>
+<ul>
+  <% @users.each do |user| %>
+    <li><%= user.name %> <span class="muted">· <%= user.email_address %><%= " · admin" if user.admin? %></span></li>
+  <% end %>
+</ul>

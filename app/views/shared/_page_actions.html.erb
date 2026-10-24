@@ -1,0 +1,5 @@
+<%# Edit and History links shown under a page's title. %>
+<p class="page-actions">
+  <% if authenticated? && local_assigns[:edit] %><%= link_to "Edit", edit, class: "button" %><% end %>
+  <%= link_to "History", history %>
+</p>

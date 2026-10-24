@@ -1,0 +1,11 @@
+<% content_for :title, "Makers" %>
+<header class="page-header">
+  <h1>Makers</h1>
+  <% if authenticated? %><p class="page-actions"><%= link_to "Add a maker", new_maker_path, class: "button" %></p><% end %>
+</header>
+<p class="muted">Carvers and companies who built carousels and their figures.</p>
+<% if @makers.any? %>
+  <ul><% @makers.each do |maker| %><li><%= link_to maker.name, maker %> <span class="muted"><%= maker.years_active %></span></li><% end %></ul>
+<% else %>
+  <p>No makers yet.</p>
+<% end %>

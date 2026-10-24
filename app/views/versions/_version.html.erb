@@ -1,0 +1,18 @@
+<li class="version">
+  <div class="version-line">
+    <strong><%= version_author(version) %></strong> <%= version_event(version) %> <%= version_subject(version) %>
+    <span class="muted">· <%= time_ago_in_words(version.created_at) %> ago</span>
+    <% if current_user&.admin? && version.event == "update" %>
+      <%= button_to "Revert", revert_version_path(version), class: "link-button", form: { data: { turbo_confirm: "Put this back the way it was before this edit?" } } %>
+    <% end %>
+  </div>
+  <% changes = version_changes(version) %>
+  <% if version.event == "update" && changes.any? %>
+    <dl class="changes">
+      <% changes.each do |field, (before, after)| %>
+        <dt><%= field.humanize %></dt>
+        <dd><del><%= change_value(field, before) %></del> <ins><%= change_value(field, after) %></ins></dd>
+      <% end %>
+    </dl>
+  <% end %>
+</li>
