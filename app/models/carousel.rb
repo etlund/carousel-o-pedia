@@ -28,6 +28,26 @@ class Carousel < ApplicationRecord
 
   def seat(code) = seats.find_by(Seat.parse_code(code) || { id: nil })
 
+  # The lead figure sits in the outer row of section 1. Numbering runs from it.
+  def lead_seat = seat("1A")
+
+  def lead_figure = lead_seat&.figure
+
+  # Renumbers every section so the given seat's section becomes section 1, keeping the
+  # order figures pass the rail. Each seat's change is kept in its history.
+  def renumber_from!(seat)
+    shift = seat.section - 1
+    return if shift.zero?
+
+    transaction do
+      all = seats.reload.to_a
+      # Park every section on a negative number first, so no two seats ever share a code.
+      seats.update_all("section = -section")
+      all.each { |each_seat| each_seat.update!(section: (each_seat.section - 1 - shift) % sections_count + 1) }
+      seats.reset
+    end
+  end
+
   # One entry per section: its seats and how many figures of each category sit there.
   def section_breakdown
     by_section = seats.includes(current_placement: { figure: :figure_type }).group_by(&:section)
