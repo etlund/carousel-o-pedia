@@ -13,6 +13,7 @@ class SeedsTest < ActiveSupport::TestCase
     assert_equal %w[ A B C ], carousel.seat("4A").rows_covered
     assert_equal "Otter 2", carousel.seat("9C").figure.name
     assert_equal "Sandhill Cranes", carousel.seat("11A").figure.name
+    assert_equal "Pronghorn", carousel.seat("12B").figure.figure_type.name
     assert carousel.seat("8C").confirmed?
     assert_not carousel.seat("8B").confirmed?
   end

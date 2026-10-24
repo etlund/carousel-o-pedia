@@ -7,7 +7,7 @@ types_by_name = {
   "Trout" => "menagerie", "Bison" => "menagerie", "Triceratops" => "menagerie",
   "Jackrabbit" => "menagerie", "Bighorn sheep" => "menagerie", "Toad" => "menagerie",
   "Mountain goat" => "menagerie", "Wolf" => "menagerie", "Otter" => "menagerie",
-  "Deer" => "menagerie", "Grizzly bear" => "menagerie", "Bobcat" => "menagerie",
+  "Grizzly bear" => "menagerie", "Bobcat" => "menagerie",
   "Frog" => "menagerie", "Hippocampus" => "menagerie", "Pronghorn" => "menagerie",
   "Tea-cup" => "chariot", "Chariot" => "chariot"
 }.freeze
@@ -45,7 +45,7 @@ seats = {
   "11A" => [ "Sandhill Cranes", "Cranes", "Chariot", "Blue chariot bench with sandhill cranes carved on its sides", { rows_spanned: 2 } ],
   "11C" => [ "Horse 12", nil, "Horse", "White, stars-and-stripes blanket", { confidence: "confirmed" } ],
   "12A" => [ "Mountain Goat 2", "Goat 2", "Mountain goat", "White goat, yellow saddle, orange flowers" ],
-  "12B" => [ "Deer", nil, "Deer", "Tan deer with big ears" ],
+  "12B" => [ "Pronghorn 2", nil, "Pronghorn", "Tan pronghorn with big ears", { confidence: "confirmed" } ],
   "12C" => [ "Horse 13", nil, "Horse", "Grey, blue harness" ],
   "13A" => [ "Grandpa Griz", nil, "Grizzly bear", "Grizzly bear, dark brown, blue blanket" ],
   "13B" => [ "Horse 14", nil, "Horse", "White, yellow and pink saddle" ],
