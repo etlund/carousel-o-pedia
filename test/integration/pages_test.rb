@@ -28,7 +28,9 @@ class PagesTest < ActionDispatch::IntegrationTest
   test "figure, type and index pages render" do
     get figure_path(Figure.find_by!(name: "Gulliver"))
     assert_response :success
-    assert_select "a", "Great Northern Carousel, seat 7A"
+    assert_select "a.seat-link[href=?]", "/carousels/great-northern-carousel/7A" do
+      assert_select "svg.seat-badge[aria-label=?]", "Seat 7A"
+    end
 
     get figure_type_path(FigureType.find_by!(name: "Bobcat"))
     assert_response :success
