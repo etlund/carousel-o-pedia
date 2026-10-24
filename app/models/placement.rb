@@ -9,4 +9,12 @@ class Placement < ApplicationRecord
 
   validates :figure_id, uniqueness: { conditions: -> { current } }, if: -> { ended_on.nil? }
   validates :seat_id, uniqueness: { conditions: -> { current } }, if: -> { ended_on.nil? }
+  validate :figure_belongs_to_carousel, if: -> { ended_on.nil? }
+
+  private
+    def figure_belongs_to_carousel
+      if figure && seat && figure.carousel_id != seat.carousel_id
+        errors.add(:figure, "must belong to the seat's carousel")
+      end
+    end
 end

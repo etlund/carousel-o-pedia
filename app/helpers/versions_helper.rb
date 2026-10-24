@@ -28,6 +28,7 @@ module VersionsHelper
     return value.to_s.humanize if field.in?(%w[ state confidence status rotation ])
     return Figure.find_by(id: value)&.name || value if field == "figure_id"
     return FigureType.find_by(id: value)&.name || value if field == "figure_type_id"
+    return Carousel.find_by(id: value)&.name || value if field == "carousel_id"
     return Maker.find_by(id: value)&.name || value if field.in?(%w[ maker_id carver_id ])
 
     truncate(value.to_s, length: 140)

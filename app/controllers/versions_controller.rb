@@ -11,6 +11,10 @@ class VersionsController < ApplicationController
   def revert
     version = PaperTrail::Version.find(params[:id])
     previous = version.reify
+    # Versions recorded before carousel ownership existed must retain today's owner.
+    if previous.is_a?(Figure) && previous.carousel_id.nil?
+      previous.carousel = Figure.find(previous.id).carousel
+    end
     if version.event == "update" && previous&.save
       redirect_back_or_to recent_changes_path, notice: "Reverted."
     else

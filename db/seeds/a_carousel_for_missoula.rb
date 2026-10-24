@@ -1,5 +1,5 @@
 # NCA captions are historical accounts, including photographs dated April 2004.
-# Only the lead figure is assigned a seat; sections and rotation remain provisional.
+# Seating is a visual reading of the June 29, 2024 video, not a current survey.
 
 # Partial carving credits stay in the body, rather than naming one person as sole carver.
 figures = [
@@ -234,8 +234,8 @@ figures = [
     credits: "Design: John Thompson. Neck carving: Bob Salo. Sanding: Ione Briedlander, Ethel Diettert, Dana Nichols. Painting: Paula Albers; stain: Dana Nichols."
   },
   {
-    name: "Scaffi", type: "Dragon", role: "Special-edition dragon; no known carousel placement",
-    description: "A special-edition dragon listed as adopted in the booklet, as identified by Eric. Whether it ever rode on the carousel is unknown."
+    name: "Scaffi", type: "Dragon", role: "Special-edition riding dragon",
+    description: "A special-edition dragon listed as adopted in the booklet. The June 29, 2024 video shows a green dragon with a yellow belly, white wings and a red saddle carrying a rider in the outside row; Eric confirmed its identity as Scaffi."
   },
   {
     name: "Lucky Red Ringer", source: "P4250718.html", type: "Dragon",
@@ -244,6 +244,36 @@ figures = [
     credits: "Primary carving: John Thompson; right wing: Bob Salo; left wing: Dick Withycombe. Painting: Janet Potts and Kathy Lynch."
   }
 ].freeze
+
+# Each entry gives a video timestamp and the outside, middle and inside figures.
+# A nil middle entry is covered by the chariot in the outside row.
+sections = [
+  [ 101, [ "Columbia Belle", "Leo the Lionheart", "Star Boy" ] ],
+  [ 102, [ "Evansgone", "Bud", "Marguerite" ] ],
+  [ 103, [ "Sleipnir", "Soro", "Rubie" ] ],
+  [ 103, [ "Bogie", "Toyo", "Orchard Belle" ] ],
+  [ 104, [ "Midnight Rose", "Cherished Angel", "Lil' Buck" ] ],
+  [ 104, [ "Prairie Rose", "Sweet Sue", "Koko" ] ],
+  [ 105, [ "Altrusa Chariot", nil, "Avalon" ] ],
+  [ 106, [ "Big Sky Gaiety", "Sir Franklin", "Zonta" ] ],
+  [ 106, [ "Paint", "Moonlight", "Montana Appaloosa" ] ],
+  [ 107, [ "Red Ribbons", "Meriwether", "Seattle Sue" ] ],
+  [ 108, [ "Cannonball", "Snapples", "American Beauty" ] ],
+  [ 108, [ "Dispatch", "Prince", "Hard Hat" ] ],
+  [ 109, [ "Scaffi", "Freya", "Norm" ] ],
+  [ 110, [ "Eagle Chariot", nil, "Pal's Pal" ] ]
+].freeze
+
+seating = {}
+sections.each_with_index do |(timestamp, names), index|
+  names.each_with_index do |name, row|
+    next unless name
+
+    seating["#{index + 1}#{"ABC"[row]}"] = {
+      name:, timestamp:, rows_spanned: name.end_with?("Chariot") ? 2 : 1
+    }
+  end
+end
 
 ActiveRecord::Base.transaction do
   maker = Maker.find_or_initialize_by(slug: "chuck-kaparich")
@@ -284,13 +314,17 @@ ActiveRecord::Base.transaction do
 
       Columbia Belle is the lead horse. The four Penny Ponies are Meriwether, Moonlight, Sir Franklin and Snapples. Midnight Rose is the Canadian friendship horse. Both the Altrusa Chariot and Eagle Chariot are wheelchair accessible.
 
-      Santa's Pony is the outside-row replacement, Patches the middle-row replacement, and Low Bid the inside-row replacement. Scaffi is a separate special-edition dragon listed as adopted; its use on the carousel is unknown. Lucky Red Ringer is the dragon-shaped ring dispenser, not a riding figure. The booklet's RING MACHINE entry describes equipment, not an additional pony.
+      Santa's Pony is the outside-row replacement, Patches the middle-row replacement, and Low Bid the inside-row replacement. Scaffi is a special-edition dragon listed as adopted; the June 29, 2024 video shows it carrying a rider, and Eric confirmed the dragon's identity. Lucky Red Ringer is the dragon-shaped ring dispenser, not a riding figure. The booklet's RING MACHINE entry describes equipment, not an additional pony.
 
       The band organ's facade was carved by Glenn Waters. The platform has oak decking, a reflective brass perimeter band, and plaques featuring Missoula's mountainside M; Steve Weiler carved the plaque mold.
 
       ## Seating information
 
-      Three rows are documented by the National Carousel Association. The 14-section count and counterclockwise rotation are provisional values, not verified facts. Columbia Belle anchors seat 1A by this wiki's lead-figure convention, not a verified historical seat code. All other positions and chariot spans remain unknown, so chart totals do not represent the full inventory.
+      Three rows are documented by the National Carousel Association. The June 29, 2024 video supports 14 sections and counterclockwise rotation. Columbia Belle anchors seat 1A by this wiki's lead-figure convention, not a verified historical seat code. Sections follow the order figures pass someone standing at the rail; A, B and C run from outside to inside.
+
+      Matching the video figures to the NCA reference photographs gives a 40-figure reading: 37 horses, Scaffi and two chariots. Altrusa Chariot at 7A and Eagle Chariot at 14A each span A-B, leaving an inside-row horse at C. Video-derived placements are marked as best readings; Columbia Belle's 1A anchor retains its confirmed lead-figure status.
+
+      This is the arrangement observed in footage dated June 29, 2024, not a verified current survey or the opening-day layout. The sequence can be checked around 1:40-1:51, with additional revolutions showing overlapping inner figures. Each placed figure links to its section's video timestamp. Silver and the three replacement ponies remain in the inventory without placements in this reading; their absence from this chart does not establish retirement or permanent removal.
 
       ## Inventory
 
@@ -304,16 +338,19 @@ ActiveRecord::Base.transaction do
       - [A Carousel for Missoula](https://www.missoulacarousel.org/): location in Caras Park.
       - [National Carousel Association census](https://carousels.org/USACensus/stdqueries/census-cNEW.html): three-row platform.
       - [NCA Missoula photo gallery](https://carousels.org/psp/Missoula/): figure identities, credits and historical descriptions.
+      - ["A Carousel For Missoula" - Missoula, MT 2024-06-29](https://www.youtube.com/watch?v=8E3DemQtIis&t=100s): visual reading of the platform, passing sequence and placements.
       - [Band organ facade](https://carousels.org/psp/Missoula/P4240431.html) and [platform](https://carousels.org/psp/Missoula/P4240444.html): decorative details.
-      - Booklet contents image supplied by Eric on October 24, 2026: inventory names and order. Eric identified Scaffi as a special-edition dragon listed as adopted; whether it ever rode on the carousel is not established.
+      - Booklet contents image supplied by Eric on October 24, 2026: inventory names and order. Eric identified Scaffi as a special-edition adopted dragon and subsequently confirmed it is the green riding dragon in the video.
     MD
   )
 
   inventory = figures.to_h do |entry|
     name = entry.fetch(:name)
+    observed_position = seating.find { |_code, attributes| attributes.fetch(:name) == name }
     figure = Figure.find_or_initialize_by(slug: "#{carousel.slug}-#{name.parameterize}")
+    SeatAssignment.new(figure.seat, nil).save! if figure.seat && figure.seat.carousel_id != carousel.id
     figure.update!(
-      name:, short_name: nil, figure_type: types.fetch(entry.fetch(:type, "Horse")),
+      name:, short_name: nil, carousel:, figure_type: types.fetch(entry.fetch(:type, "Horse")),
       sponsor: entry[:sponsor], carver: carvers[entry[:carver]], year_carved: nil, mount: nil,
       description: entry.fetch(:description),
       body: [
@@ -321,6 +358,7 @@ ActiveRecord::Base.transaction do
         "Role: #{entry[:role] || (entry[:type] == "Chariot" ? "Wheelchair-accessible chariot" : "Permanent pony")}.",
         entry[:carver] && "Entire figure carved by #{entry[:carver]}.",
         entry[:credits],
+        observed_position && "Video reading: seat #{observed_position.first} in footage dated June 29, 2024. [View this section](https://www.youtube.com/watch?v=8E3DemQtIis&t=#{observed_position.last.fetch(:timestamp)}s). This is a source-era best reading, not a verified current placement.",
         entry[:source] && "Historical description and credits: https://carousels.org/psp/Missoula/#{entry[:source]}",
         entry[:source] ? "The NCA gallery includes photographs dated April 2004; current placement is not established by these captions." : "Source: Eric's booklet contents image and clarification, October 24, 2026."
       ].compact.join("\n\n")
@@ -328,18 +366,22 @@ ActiveRecord::Base.transaction do
     [ name, figure ]
   end
 
-  lead = inventory.fetch("Columbia Belle")
+  seeded_figures = seating.to_h { |code, attributes| [ code, inventory.fetch(attributes.fetch(:name)) ] }
   Placement.current.where(figure: inventory.values).or(Placement.current.where(seat: carousel.seats)).each do |placement|
-    next if placement.figure == lead && placement.seat.carousel_id == carousel.id && placement.seat.code == "1A"
+    next if placement.seat.carousel_id == carousel.id && seeded_figures[placement.seat.code] == placement.figure
 
     SeatAssignment.new(placement.seat, nil).save!
   end
 
   carousel.seats.where.not(section: 1..carousel.sections_count, row: carousel.row_letters).destroy_all
-  carousel.seats.where.not(rows_spanned: 1).each { _1.update!(rows_spanned: 1) }
-  carousel.fill_missing_seats
   carousel.seats.each do |seat|
-    seat.update!(confidence: seat.code == "1A" ? "confirmed" : "best_reading")
-    SeatAssignment.new(seat, seat.code == "1A" ? lead : nil).save!
+    expected_span = seating.fetch(seat.code, {}).fetch(:rows_spanned, 1)
+    seat.update!(rows_spanned: 1) if seat.rows_spanned != expected_span && seat.rows_spanned != 1
+  end
+  carousel.fill_missing_seats
+  seating.each do |code, attributes|
+    seat = carousel.seats.find_or_initialize_by(Seat.parse_code(code))
+    seat.update!(rows_spanned: attributes.fetch(:rows_spanned), confidence: code == "1A" ? "confirmed" : "best_reading")
+    SeatAssignment.new(seat, seeded_figures.fetch(code)).save!
   end
 end

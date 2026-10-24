@@ -9,7 +9,7 @@ class FigureTypesController < ApplicationController
   end
 
   def show
-    @figures = @figure_type.figures.includes(seat: :carousel).order(:name)
+    @figures = @figure_type.figures.includes(:carousel, seat: :carousel).order(:name)
   end
 
   def new

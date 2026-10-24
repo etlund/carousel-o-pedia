@@ -33,8 +33,9 @@ class CarouselTest < ActiveSupport::TestCase
 
   test "slugs come from the name and stay unique" do
     horse = FigureType.create!(name: "Horse", category: "horse")
-    assert_equal "horse-1", Figure.create!(name: "Horse 1", figure_type: horse).slug
-    assert_equal "horse-1-2", Figure.create!(name: "Horse 1", figure_type: horse).slug
+    carousel = build_carousel
+    assert_equal "horse-1", Figure.create!(name: "Horse 1", figure_type: horse, carousel:).slug
+    assert_equal "horse-1-2", Figure.create!(name: "Horse 1", figure_type: horse, carousel:).slug
   end
 
   test "edits are kept as versions" do

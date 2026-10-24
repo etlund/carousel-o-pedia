@@ -78,8 +78,9 @@ ActiveRecord::Base.transaction do
 
   seeded_figures = seats.to_h do |code, (name, short_name, type_name, description)|
     figure = Figure.find_or_initialize_by(slug: name.parameterize)
+    SeatAssignment.new(figure.seat, nil).save! if figure.seat && figure.seat.carousel_id != carousel.id
     figure.update!(
-      name:, short_name:, figure_type: types.fetch(type_name), description:,
+      name:, short_name:, carousel:, figure_type: types.fetch(type_name), description:,
       mount: mounts[type_name], sponsor: nil, carver: nil, year_carved: nil, body: nil
     )
     [ code, figure ]

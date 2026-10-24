@@ -6,6 +6,8 @@ class CarouselsController < ApplicationController
 
   def index
     @carousels = Carousel.includes(:maker).order(:name)
+    @category_counts = Placement.current.joins(:seat, figure: :figure_type)
+      .group("seats.carousel_id", "figure_types.category").count
   end
 
   def show

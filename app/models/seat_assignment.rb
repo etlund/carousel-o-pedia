@@ -21,6 +21,7 @@ class SeatAssignment
     end
     @seat.reset_current_placement
     @figure&.reset_current_placement
+    @figure&.reset_seat
   end
 
   private
@@ -29,6 +30,7 @@ class SeatAssignment
         previous.update!(ended_on: @on)
         previous.seat.update!(state: "empty")
       end
+      @figure.update!(carousel: @seat.carousel) if @figure.carousel_id != @seat.carousel_id
       @seat.placements.create!(figure: @figure, started_on: @on)
     end
 end

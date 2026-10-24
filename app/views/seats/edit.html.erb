@@ -7,9 +7,9 @@
     <%= form.label :figure_id, "Figure in this seat" %>
     <%= form.select :figure_id,
           options_for_select([ [ "Unknown", "" ], [ "Empty", SeatsController::EMPTY ] ], @seat.figure ? nil : (@seat.state == "empty" ? SeatsController::EMPTY : "")) +
-          options_from_collection_for_select(Figure.includes(seat: :carousel).order(:name), :id,
-            ->(figure) { figure.seat && figure.seat != @seat ? "#{figure.name} (now #{figure.seat.carousel.name} #{figure.seat.code})" : figure.name }, @seat.figure&.id) %>
-    <p class="hint">Choosing a figure that sits elsewhere moves it here. Its old seat becomes empty. Missing a figure? <%= link_to "Add it first", new_figure_path %>.</p>
+          options_from_collection_for_select(@carousel.figures.includes(:carousel, seat: :carousel).order(:name), :id,
+            ->(figure) { figure.seat && figure.seat != @seat ? "#{figure.name} (now #{figure.carousel.name} #{figure.seat.code})" : "#{figure.name} (#{figure.carousel.name})" }, @seat.figure&.id) %>
+    <p class="hint">Only this carousel's figures are listed, including unseated figures. Choosing a figure seated elsewhere moves it here and leaves its old seat empty. Removing a figure keeps its carousel assignment. Missing a figure? <%= link_to "Add it first", new_figure_path(carousel_id: @carousel.id) %>.</p>
   </div>
   <div class="field-row">
     <div class="field">

@@ -7,6 +7,6 @@
 <div class="prose"><%= wiki_body(@figure_type.body) %></div>
 <ul>
   <% @figures.each do |figure| %>
-    <li><%= link_to figure.name, figure %><% if figure.seat %> <span class="muted">· <%= seat_link(figure.seat) %></span><% end %></li>
+    <li><%= link_to figure.name, figure %> <span class="muted">· <% if figure.seat %><%= seat_link(figure.seat) %><% else %><%= link_to figure.carousel.name, figure.carousel %> (not currently seated)<% end %></span></li>
   <% end %>
 </ul>

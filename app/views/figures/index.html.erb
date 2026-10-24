@@ -3,6 +3,22 @@
   <h1>Figures</h1>
   <% if authenticated? %><p class="page-actions"><%= link_to "Add a figure", new_figure_path, class: "button" %></p><% end %>
 </header>
+<%= form_with url: figures_path, method: :get, class: "form" do |form| %>
+  <div class="field-row">
+    <div class="field">
+      <%= form.label :carousel_id, "Carousel" %>
+      <%= form.collection_select :carousel_id, @carousels, :id, :name, include_blank: "All carousels", selected: @selected_carousel&.id %>
+    </div>
+    <div class="field">
+      <%= form.label :figure_type_id, "Type" %>
+      <%= form.collection_select :figure_type_id, @figure_types, :id, :name, include_blank: "All types", selected: @selected_type&.id %>
+    </div>
+  </div>
+  <div class="actions"><%= form.submit "Filter" %> <%= link_to "Clear filters", figures_path %></div>
+<% end %>
+<% if @figures.empty? %>
+  <p>No figures match these filters.</p>
+<% else %>
 <div class="table-scroll">
   <table>
     <thead><tr><th>Figure</th><th>Type</th><th>Where</th></tr></thead>
@@ -11,9 +27,10 @@
         <tr>
           <td><%= link_to figure.name, figure %></td>
           <td><%= link_to figure.figure_type.name, figure.figure_type %></td>
-          <td><%= figure.seat ? seat_link(figure.seat) : "Not on a carousel" %></td>
+          <td><% if figure.seat %><%= seat_link(figure.seat) %><% else %><%= link_to figure.carousel.name, figure.carousel %> <span class="muted">(not currently seated)</span><% end %></td>
         </tr>
       <% end %>
     </tbody>
   </table>
 </div>
+<% end %>

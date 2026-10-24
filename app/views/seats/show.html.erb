@@ -1,4 +1,5 @@
 <% content_for :title, "#{@carousel.name} #{@seat.code}" %>
+<% figure = @seat.figure %>
 <header class="page-header">
   <p class="muted"><%= link_to @carousel.name, @carousel %></p>
   <div class="title-row"><h1>Seat <%= @seat.code %></h1><%= seat_badge(@seat, size: :large) %></div>
@@ -9,8 +10,15 @@
   <dd>Section <%= @seat.section %>, <%= @seat.rows_spanned > 1 ? "rows #{@seat.rows_covered.first} to #{@seat.rows_covered.last}" : "row #{@seat.row}" %></dd>
   <dt>Confidence</dt><dd><%= @seat.confirmed? ? "Confirmed" : "Best reading, not yet confirmed" %></dd>
   <dt>Figure now</dt>
-  <dd><%= @seat.figure ? link_to(@seat.figure.name, @seat.figure) : @seat.state.capitalize %></dd>
+  <dd><%= figure ? link_to(figure.name, figure) : @seat.state.capitalize %></dd>
 </dl>
+<% if figure %>
+  <section class="figure-details" aria-labelledby="figure-heading">
+    <h2 id="figure-heading"><%= link_to figure.name, figure %></h2>
+    <p class="muted"><%= link_to figure.figure_type.name, figure.figure_type %></p>
+    <%= render "figures/details", figure: figure %>
+  </section>
+<% end %>
 <% previous = @placements.reject { |placement| placement.ended_on.nil? } %>
 <% if previous.any? %>
   <h2>Earlier figures</h2>

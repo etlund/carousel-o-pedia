@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_24_175056) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_213321) do
   create_table "carousels", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -55,6 +55,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_175056) do
     t.text "body"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "carousel_id", null: false
+    t.index ["carousel_id"], name: "index_figures_on_carousel_id"
     t.index ["carver_id"], name: "index_figures_on_carver_id"
     t.index ["figure_type_id"], name: "index_figures_on_figure_type_id"
     t.index ["slug"], name: "index_figures_on_slug", unique: true
@@ -137,6 +139,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_175056) do
   end
 
   add_foreign_key "carousels", "makers"
+  add_foreign_key "figures", "carousels"
   add_foreign_key "figures", "figure_types"
   add_foreign_key "figures", "makers", column: "carver_id"
   add_foreign_key "invitations", "users", column: "invited_by_id"

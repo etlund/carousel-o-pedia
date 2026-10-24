@@ -9,7 +9,7 @@ class Carousel < ApplicationRecord
   belongs_to :maker, optional: true
   has_many :seats, -> { order(:section, :row) }, dependent: :destroy
   has_many :placements, through: :seats
-  has_many :figures, through: :placements
+  has_many :figures, dependent: :restrict_with_error
 
   validates :name, presence: true
   validates :status, inclusion: { in: STATUSES }

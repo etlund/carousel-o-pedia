@@ -16,9 +16,9 @@ module ActiveSupport
       Carousel.find_by!(slug: "great-northern-carousel")
     end
 
-    def create_figure(name, category: "horse")
+    def create_figure(name, category: "horse", carousel: @carousel || build_carousel)
       type = FigureType.find_or_create_by!(name: category.capitalize) { _1.category = category }
-      Figure.create!(name:, figure_type: type)
+      Figure.create!(name:, figure_type: type, carousel:)
     end
 
     def build_carousel(sections: 4, rows: 2)
