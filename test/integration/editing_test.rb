@@ -29,7 +29,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_select ".changes ins", "White mountain goat with a gold pan"
   end
 
-  test "an editor fills an unknown seat with a new figure" do
+  test "an editor puts a new figure in a seat" do
     sign_in_as users(:editor)
 
     post figures_path, params: { figure: { name: "Rocky the Marmot", figure_type_id: FigureType.find_by!(name: "Jackrabbit").id, mount: "" } }

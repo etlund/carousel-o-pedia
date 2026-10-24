@@ -21,7 +21,7 @@ class SeatBadgesHelperTest < ActionView::TestCase
   end
 
   test "an unknown seat is marked as unknown" do
-    render html: seat_badge(@carousel.seat("9C"))
+    render html: seat_badge(build_carousel(rows: 3).seat("2C"))
     assert_select "svg.seat-badge.unknown text.row.on", "C"
   end
 end

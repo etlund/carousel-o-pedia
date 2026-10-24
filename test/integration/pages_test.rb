@@ -6,7 +6,7 @@ class PagesTest < ActionDispatch::IntegrationTest
   test "carousel page shows the seat chart and section table" do
     get carousel_path(@carousel)
     assert_response :success
-    assert_select "svg.seat-chart a.seat", 39 # 38 figures plus the unknown 9C
+    assert_select "svg.seat-chart a.seat", 39
     assert_select "table.sections tbody tr", 14
     assert_select "a[href=?]", "/carousels/great-northern-carousel/9A"
   end

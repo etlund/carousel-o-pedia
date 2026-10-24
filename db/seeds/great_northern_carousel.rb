@@ -38,7 +38,7 @@ seats = {
   "8C"  => [ "Pony the Hop Toad", "Pony (toad)", "Toad", "Green toad with a blue saddle", { confidence: "confirmed" } ],
   "9A"  => [ "Gulliver", nil, "Mountain goat", "White mountain goat, blue saddle, \"G.N. Mining Co.\" gold pan" ],
   "9B"  => [ "Horse 10", nil, "Horse", "Brown, black mane" ],
-  "9C"  => [ nil, nil, nil, nil, { state: "unknown" } ],
+  "9C"  => [ "Otter 2", nil, "Otter", "River otter floating on his back with a green leaf across his belly", { confidence: "confirmed" } ],
   "10A" => [ "Lupin the Wolf", "Lupin", "Wolf", "Leaping white-and-grey wolf, green and blue markings" ],
   "10B" => [ "Skimmer", nil, "Otter", "Otter, brown with a curled tail" ],
   "10C" => [ "Horse 11", nil, "Horse", "Small pinto, brown and white" ],
@@ -74,7 +74,7 @@ ActiveRecord::Base.transaction do
     c.rows_count = 3
     c.rotation = "counterclockwise"
     c.body = <<~MD
-      A hand-carved carousel in Helena, Montana, with 36 animals and a spinning tea-cup on a 14-section, three-row platform. Most of its figures are Montana wildlife.
+      A hand-carved carousel in Helena, Montana, with 37 animals, a spinning tea-cup and a chariot bench on a 14-section, three-row platform. Most of its figures are Montana wildlife.
 
       Titan the hippocampus is the lead figure, in seat 1A, and sections are numbered in the order the figures pass someone standing at the rail.
     MD
