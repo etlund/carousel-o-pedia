@@ -10,6 +10,13 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    def load_seeds
+      Rails.application.load_seed
+      Carousel.find_by!(slug: "great-northern-carousel")
+    end
+
+    def build_carousel(sections: 4, rows: 2)
+      Carousel.create!(name: "Test Carousel #{SecureRandom.hex(3)}", sections_count: sections, rows_count: rows)
+    end
   end
 end

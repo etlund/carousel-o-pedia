@@ -1,0 +1,38 @@
+<% chart = SeatChart.new(carousel) %>
+<% c = SeatChart::CENTER %>
+<svg class="seat-chart" viewBox="0 0 <%= SeatChart::SIZE %> <%= SeatChart::SIZE %>" role="img"
+     aria-label="Round seat chart of <%= carousel.name %>: <%= carousel.sections_count %> sections, <%= carousel.rows_count %> rows">
+  <circle cx="<%= c %>" cy="<%= c %>" r="<%= SeatChart::PLATFORM_RADIUS %>" class="platform"/>
+  <% chart.row_dividers.each do |radius| %>
+    <circle cx="<%= c %>" cy="<%= c %>" r="<%= radius %>" class="row-divider"/>
+  <% end %>
+  <% chart.section_dividers.each do |from, to| %>
+    <line x1="<%= from.x %>" y1="<%= from.y %>" x2="<%= to.x %>" y2="<%= to.y %>" class="section-divider"/>
+  <% end %>
+  <circle cx="<%= c %>" cy="<%= c %>" r="<%= SeatChart::HUB_RADIUS %>" class="hub"/>
+  <text x="<%= c %>" y="<%= c - 4 %>" class="hub-label">Center</text>
+  <text x="<%= c %>" y="<%= c + 18 %>" class="hub-note">turns <%= carousel.rotation %> <%= carousel.rotation == "clockwise" ? "↻" : "↺" %></text>
+  <% chart.section_labels.each do |number, point| %>
+    <text x="<%= point.x %>" y="<%= point.y + 5 %>" class="section-number"><%= number %></text>
+  <% end %>
+  <% chart.seat_shapes(carousel.seats.includes(current_placement: { figure: :figure_type })).each do |shape| %>
+    <% seat = shape.seat %>
+    <% label = seat.figure&.chart_label || (seat.state == "unknown" ? "?" : "empty") %>
+    <a href="<%= carousel_seat_path(carousel, seat) %>" class="seat <%= seat.category || seat.state %> <%= "unsure" unless seat.confirmed? %>">
+      <title><%= seat.code %>: <%= seat.figure&.name || seat.state.capitalize %></title>
+      <% if shape.round %>
+        <circle cx="<%= shape.center.x %>" cy="<%= shape.center.y %>" r="<%= shape.width / 2 %>"/>
+      <% else %>
+        <rect x="<%= shape.center.x - shape.width / 2 %>" y="<%= shape.center.y - shape.height / 2 %>" width="<%= shape.width %>" height="<%= shape.height %>" rx="8"/>
+      <% end %>
+      <text x="<%= shape.center.x %>" y="<%= shape.center.y + 1 %>" class="seat-label"><%= label %></text>
+      <text x="<%= shape.center.x %>" y="<%= shape.center.y + 13 %>" class="seat-code"><%= seat.code %></text>
+    </a>
+  <% end %>
+</svg>
+<ul class="legend">
+  <li><span class="swatch horse"></span><%= FigureType::CATEGORY_LABELS["horse"] %></li>
+  <li><span class="swatch menagerie"></span><%= FigureType::CATEGORY_LABELS["menagerie"] %></li>
+  <li><span class="swatch chariot"></span><%= FigureType::CATEGORY_LABELS["chariot"] %></li>
+  <li><span class="swatch unsure"></span>Dashed outline: best reading, not yet confirmed</li>
+</ul>

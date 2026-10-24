@@ -1,24 +1,25 @@
-# README
+# Carousel-pedia
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A wiki for carousels, their carved figures, and their history.
 
-Things you may want to cover:
+Every seat has a code of section number plus row letter. Rows are lettered from the outside in, so `5A` is section 5, outer row. Sections are numbered in the order figures pass someone standing at the rail.
 
-* Ruby version
+## Getting started
 
-* System dependencies
+```sh
+bin/setup          # installs gems, prepares the database, loads seeds
+bin/dev            # http://localhost:3000
+bin/rails test
+```
 
-* Configuration
+The seeds load the Great Northern Carousel in Helena, Montana: 14 sections, 3 rows, 36 animals, a tea-cup and a chariot bench.
 
-* Database creation
+## Data model
 
-* Database initialization
+- **Carousel**: location, status, rotation, and the size of its platform (sections × rows).
+- **Seat**: one spot on a platform, addressed by its code. A tea-cup or chariot that fills several rows is one seat that spans them. Seats record whether their placement is confirmed or a best reading.
+- **Figure**: one carved figure, with a **figure type** (bison, trout, horse) whose category (horse, other animal, chariot or tub) sets its chart colour and section count.
+- **Placement**: which figure sits in which seat, with dates, so figures can move.
+- **Maker**: carvers and companies.
 
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Every record keeps its edit history through PaperTrail.

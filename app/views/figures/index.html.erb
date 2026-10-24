@@ -1,0 +1,16 @@
+<% content_for :title, "Figures" %>
+<h1>Figures</h1>
+<div class="table-scroll">
+  <table>
+    <thead><tr><th>Figure</th><th>Type</th><th>Where</th></tr></thead>
+    <tbody>
+      <% @figures.each do |figure| %>
+        <tr>
+          <td><%= link_to figure.name, figure %></td>
+          <td><%= link_to figure.figure_type.name, figure.figure_type %></td>
+          <td><%= figure.seat ? seat_link(figure.seat) : "Not on a carousel" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

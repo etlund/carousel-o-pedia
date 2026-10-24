@@ -1,0 +1,11 @@
+<% content_for :title, "Carousels" %>
+<h1>Carousels</h1>
+<ul class="cards">
+  <% @carousels.each do |carousel| %>
+    <li class="card">
+      <h2><%= link_to carousel.name, carousel %></h2>
+      <p class="muted"><%= carousel.location %></p>
+      <p><%= pluralize(carousel.sections_count, "section") %>, <%= pluralize(carousel.rows_count, "row") %>, <%= carousel.status %></p>
+    </li>
+  <% end %>
+</ul>

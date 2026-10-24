@@ -1,0 +1,57 @@
+<% content_for :title, @carousel.name %>
+<header class="page-header">
+  <h1><%= @carousel.name %></h1>
+  <p class="muted"><%= @carousel.location %></p>
+</header>
+
+<div class="grid">
+  <div class="card"><%= render "seat_chart", carousel: @carousel %></div>
+  <div class="stack">
+    <dl class="facts card">
+      <dt>Platform</dt><dd><%= pluralize(@carousel.sections_count, "section") %> × <%= pluralize(@carousel.rows_count, "row") %>, turns <%= @carousel.rotation %></dd>
+      <% FigureType::CATEGORIES.each do |category| %>
+        <dt><%= category_label(category) %></dt><dd><%= @totals[category] %></dd>
+      <% end %>
+      <dt>Status</dt><dd><%= @carousel.status.capitalize %></dd>
+      <% if @carousel.maker %><dt>Maker</dt><dd><%= link_to @carousel.maker.name, @carousel.maker %></dd><% end %>
+      <% if @carousel.year_opened %><dt>Opened</dt><dd><%= @carousel.year_opened %></dd><% end %>
+    </dl>
+    <div class="prose"><%= wiki_body(@carousel.body) %></div>
+  </div>
+</div>
+
+<h2>Sections</h2>
+<p class="muted">Seat codes are section number plus row letter. Row A is the outer row.</p>
+<div class="table-scroll">
+  <table class="sections">
+    <thead>
+      <tr>
+        <th>Section</th>
+        <% @carousel.row_letters.each do |letter| %><th><%= letter %></th><% end %>
+        <% FigureType::CATEGORIES.each do |category| %><th class="num"><%= category_label(category) %></th><% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% @sections.each do |section| %>
+        <tr>
+          <th scope="row"><%= section[:number] %></th>
+          <% skip = 0 %>
+          <% @carousel.row_letters.each do |letter| %>
+            <% if skip > 0 %><% skip -= 1 %><% next %><% end %>
+            <% seat = section[:seats][letter] %>
+            <% if seat %>
+              <% skip = seat.rows_spanned - 1 %>
+              <td colspan="<%= seat.rows_spanned %>" class="<%= seat.category || seat.state %>">
+                <%= link_to seat.figure&.name || seat.state.capitalize, carousel_seat_path(@carousel, seat) %>
+                <% unless seat.confirmed? %><span class="badge">check</span><% end %>
+              </td>
+            <% else %>
+              <td class="none">none</td>
+            <% end %>
+          <% end %>
+          <% FigureType::CATEGORIES.each do |category| %><td class="num"><%= section[:counts][category] %></td><% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

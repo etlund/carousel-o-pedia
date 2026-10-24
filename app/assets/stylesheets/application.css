@@ -1,10 +1,86 @@
-/*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
- */
+/* Palette from the Great Northern Carousel logo: royal blue, red, green, yellow, orange, sky blue */
+:root {
+  --bg: #ffffff; --panel: #ffffff; --fg: #141414; --muted: #4f5868; --line: #d7dde8;
+  --red: #e0282a; --blue: #1560a8; --green: #1a9e48; --yellow: #f9dc0a;
+  --horse: #9fd3f2; --horse-fg: #0b3a6b; --other: #f7b866; --other-fg: #4a2600;
+  --special: #e0282a; --special-fg: #ffffff; --hi: #1a9e48; --head: #1560a8;
+  --display: "Rye", "Rockwell", Georgia, serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1b2e; --panel: #13253d; --fg: #f5f3ea; --muted: #a9b4c6; --line: #27405f;
+    --red: #ff4a4c; --blue: #1d6fc0; --green: #2fbf63;
+    --horse: #6cbfe8; --horse-fg: #06223f; --other: #f5a947; --other-fg: #3a1d00;
+    --hi: #f9dc0a; --head: #8fd0f5; color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+a { color: var(--blue); }
+@media (prefers-color-scheme: dark) { a { color: var(--head); } }
+h1, h2 { font-family: var(--display); font-weight: 400; color: var(--head); line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(1.7rem, 3.6vw, 2.5rem); margin: 0; color: var(--fg); }
+h2 { font-size: 1.35rem; margin: 28px 0 8px; }
+.muted { color: var(--muted); }
+.lede { font-size: 1.1rem; max-width: 68ch; }
+.dots { height: 14px; background: radial-gradient(circle, var(--red) 4px, transparent 4.6px) 0 50% / 22px 14px repeat-x; }
+
+.site-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px; max-width: 1180px; margin: 0 auto; padding: 14px 16px 0; }
+.brand { font-family: var(--display); font-size: 1.4rem; color: var(--red); text-decoration: none; }
+.site-header nav { display: flex; gap: 16px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 48px; }
+.page-header { display: grid; gap: 4px; margin-bottom: 20px; }
+.page-header p { margin: 0; }
+
+.card { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.cards h2 { margin-top: 0; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.stack { display: grid; gap: 16px; }
+.prose { max-width: 70ch; }
+
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0 0 16px; }
+.facts dt { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; padding-top: 2px; }
+.facts dd { margin: 0; }
+
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.sections tbody th { font-family: var(--display); font-size: 15px; color: var(--head); text-transform: none; letter-spacing: 0; }
+.sections td.horse { box-shadow: inset 4px 0 var(--horse); }
+.sections td.menagerie { box-shadow: inset 4px 0 var(--other); }
+.sections td.chariot { box-shadow: inset 4px 0 var(--special); }
+.sections td.none, .sections td.unknown a { color: var(--muted); }
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 999px; background: var(--other); color: var(--other-fg); margin-left: 4px; }
+.type-list { columns: 3 12em; }
+
+/* Round seat chart */
+.seat-chart { width: 100%; height: auto; display: block; }
+.seat-chart .platform { fill: none; stroke: var(--green); stroke-width: 5; }
+.seat-chart .row-divider { fill: none; stroke: var(--line); stroke-dasharray: 3 5; }
+.seat-chart .section-divider { stroke: var(--line); }
+.seat-chart .hub { fill: var(--blue); stroke: var(--yellow); stroke-width: 5; }
+.seat-chart .hub-label { fill: #fff; font-family: var(--display); font-size: 20px; text-anchor: middle; }
+.seat-chart .hub-note { fill: #fff; font-size: 11px; text-anchor: middle; }
+.seat-chart .section-number { fill: var(--red); font-family: var(--display); font-size: 15px; text-anchor: middle; }
+.seat-chart text { pointer-events: none; }
+.seat rect, .seat circle { stroke: var(--panel); stroke-width: 1; }
+.seat .seat-label { font-size: 10.5px; font-weight: 600; text-anchor: middle; }
+.seat .seat-code { font-size: 8.5px; font-weight: 500; opacity: .8; text-anchor: middle; }
+.seat.horse rect, .seat.horse circle { fill: var(--horse); } .seat.horse text { fill: var(--horse-fg); }
+.seat.menagerie rect, .seat.menagerie circle { fill: var(--other); } .seat.menagerie text { fill: var(--other-fg); }
+.seat.chariot rect, .seat.chariot circle { fill: var(--special); } .seat.chariot text { fill: var(--special-fg); }
+.seat.unknown rect, .seat.empty rect { fill: transparent; stroke: var(--muted); stroke-dasharray: 4 3; } .seat.unknown text, .seat.empty text { fill: var(--muted); }
+.seat.unsure rect, .seat.unsure circle { stroke: var(--fg); stroke-dasharray: 4 3; stroke-width: 1.25; }
+.seat:hover rect, .seat:hover circle, .seat:focus-visible rect, .seat:focus-visible circle { stroke: var(--hi); stroke-width: 3; stroke-dasharray: none; }
+.seat:focus { outline: none; }
+
+.legend { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.swatch.horse { background: var(--horse); } .swatch.menagerie { background: var(--other); } .swatch.chariot { background: var(--special); }
+.swatch.unsure { border: 1.25px dashed var(--fg); }
