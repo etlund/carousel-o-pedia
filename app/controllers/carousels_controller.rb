@@ -50,7 +50,7 @@ class CarouselsController < ApplicationController
 
     # The platform's size is fixed once seats exist; changing it would orphan seat codes.
     def carousel_params
-      permitted = %i[ name city region country venue status year_built year_opened maker_id rotation body ]
+      permitted = %i[ name city region country venue status year_built year_opened maker_id rotation body official_url wikipedia_url other_links ]
       permitted += %i[ sections_count rows_count ] if @carousel.nil? || @carousel.new_record?
       params.expect(carousel: permitted)
     end

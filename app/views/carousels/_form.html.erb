@@ -7,6 +7,16 @@
     <div class="field"><%= form.label :country %><%= form.text_field :country %></div>
   </div>
   <div class="field"><%= form.label :venue %><%= form.text_field :venue %></div>
+  <fieldset>
+    <legend>Website links</legend>
+    <div class="field"><%= form.label :official_url, "Official website URL" %><%= form.url_field :official_url, placeholder: "https://example.com" %></div>
+    <div class="field"><%= form.label :wikipedia_url, "Wikipedia URL" %><%= form.url_field :wikipedia_url, placeholder: "https://en.wikipedia.org/wiki/..." %></div>
+    <div class="field">
+      <%= form.label :other_links, "Other links" %>
+      <%= form.text_area :other_links, rows: 4 %>
+      <p class="hint">Optional named links, one per line. Use Markdown, for example [NCA gallery](https://carousels.org/). The official website URL appears as a separate link on carousel summary cards.</p>
+    </div>
+  </fieldset>
   <div class="field-row">
     <div class="field"><%= form.label :status %><%= form.select :status, Carousel::STATUSES.map { [ _1.capitalize, _1 ] } %></div>
     <div class="field"><%= form.label :year_built %><%= form.number_field :year_built %></div>

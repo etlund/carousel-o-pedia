@@ -98,6 +98,13 @@ ActiveRecord::Base.transaction do
   carousel.update!(
     name: "Looff Carrousel", city: "Spokane", region: "Washington", country: "United States",
     venue: "Riverfront Park", status: "operating", maker:, year_built: 1909, year_opened: 1909,
+    official_url: "https://spokanecarrousel.org/",
+    wikipedia_url: nil,
+    other_links: <<~MD,
+      [Figure directory](https://spokanecarrousel.org/figurepics.html)
+      [NCA photo gallery](https://carousels.org/psp/SpokaneWA/)
+      [NCA census](https://carousels.org/USACensus/census.pl?NCANo=221)
+    MD
     sections_count: 20, rows_count: 3, rotation: "counterclockwise",
     body: <<~MD
       A hand-carved wooden Looff carousel in Spokane's Riverfront Park, first opened at Natatorium Park on July 18, 1909. The City of Spokane describes Charles Looff's carousel as a wedding gift for his daughter Emma.

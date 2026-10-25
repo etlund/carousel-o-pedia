@@ -8,6 +8,7 @@
     <li class="card">
       <h2><%= link_to carousel.name, carousel %></h2>
       <p class="muted"><%= carousel.location %></p>
+      <% if carousel.official_url.present? %><p class="website"><%= link_to carousel.official_url, carousel.official_url %></p><% end %>
       <p><%= pluralize(carousel.sections_count, "section") %>, <%= pluralize(carousel.rows_count, "row") %>, <%= carousel.status %></p>
       <dl class="facts">
         <% FigureType::CATEGORIES.each do |category| %>

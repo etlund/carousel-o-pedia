@@ -22,6 +22,51 @@ class PagesTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "carousel cards show linked official URLs separately from plain locations while titles stay internal" do
+    plain = build_carousel
+    plain.update!(city: "Plain City", region: "Oregon", country: "United States", wikipedia_url: "https://en.wikipedia.org/wiki/Example")
+    no_location = build_carousel
+    no_location.update!(official_url: "https://example.com/")
+
+    get carousels_path
+    assert_response :success
+    Carousel.where.not(official_url: nil).each do |carousel|
+      assert_select "li.card:has(h2 a[href='#{carousel_path(carousel)}'])" do
+        assert_select "h2 a[href=?]", carousel_path(carousel), text: carousel.name
+        assert_select "p.muted", text: carousel.location do
+          assert_select "a", 0
+        end
+        assert_select "p.website a[href=?]", carousel.official_url, text: carousel.official_url
+      end
+    end
+    assert_select "li.card:has(h2 a[href='#{carousel_path(plain)}']) p.muted" do
+      assert_select "a", 0
+      assert_select "p", text: plain.location
+    end
+    assert_select "li.card:has(h2 a[href='#{carousel_path(plain)}']) p.website", 0
+  end
+
+  test "carousel details show optional website links and sanitized named additional links" do
+    carousel = build_carousel
+    carousel.update!(
+      official_url: "https://example.com/official",
+      wikipedia_url: "https://en.wikipedia.org/wiki/Example",
+      other_links: "[NCA gallery](https://carousels.org/)\n[Local history](https://example.com/history)\n[Unsafe](javascript:alert(1))\n<script>alert('unsafe')</script>"
+    )
+    get carousel_path(carousel)
+    assert_response :success
+    assert_select ".facts a[href=?]", carousel.official_url, text: "Official website"
+    assert_select ".facts a[href=?]", carousel.wikipedia_url, text: "Wikipedia"
+    assert_select ".facts .prose a[href=?]", "https://carousels.org/", text: "NCA gallery"
+    assert_select ".facts .prose a[href=?]", "https://example.com/history", text: "Local history"
+    assert_select ".facts .prose script", 0
+    assert_select ".facts .prose a[href^='javascript:']", 0
+
+    get carousel_path(build_carousel)
+    assert_response :success
+    [ "Website", "Wikipedia", "Other links" ].each { assert_select ".facts dt", text: _1, count: 0 }
+  end
+
   test "carousel summary counts exclude ended and unplaced figures and count spanning figures once" do
     carousel = build_carousel(sections: 3, rows: 2)
     horse = create_figure("Moving horse")

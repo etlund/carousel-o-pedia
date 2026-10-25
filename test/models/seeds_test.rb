@@ -1,6 +1,47 @@
 require "test_helper"
 
 class SeedsTest < ActiveSupport::TestCase
+  test "seeds restore sourced website links and remain unchanged on a second load" do
+    load_seeds
+    official_urls = {
+      "great-northern-carousel" => "https://www.greatnortherncarousel.com/",
+      "a-carousel-for-missoula" => "https://www.missoulacarousel.org/",
+      "spokane-looff-carrousel" => "https://spokanecarrousel.org/",
+      "salems-riverfront-carousel" => "https://www.salemcarousel.org/"
+    }
+    fields = %w[ official_url wikipedia_url other_links ]
+    originals = official_urls.to_h do |slug, url|
+      carousel = Carousel.find_by!(slug:)
+      assert_equal url, carousel.official_url
+      if slug == "a-carousel-for-missoula"
+        assert_equal "https://en.wikipedia.org/wiki/A_Carousel_for_Missoula", carousel.wikipedia_url
+      else
+        assert_nil carousel.wikipedia_url
+      end
+      if slug == "great-northern-carousel"
+        assert_nil carousel.other_links
+      else
+        assert_includes carousel.other_links, "[NCA photo gallery](https://carousels.org/"
+      end
+      [ slug, carousel.attributes.slice(*fields) ]
+    end
+
+    Carousel.all.each do |carousel|
+      carousel.update!(
+        official_url: "https://example.com/edited",
+        wikipedia_url: "https://en.wikipedia.org/wiki/Example",
+        other_links: "[Edited](https://example.com/)"
+      )
+    end
+    load_seeds
+    originals.each do |slug, links|
+      assert_equal links, Carousel.find_by!(slug:).attributes.slice(*fields)
+    end
+    assert_no_difference %w[ Carousel.count Seat.count Figure.count Placement.count PaperTrail::Version.count ] do
+      load_seeds
+    end
+  end
+
   test "seeds the Great Northern Carousel from the seating chart" do
     carousel = load_seeds
 

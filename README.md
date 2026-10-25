@@ -8,6 +8,10 @@ Every seat has a code of section number plus row letter. Rows are lettered from 
 
 Carousel summary cards show counts of currently placed horses, other animals, and chariots and tubs, matching the seating chart totals. Figures spanning multiple rows count once; unplaced inventory and ended placements are excluded.
 
+Carousels have optional **official website**, **Wikipedia**, and **other links** fields. On the carousel index, the city/state/country location remains plain text, and the official website URL appears as a separate clickable link when one is set; the carousel name still links to its wiki page. Carousel detail pages display the available website links in the facts card.
+
+Official and Wikipedia URLs must use HTTP or HTTPS and cannot contain login credentials. Additional named links use the existing sanitized Markdown format, one per line, such as `[NCA gallery](https://carousels.org/)`. The seeds include the known official sites and reference links, including [Great Northern's live website](https://www.greatnortherncarousel.com/); unverified Wikipedia URLs are left blank.
+
 Occupied seat pages also show the current figure's description, type, category, available carving and sponsor details, and Markdown notes and sources. Earlier figures remain listed separately.
 
 Every figure belongs to a carousel, even when it has no seat. The Figures page filters by carousel, type, or both, and includes unseated reserves and project figures. Choose **Filter** to apply the selections or **Clear filters** to return to the full list. Carousel pages link to their full inventory with **View all figures**.

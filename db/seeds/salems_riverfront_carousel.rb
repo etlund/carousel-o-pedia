@@ -336,6 +336,12 @@ ActiveRecord::Base.transaction do
   carousel.update!(
     name: "Salem's Riverfront Carousel", city: "Salem", region: "Oregon", country: "United States",
     venue: "Riverfront Park", status: "operating", maker:, year_built: 2001, year_opened: 2001,
+    official_url: "https://www.salemcarousel.org/", wikipedia_url: nil,
+    other_links: <<~MD,
+      [Meet the Herd](https://www.salemcarousel.org/meettheherd)
+      [NCA photo gallery](https://carousels.org/psp/Salem/)
+      [Seating video](https://www.youtube.com/watch?v=YGSPO9XFu-8)
+    MD
     sections_count: 12, rows_count: 3, rotation: "counterclockwise",
     body: <<~MD
       A volunteer-built wooden carousel in Riverfront Park at 101 Front St NE, Salem, Oregon. It opened on June 2, 2001.

@@ -304,6 +304,13 @@ ActiveRecord::Base.transaction do
   carousel.update!(
     name: "A Carousel for Missoula", city: "Missoula", region: "Montana", country: "United States",
     venue: "Caras Park", status: "operating", year_opened: 1995, year_built: nil, maker:,
+    official_url: "https://www.missoulacarousel.org/",
+    wikipedia_url: "https://en.wikipedia.org/wiki/A_Carousel_for_Missoula",
+    other_links: <<~MD,
+      [NCA photo gallery](https://carousels.org/psp/Missoula/)
+      [Official history](https://www.missoulacarousel.org/building-a-community-dream-a-carousel-for-missoula/)
+      [Seating video](https://www.youtube.com/watch?v=8E3DemQtIis)
+    MD
     sections_count: 14, rows_count: 3, rotation: "counterclockwise",
     body: <<~MD
       A volunteer-built, hand-carved carousel in Caras Park in downtown Missoula, Montana, opened on May 27, 1995.

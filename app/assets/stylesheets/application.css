@@ -37,6 +37,7 @@ h2 { font-size: 1.35rem; margin: 28px 0 8px; }
 .card { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
 .cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .cards h2 { margin-top: 0; }
+.cards .website { overflow-wrap: anywhere; }
 .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 .stack { display: grid; gap: 16px; }

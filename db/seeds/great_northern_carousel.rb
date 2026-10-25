@@ -68,6 +68,7 @@ ActiveRecord::Base.transaction do
   carousel.update!(
     name: "Great Northern Carousel", city: "Helena", region: "Montana", country: "United States",
     status: "operating", venue: nil, maker: nil, year_built: nil, year_opened: nil,
+    official_url: "https://www.greatnortherncarousel.com/", wikipedia_url: nil, other_links: nil,
     sections_count: 14, rows_count: 3, rotation: "counterclockwise",
     body: <<~MD
       A hand-carved carousel in Helena, Montana, with 37 animals, a spinning tea-cup and a chariot bench on a 14-section, three-row platform. Most of its figures are Montana wildlife.

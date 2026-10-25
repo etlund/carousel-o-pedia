@@ -68,4 +68,40 @@ class CarouselTest < ActiveSupport::TestCase
     assert_equal "Titan the Hippocampus", carousel.lead_figure.name
     assert_equal %w[ A B C ], carousel.seat("4A").rows_covered
   end
+
+  test "website fields are optional and URL whitespace is normalized" do
+    carousel = build_carousel
+    carousel.update!(
+      official_url: " https://example.com/carousel?visit=yes#hours ",
+      wikipedia_url: "http://en.wikipedia.org/wiki/Example",
+      other_links: "[NCA gallery](https://carousels.org/)"
+    )
+    assert_equal "https://example.com/carousel?visit=yes#hours", carousel.official_url
+    assert_equal "http://en.wikipedia.org/wiki/Example", carousel.wikipedia_url
+    assert_includes carousel.versions.last.changeset, "official_url"
+    assert_includes carousel.versions.last.changeset, "other_links"
+
+    carousel.update!(official_url: " ", wikipedia_url: "", other_links: " ")
+    assert_nil carousel.official_url
+    assert_nil carousel.wikipedia_url
+    assert_nil carousel.other_links
+  end
+
+  test "website URLs reject unsupported schemes malformed URLs and login credentials" do
+    carousel = build_carousel
+    invalid_urls = [
+      "javascript:alert(1)", "data:text/html,hello", "ftp://example.com/",
+      "/relative", "//example.com/", "example.com", "https://",
+      "https://exa mple.com/", "https://example.com/\nextra",
+      "https://user:password@example.com/"
+    ]
+    %i[ official_url wikipedia_url ].each do |attribute|
+      invalid_urls.each do |value|
+        carousel.assign_attributes(official_url: nil, wikipedia_url: nil)
+        carousel.public_send("#{attribute}=", value)
+        assert_not carousel.valid?, "#{attribute}: #{value.inspect}"
+        assert_includes carousel.errors[attribute], "must be an http:// or https:// URL without login credentials"
+      end
+    end
+  end
 end

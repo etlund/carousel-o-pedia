@@ -1,3 +1,5 @@
+require "uri"
+
 class Carousel < ApplicationRecord
   include Sluggable
   has_paper_trail
@@ -17,7 +19,9 @@ class Carousel < ApplicationRecord
   validates :sections_count, numericality: { only_integer: true, greater_than: 0 }
   validates :rows_count, numericality: { only_integer: true, in: 1..MAX_ROWS }
 
-  blank_as_nil :city, :region, :country, :venue, :body
+  blank_as_nil :city, :region, :country, :venue, :body, :other_links
+  normalizes :official_url, :wikipedia_url, with: ->(value) { value.strip.presence }
+  validate :website_urls_are_http
 
   after_create :fill_missing_seats
 
@@ -75,4 +79,21 @@ class Carousel < ApplicationRecord
       section[:counts].each { |category, count| totals[category] += count }
     end
   end
+
+  private
+    def website_urls_are_http
+      %i[ official_url wikipedia_url ].each do |attribute|
+        value = public_send(attribute)
+        next if value.blank? || valid_website_url?(value)
+
+        errors.add(attribute, "must be an http:// or https:// URL without login credentials")
+      end
+    end
+
+    def valid_website_url?(value)
+      uri = URI.parse(value)
+      uri.is_a?(URI::HTTP) && uri.host.present? && uri.userinfo.nil?
+    rescue URI::InvalidURIError
+      false
+    end
 end

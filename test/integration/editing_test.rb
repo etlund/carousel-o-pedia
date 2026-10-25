@@ -126,6 +126,48 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_equal 48, carousel.seats.count
   end
 
+  test "an editor can create update and clear carousel website fields" do
+    sign_in_as users(:editor)
+    get new_carousel_path
+    assert_response :success
+    assert_select "input[type=url][name='carousel[official_url]']:not([required])"
+    assert_select "input[type=url][name='carousel[wikipedia_url]']:not([required])"
+    assert_select "textarea[name='carousel[other_links]']"
+
+    links = {
+      official_url: "https://example.com/official",
+      wikipedia_url: "https://en.wikipedia.org/wiki/Example",
+      other_links: "[NCA gallery](https://carousels.org/)"
+    }
+    post carousels_path, params: { carousel: { name: "Linked carousel", sections_count: 1, rows_count: 1 }.merge(links) }
+    carousel = Carousel.find_by!(name: "Linked carousel")
+    assert_redirected_to carousel_path(carousel)
+    links.each { |attribute, value| assert_equal value, carousel.public_send(attribute) }
+
+    patch carousel_path(carousel), params: { carousel: links.merge(official_url: "https://example.com/updated") }
+    assert_redirected_to carousel_path(carousel)
+    assert_equal "https://example.com/updated", carousel.reload.official_url
+    get history_carousel_path(carousel)
+    assert_select ".changes ins", "https://example.com/updated"
+
+    patch carousel_path(carousel), params: { carousel: { official_url: "", wikipedia_url: "", other_links: "" } }
+    assert_redirected_to carousel_path(carousel)
+    carousel.reload
+    %i[ official_url wikipedia_url other_links ].each { assert_nil carousel.public_send(_1) }
+  end
+
+  test "invalid carousel URLs show form errors without saving" do
+    sign_in_as users(:editor)
+    original = @carousel.official_url
+    assert_no_difference "PaperTrail::Version.count" do
+      patch carousel_path(@carousel), params: { carousel: { official_url: "javascript:alert(1)" } }
+    end
+    assert_response :unprocessable_entity
+    assert_select "[role=alert]", text: /must be an http:\/\/ or https:\/\/ URL/
+    assert_select "input[name='carousel[official_url]'][value=?]", "javascript:alert(1)"
+    assert_equal original, @carousel.reload.official_url
+  end
+
   test "the platform size can't change after the carousel is made" do
     sign_in_as users(:editor)
     patch carousel_path(@carousel), params: { carousel: { name: "Great Northern Carousel", sections_count: 20 } }

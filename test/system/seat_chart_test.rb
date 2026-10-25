@@ -3,6 +3,25 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "carousel card displays the official URL as a link while the title opens the wiki" do
+    carousel = Carousel.find_by!(slug: "great-northern-carousel")
+    visit carousels_path
+    within("li.card", text: carousel.name) do
+      assert_selector "p.muted", text: carousel.location
+      assert_no_selector "p.muted a"
+      assert_selector "p.website a[href='https://www.greatnortherncarousel.com/']", text: carousel.official_url
+      click_on carousel.name
+    end
+    assert_selector "h1", text: carousel.name
+    within(".facts") { assert_link "Official website", href: carousel.official_url }
+
+    visit carousel_path("a-carousel-for-missoula")
+    within(".facts") do
+      assert_link "Wikipedia", href: "https://en.wikipedia.org/wiki/A_Carousel_for_Missoula"
+      assert_link "NCA photo gallery", href: "https://carousels.org/psp/Missoula/"
+    end
+  end
+
   test "clicking a seat on the chart opens its seat page" do
     visit carousel_path("great-northern-carousel")
     assert_selector "h1", text: "Great Northern Carousel"
