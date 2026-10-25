@@ -8,11 +8,17 @@ class CarouselsController < ApplicationController
     @regions = Carousel.where.not(region: [ nil, "" ]).distinct.order(:region).pluck(:region)
     @query = params.expect(:q).strip.presence if params[:q].present?
     @selected_region = params.expect(:region).strip.presence if params[:region].present?
+    @sort = params[:sort].present? ? params.expect(:sort).strip.presence : nil
+    @sort ||= "data_first"
+    raise ActionController::BadRequest, "Unknown carousel sort order" unless %w[ data_first name ].include?(@sort)
+
     if @selected_region && !@regions.include?(@selected_region)
       raise ActiveRecord::RecordNotFound, "Unknown state or region"
     end
 
-    @carousels = Carousel.includes(:maker).order(:name)
+    @carousels = Carousel.includes(:maker)
+    @carousels = @carousels.with_data_first if @sort == "data_first"
+    @carousels = @carousels.order(:name, :id)
     if @query
       @carousels = @carousels.where("LOWER(name) LIKE ? ESCAPE '!'", "%#{Carousel.sanitize_sql_like(@query.downcase, "!")}%")
     end

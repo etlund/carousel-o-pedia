@@ -6,6 +6,8 @@ A wiki for carousels, their carved figures, and their history.
 
 The Carousels page supports case-insensitive partial name searches and a state filter. Use either filter alone or combine them, choose **Filter** to apply, and **Clear filters** to return to the full directory. Selections remain visible and are included in the page URL for sharing. The state dropdown lists the distinct states or regions recorded in the directory.
 
+Carousels default to **With data first**: entries with any figure inventory (including unseated figures) or a recorded seating layout appear before directory-only entries. Both groups are alphabetical by name. Choose **Name (A-Z)** in the Sort dropdown for a single alphabetical list. Sorting works with the name and state filters; **Clear filters** also restores the default sort.
+
 Every seat has a code of section number plus row letter. Rows are lettered from the outside in, so `5A` is section 5, outer row. Sections are numbered in the order figures pass someone standing at the rail.
 
 Carousel summary cards show counts of currently placed horses, other animals, and chariots and tubs, matching the seating chart totals. Figures spanning multiple rows count once; unplaced inventory and ended placements are excluded.

@@ -13,6 +13,10 @@
       <%= form.label :region, "State" %>
       <%= form.select :region, @regions, include_blank: "All states", selected: @selected_region %>
     </div>
+    <div class="field">
+      <%= form.label :sort, "Sort" %>
+      <%= form.select :sort, [ [ "With data first", "data_first" ], [ "Name (A-Z)", "name" ] ], selected: @sort %>
+    </div>
   </div>
   <div class="actions"><%= form.submit "Filter" %> <%= link_to "Clear filters", carousels_path %></div>
 <% end %>

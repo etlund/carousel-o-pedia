@@ -13,6 +13,14 @@ class Carousel < ApplicationRecord
   has_many :placements, through: :seats
   has_many :figures, dependent: :restrict_with_error
 
+  scope :with_data_first, -> {
+    order(Arel.sql(<<~SQL))
+      CASE WHEN (carousels.sections_count IS NOT NULL AND carousels.rows_count IS NOT NULL)
+        OR EXISTS (SELECT 1 FROM figures WHERE figures.carousel_id = carousels.id)
+      THEN 0 ELSE 1 END
+    SQL
+  }
+
   validates :name, presence: true
   validates :status, inclusion: { in: STATUSES }
   validates :rotation, inclusion: { in: ROTATIONS }, allow_nil: true

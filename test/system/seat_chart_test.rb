@@ -3,6 +3,32 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "carousel sorting puts researched entries first and works with filters" do
+    visit carousels_path
+    assert_selector :select, "Sort", selected: "With data first"
+    assert_equal [ "A Carousel for Missoula", "Great Northern Carousel", "Looff Carrousel", "Salem's Riverfront Carousel" ],
+      all(".cards h2 a").first(4).map(&:text)
+
+    select "Name (A-Z)", from: "Sort"
+    click_on "Filter"
+    assert_selector :select, "Sort", selected: "Name (A-Z)"
+    assert_equal Carousel.order(:name, :id).pluck(:name), all(".cards h2 a").map(&:text)
+
+    fill_in "Name", with: "looff"
+    select "California", from: "State"
+    click_on "Filter"
+    assert_selector ".cards > li.card", count: 1
+    assert_field "Name", with: "looff"
+    assert_selector :select, "State", selected: "California"
+    assert_selector :select, "Sort", selected: "Name (A-Z)"
+
+    click_on "Clear filters"
+    assert_selector ".cards > li.card", count: 54
+    assert_selector :select, "Sort", selected: "With data first"
+    assert_equal [ "A Carousel for Missoula", "Great Northern Carousel", "Looff Carrousel", "Salem's Riverfront Carousel" ],
+      all(".cards h2 a").first(4).map(&:text)
+  end
+
   test "carousel name and state filters combine retain selections and clear" do
     visit carousels_path
     assert_selector ".cards > li.card", count: 54

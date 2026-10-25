@@ -1,6 +1,24 @@
 require "test_helper"
 
 class CarouselTest < ActiveSupport::TestCase
+  test "data first includes unseated inventory or known layouts without duplicating carousels" do
+    directory = Carousel.create!(name: "AAA Directory")
+    notes_only = Carousel.create!(name: "BBB Notes", body: "Some history", official_url: "https://example.com/")
+    inventory = Carousel.create!(name: "ZZZ Inventory")
+    reserve = create_figure("Unseated reserve", carousel: inventory)
+    layout = Carousel.create!(name: "YYY Layout", sections_count: 2, rows_count: 2)
+    both = Carousel.create!(name: "MMM Both", sections_count: 2, rows_count: 2)
+    2.times { |number| create_figure("Figure #{number}", carousel: both) }
+    ids = [ directory, notes_only, inventory, layout, both ].map(&:id)
+
+    ordered = Carousel.where(id: ids).with_data_first.order(:name, :id)
+    assert_equal [ both.id, layout.id, inventory.id, directory.id, notes_only.id ], ordered.ids
+    assert_nil reserve.seat
+
+    reserve.destroy!
+    assert_equal [ both.id, layout.id, directory.id, notes_only.id, inventory.id ], ordered.ids
+  end
+
   test "directory records have unknown layouts and create no seats" do
     carousel = Carousel.create!(name: "Directory carousel")
     assert_not carousel.layout_known?

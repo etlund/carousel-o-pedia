@@ -3,6 +3,51 @@ require "test_helper"
 class PagesTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "carousels default to data first and support a retained alphabetical sort" do
+    get carousels_path
+    assert_response :success
+    assert_equal [ "A Carousel for Missoula", "Great Northern Carousel", "Looff Carrousel", "Salem's Riverfront Carousel" ],
+      css_select(".cards h2 a").first(4).map(&:text)
+    assert_select "select[name=sort] option[selected][value=data_first]"
+
+    get carousels_path, params: { sort: "name" }
+    assert_response :success
+    assert_equal Carousel.order(:name, :id).pluck(:name), css_select(".cards h2 a").map(&:text)
+    assert_select "select[name=sort] option[selected][value=name]"
+  end
+
+  test "data first and alphabetical sorts work with combined filters and unseated inventory" do
+    directory = Carousel.create!(name: "Sort check A Directory", region: "Montana")
+    inventory = Carousel.create!(name: "Sort check Z Inventory", region: "Montana")
+    create_figure("Unseated reserve", carousel: inventory)
+    Carousel.create!(name: "Sort check Another state", region: "California")
+
+    [ [ "data_first", [ inventory.name, directory.name ] ], [ "name", [ directory.name, inventory.name ] ] ].each do |sort, expected|
+      get carousels_path, params: { q: "Sort check", region: "Montana", sort: }
+      assert_response :success
+      assert_equal expected, css_select(".cards h2 a").map(&:text)
+      assert_select "input[name=q][value='Sort check']"
+      assert_select "select[name=region] option[selected][value=Montana]"
+      assert_select "select[name=sort] option[selected][value=?]", sort
+    end
+
+    get carousels_path, params: { q: "No matching carousel", sort: "name" }
+    assert_response :success
+    assert_select "main p", "No carousels match these filters."
+    assert_select "select[name=sort] option[selected][value=name]"
+  end
+
+  test "carousel sort defaults on blank input and rejects invalid selections" do
+    get carousels_path, params: { sort: " " }
+    assert_response :success
+    assert_select "select[name=sort] option[selected][value=data_first]"
+
+    [ "unknown", "name DESC", [ "name" ], { order: "name" } ].each do |sort|
+      get carousels_path, params: { sort: }
+      assert_response :bad_request
+    end
+  end
+
   test "carousel name search is case insensitive partial and retains its value" do
     get carousels_path, params: { q: "  lOoFf  " }
     assert_response :success
