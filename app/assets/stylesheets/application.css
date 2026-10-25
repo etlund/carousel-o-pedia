@@ -20,6 +20,7 @@
 body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
 a { color: var(--blue); }
 @media (prefers-color-scheme: dark) { a { color: var(--head); } }
+a.website-link { color: var(--red); }
 h1, h2 { font-family: var(--display); font-weight: 400; color: var(--head); line-height: 1.15; text-wrap: balance; }
 h1 { font-size: clamp(1.7rem, 3.6vw, 2.5rem); margin: 0; color: var(--fg); }
 h2 { font-size: 1.35rem; margin: 28px 0 8px; }
