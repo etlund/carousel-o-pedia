@@ -15,7 +15,10 @@ class Carousel < ApplicationRecord
 
   scope :with_data_first, -> {
     order(Arel.sql(<<~SQL))
-      CASE WHEN (carousels.sections_count IS NOT NULL AND carousels.rows_count IS NOT NULL)
+      CASE WHEN carousels.sections_count IS NOT NULL OR carousels.rows_count IS NOT NULL
+        OR carousels.published_horses_count IS NOT NULL
+        OR carousels.published_other_animals_count IS NOT NULL
+        OR carousels.published_chariots_count IS NOT NULL
         OR EXISTS (SELECT 1 FROM figures WHERE figures.carousel_id = carousels.id)
       THEN 0 ELSE 1 END
     SQL
@@ -26,15 +29,24 @@ class Carousel < ApplicationRecord
   validates :rotation, inclusion: { in: ROTATIONS }, allow_nil: true
   validates :sections_count, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :rows_count, numericality: { only_integer: true, in: 1..MAX_ROWS }, allow_nil: true
+  validates :published_horses_count, :published_other_animals_count, :published_chariots_count,
+    numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :summary_sources, presence: true, if: :published_counts?
   validate :layout_dimensions_are_consistent
 
-  blank_as_nil :city, :region, :country, :venue, :body, :other_links, :rotation
+  blank_as_nil :city, :region, :country, :venue, :body, :other_links, :rotation, :summary_sources
   normalizes :official_url, :wikipedia_url, with: ->(value) { value.strip.presence }
   validate :website_urls_are_http
 
   after_save :fill_missing_seats, if: :layout_added?
 
   def layout_known? = sections_count.present? && rows_count.present?
+
+  def published_category_totals
+    { "horse" => published_horses_count, "menagerie" => published_other_animals_count, "chariot" => published_chariots_count }
+  end
+
+  def published_counts? = published_category_totals.values.any? { !_1.nil? }
 
   # Rows are lettered from the outside in: A is always the outer row.
   def row_letters = layout_known? ? ("A"..).first(rows_count) : []
@@ -101,9 +113,7 @@ class Carousel < ApplicationRecord
     end
 
     def layout_dimensions_are_consistent
-      if sections_count.nil? != rows_count.nil?
-        errors.add(:base, "Sections and rows must both be provided or both left unknown")
-      elsif !layout_known? && seats.exists?
+      if !layout_known? && seats.exists?
         errors.add(:base, "The layout cannot be cleared while seats exist")
       end
     end

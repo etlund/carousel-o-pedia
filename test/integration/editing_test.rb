@@ -156,10 +156,10 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_select "select[name='carousel[lead_seat_id]']"
   end
 
-  test "incomplete or invalid first layouts keep the editing fields and do not create seats" do
+  test "invalid first layouts keep the editing fields and do not create seats" do
     sign_in_as users(:editor)
     carousel = Carousel.create!(name: "Directory entry")
-    [ { sections_count: 3 }, { sections_count: 3, rows_count: 7 } ].each do |dimensions|
+    [ { sections_count: 3, rows_count: 0 }, { sections_count: 3, rows_count: 7 } ].each do |dimensions|
       patch carousel_path(carousel), params: { carousel: dimensions }
       assert_response :unprocessable_entity
       assert_select "[role=alert]"
@@ -168,6 +168,41 @@ class EditingTest < ActionDispatch::IntegrationTest
       assert_not carousel.reload.layout_known?
       assert_empty carousel.seats
     end
+  end
+
+  test "editors can record partial layout facts and published totals with sources" do
+    sign_in_as users(:editor)
+    carousel = Carousel.create!(name: "Partial research")
+    patch carousel_path(carousel), params: { carousel: {
+      sections_count: 18, published_horses_count: 68, published_other_animals_count: 0,
+      published_chariots_count: 2, summary_sources: "[Operator](https://example.com/) reports these totals."
+    } }
+    assert_redirected_to carousel_path(carousel)
+    assert_equal [ 18, nil ], carousel.reload.attributes.values_at("sections_count", "rows_count")
+    assert_equal 68, carousel.published_horses_count
+    assert_equal 0, carousel.published_other_animals_count
+    assert_empty carousel.seats
+    get edit_carousel_path(carousel)
+    assert_select "input[name='carousel[sections_count]'][value='18']"
+    assert_select "input[name='carousel[rows_count]']"
+    assert_select "input[name='carousel[published_horses_count]'][value='68']"
+    assert_select "textarea[name='carousel[summary_sources]']", text: /Operator/
+
+    patch carousel_path(carousel), params: { carousel: { rows_count: 4 } }
+    assert_redirected_to carousel_path(carousel)
+    assert_equal 72, carousel.reload.seats.count
+    assert_equal 68, carousel.published_horses_count
+
+    patch carousel_path(carousel), params: { carousel: { published_horses_count: -1 } }
+    assert_response :unprocessable_entity
+    assert_select "[role=alert]", text: /greater than or equal to 0/
+    assert_equal 68, carousel.reload.published_horses_count
+
+    patch carousel_path(carousel), params: { carousel: { published_horses_count: "", published_other_animals_count: "",
+      published_chariots_count: "", summary_sources: "" } }
+    assert_redirected_to carousel_path(carousel)
+    assert_not carousel.reload.published_counts?
+    assert_nil carousel.summary_sources
   end
 
   test "an editor can create update and clear carousel website fields" do

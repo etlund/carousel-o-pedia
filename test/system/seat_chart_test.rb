@@ -3,10 +3,29 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "published counts appear in a single category list with sources retained" do
+    visit carousels_path
+    within("li.card", text: "Oaks Park Carousel") do
+      assert_text "Sections unknown, 3 rows"
+      assert_equal [ "24", "26", "4" ], all(".figure-count").map(&:text)
+      assert_selector "dl.facts", count: 1
+      click_on "Summary sources"
+    end
+    assert_selector "h1", text: "Oaks Park Carousel"
+    assert_no_selector "svg.seat-chart"
+    assert_no_selector "table.sections"
+    assert_equal [ "24", "26", "4" ], all(".figure-count").map(&:text)
+    within("#summary-sources") do
+      assert_link "NCA classic wood carousel census", href: "https://carousels.org/USACensus/stdqueries/census-cCLA.html"
+      assert_text "two chariots, two tubs"
+      assert_text "tagged 2020"
+    end
+  end
+
   test "carousel sorting puts researched entries first and works with filters" do
     visit carousels_path
     assert_selector :select, "Sort", selected: "With data first"
-    assert_equal [ "A Carousel for Missoula", "Great Northern Carousel", "Looff Carrousel", "Salem's Riverfront Carousel" ],
+    assert_equal [ "A Carousel for Missoula", "Bushnell Park Carousel", "Cafesjian's Carousel", "Dorothea Laub Balboa Park Carousel" ],
       all(".cards h2 a").first(4).map(&:text)
 
     select "Name (A-Z)", from: "Sort"
@@ -25,7 +44,7 @@ class SeatChartTest < ApplicationSystemTestCase
     click_on "Clear filters"
     assert_selector ".cards > li.card", count: 54
     assert_selector :select, "Sort", selected: "With data first"
-    assert_equal [ "A Carousel for Missoula", "Great Northern Carousel", "Looff Carrousel", "Salem's Riverfront Carousel" ],
+    assert_equal [ "A Carousel for Missoula", "Bushnell Park Carousel", "Cafesjian's Carousel", "Dorothea Laub Balboa Park Carousel" ],
       all(".cards h2 a").first(4).map(&:text)
   end
 

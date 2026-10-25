@@ -6,13 +6,15 @@ A wiki for carousels, their carved figures, and their history.
 
 The Carousels page supports case-insensitive partial name searches and a state filter. Use either filter alone or combine them, choose **Filter** to apply, and **Clear filters** to return to the full directory. Selections remain visible and are included in the page URL for sharing. The state dropdown lists the distinct states or regions recorded in the directory.
 
-Carousels default to **With data first**: entries with any figure inventory (including unseated figures) or a recorded seating layout appear before directory-only entries. Both groups are alphabetical by name. Choose **Name (A-Z)** in the Sort dropdown for a single alphabetical list. Sorting works with the name and state filters; **Clear filters** also restores the default sort.
+Carousels default to **With data first**: entries with figure inventory (including unseated figures), any verified platform dimension, or published figure totals appear before directory-only entries. Both groups are alphabetical by name. Choose **Name (A-Z)** in the Sort dropdown for a single alphabetical list. Sorting works with the name and state filters; **Clear filters** also restores the default sort.
 
 Every seat has a code of section number plus row letter. Rows are lettered from the outside in, so `5A` is section 5, outer row. Sections are numbered in the order figures pass someone standing at the rail.
 
-Carousel summary cards show counts of currently placed horses, other animals, and chariots and tubs, matching the seating chart totals. Figures spanning multiple rows count once; unplaced inventory and ended placements are excluded.
+Carousel summary cards and detail pages list horses, other animals, and chariots and tubs **once**. Each category prefers its published total; when that value is blank, it falls back to the mapped-seat count if the layout is known, or **Unknown** otherwise. Published zero is a verified count and is never replaced by a mapped value.
 
-Directory-only carousels can have an unknown seating layout. Their cards and detail pages show **Unknown** rather than invented dimensions or zero animal counts, and no seating chart is drawn. Editors can leave both section and row counts blank, then supply both together once researched; that creates a chart of unknown seats. Once recorded, the platform size stays fixed in the editor. Rotation is independently optional and does not default to a guessed direction.
+Published totals describe source-reported riding figures and remain stored separately from placements; they never create placeholder figures or seats. Mapped counts exclude unplaced inventory and ended placements and count figures spanning multiple rows once. The seating chart and section table always use mapped data, which may differ from the displayed published totals. Editors must supply Markdown source notes for published totals. Source dates, historical configurations, and disagreements remain available in **Summary sources**.
+
+Directory-only carousels can have an unknown or partially researched seating layout. Each dimension is independently optional: for example, a known row count is shown even while sections remain unknown. No chart or seats are created until both dimensions are known. Once both are recorded, platform size stays fixed in the editor. Unmapped counts remain **Unknown** without a complete layout. Rotation is independently optional and does not default to a guessed direction.
 
 Carousels have optional **official website**, **Wikipedia**, and **other links** fields. On the carousel index, the city/state/country location remains plain text, and the official website URL appears as a separate clickable link when one is set; the carousel name still links to its wiki page. Carousel detail pages display the available website links in the facts card.
 
@@ -88,7 +90,24 @@ Eric's saved Salem assignments on **October 24, 2026**, based on [this video](ht
 
 > **The four detailed inventory seeds are authoritative for now.** Running `bin/rails db:seed` overwrites wiki edits to their seeded attributes, chart shapes, and known placements. Back up an edited database before intentionally reseeding it.
 
-The [U.S. operating-carousel directory seed](db/seeds/us_operating_carousels.rb) is **create-only**: it adds missing entries by stable slug but never overwrites an existing record, including later website corrections, operating-status changes, researched layouts, figure inventories, or wiki notes. Each new entry records its name, city, state, country, official URL, and source notes. Layout dimensions, rotation, and figure inventories remain unknown until researched.
+The [U.S. operating-carousel directory seed](db/seeds/us_operating_carousels.rb) is **create-only for directory metadata**: it adds missing entries by stable slug without replacing later name, website, operating-status, or wiki-note edits. Researched summary counts and dimensions **fill only nil values**; existing values, including zero, are preserved. New source notes are appended without replacing earlier notes. Conflicting existing dimensions are retained rather than mixed into an invented layout. Figure inventories and placements are never created or changed by this seed.
+
+The first summary-research pass covers ten carousels, using the [NCA classic wood carousel census](https://carousels.org/USACensus/stdqueries/census-cCLA.html) and operator context reviewed October 25, 2026:
+
+| Carousel | Published horses | Other animals | Chariots and tubs | Rows |
+|----------|-----------------:|--------------:|------------------:|-----:|
+| Jane's Carousel | 48 | 0 | 2 | 3 |
+| Paragon Carousel | 66 | 0 | 2 | 4 |
+| Bushnell Park Carousel | 48 | 0 | 2 | 3 |
+| Glen Echo Park Dentzel Carousel | 40 | 12 | 2 | 3 |
+| Pullen Park Carousel | 29 | 23 | 2 | 3 |
+| Kit Carson County Carousel | 25 | 21 | 4 | 3 |
+| Cafesjian's Carousel | 68 | 0 | 2 | 4 |
+| Dorothea Laub Balboa Park Carousel | 27 | 25 | 3 | 3 |
+| Santa Cruz Beach Boardwalk Looff Carousel | 73 | 0 | 2 | 4 |
+| Oaks Park Carousel | 24 | 26 | 4 | 3 |
+
+**No section count was verified for these ten**, so none is inferred from animal counts or row counts, and they still have no seating charts. Several census entries are tagged 2020; Pullen's is tagged 2021. These are published snapshots, not current physical surveys. Oaks Park's four vehicles comprise two chariots and two tubs. Balboa's figures are explicitly **as reported**: NCA lists 25 other animals but its species breakdown sums to 26, and inclusion of the operator's four miniature horses is unresolved. Those caveats are retained on its page.
 
 Directory sources were reviewed on **October 25, 2026**. "Operating" means the operator lists the carousel as a ride or visitor attraction, including seasonal operation; it does not guarantee it is open today or rule out temporary maintenance closures. Check the linked operator website for current hours. Source evidence is included on each carousel page.
 
@@ -115,7 +134,7 @@ Seed files load automatically in filename order and require no network access.
 
 ## Data model
 
-- **Carousel**: location, status, website links, optional rotation, and optional platform size (sections × rows, both known or both unknown).
+- **Carousel**: location, status, website links, published figure totals with source notes, optional rotation, and independently optional section/row counts. Both dimensions are required to draw a seating chart.
 - **Seat**: one spot on a platform, addressed by its code. A tea-cup or chariot that fills several rows is one seat that spans them. Seats record whether their placement is confirmed or a best reading.
 - **Figure**: one carved figure belonging to a carousel independently of seating, with a **figure type** (bison, trout, horse) whose category (horse, other animal, chariot or tub) sets its chart colour and section count.
 - **Placement**: which figure sits in which seat, with dates, so figures can move.

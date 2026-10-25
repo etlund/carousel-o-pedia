@@ -3,10 +3,48 @@ require "test_helper"
 class PagesTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "carousel counts show each category once preferring published totals with mapped fallbacks" do
+    carousel = Carousel.create!(name: "Summary facts", rows_count: 3,
+      published_horses_count: 48, published_other_animals_count: 0,
+      summary_sources: "[Operator](https://example.com/) reports 48 horses.\n<script>alert('summary')</script>")
+    get carousels_path
+    assert_response :success
+    assert_select "li.card:has(h2 a[href='#{carousel_path(carousel)}'])" do |cards|
+      assert_select "p", text: "Sections unknown, 3 rows, operating"
+      assert_equal [ "48", "0", "Unknown" ], cards.first.css(".figure-count").map(&:text)
+      assert_equal [ "Horses", "Other animals", "Chariots and tubs" ], cards.first.css(".facts dt").map(&:text)
+      assert_select "a[href=?]", carousel_path(carousel, anchor: "summary-sources"), text: "Summary sources"
+    end
+    get carousel_path(carousel)
+    assert_response :success
+    assert_select "svg.seat-chart", 0
+    assert_select ".facts dd", text: "Sections unknown, 3 rows"
+    assert_equal [ "48", "0", "Unknown" ], css_select(".figure-count").map(&:text)
+    assert_select "#summary-sources a[href=?]", "https://example.com/", text: "Operator"
+    assert_select "#summary-sources script", 0
+
+    carousel.update!(sections_count: 2)
+    SeatAssignment.new(carousel.seat("1A"), create_figure("Mapped horse", carousel:)).save!
+    SeatAssignment.new(carousel.seat("1B"), create_figure("Mapped animal", category: "menagerie", carousel:)).save!
+    SeatAssignment.new(carousel.seat("2A"), create_figure("Mapped chariot", category: "chariot", carousel:)).save!
+    get carousel_path(carousel)
+    assert_select "svg.seat-chart", 1
+    assert_equal [ "48", "0", "1" ], css_select(".figure-count").map(&:text)
+    [ "Horses", "Other animals", "Chariots and tubs" ].each { |label| assert_select ".facts dt", text: label, count: 1 }
+    assert_equal 1, carousel.category_totals["horse"]
+    assert_equal 1, carousel.category_totals["menagerie"]
+
+    get carousels_path, params: { q: carousel.name }
+    assert_equal [ "48", "0", "1" ], css_select(".figure-count").map(&:text)
+    carousel.update!(published_horses_count: nil)
+    get carousel_path(carousel)
+    assert_equal [ "1", "0", "1" ], css_select(".figure-count").map(&:text)
+  end
+
   test "carousels default to data first and support a retained alphabetical sort" do
     get carousels_path
     assert_response :success
-    assert_equal [ "A Carousel for Missoula", "Great Northern Carousel", "Looff Carrousel", "Salem's Riverfront Carousel" ],
+    assert_equal [ "A Carousel for Missoula", "Bushnell Park Carousel", "Cafesjian's Carousel", "Dorothea Laub Balboa Park Carousel" ],
       css_select(".cards h2 a").first(4).map(&:text)
     assert_select "select[name=sort] option[selected][value=data_first]"
 
@@ -73,7 +111,7 @@ class PagesTest < ActionDispatch::IntegrationTest
 
     get carousels_path, params: { q: "carousel", region: "New York" }
     assert_response :success
-    expected = [ "Eldridge Park Carousel", "Greenport Carousel", "Jane's Carousel", "Seabreeze Carousel" ]
+    expected = [ "Jane's Carousel", "Eldridge Park Carousel", "Greenport Carousel", "Seabreeze Carousel" ]
     assert_equal expected, css_select(".cards h2 a").map(&:text)
     assert_select "input[name=q][value=carousel]"
     assert_select "select[name=region] option[selected][value='New York']"

@@ -49,9 +49,19 @@ class CarouselTest < ActiveSupport::TestCase
     end
   end
 
-  test "layout dimensions must be paired and valid" do
+  test "layout dimensions can be recorded independently without creating seats" do
+    [ { sections_count: 2 }, { rows_count: 3 } ].each do |dimension|
+      carousel = Carousel.create!(name: "Partial layout", **dimension)
+      assert_not carousel.layout_known?
+      assert_empty carousel.seats
+      carousel.update!(sections_count: 2, rows_count: 3)
+      assert carousel.layout_known?
+      assert_equal 6, carousel.seats.count
+    end
+  end
+
+  test "known layout dimensions must be valid" do
     [
-      { sections_count: 2 }, { rows_count: 2 },
       { sections_count: 0, rows_count: 2 }, { sections_count: 1, rows_count: 0 },
       { sections_count: -1, rows_count: 2 }, { sections_count: 1.5, rows_count: 2 },
       { sections_count: 1, rows_count: Carousel::MAX_ROWS + 1 }
@@ -59,6 +69,36 @@ class CarouselTest < ActiveSupport::TestCase
       carousel = Carousel.new(name: "Invalid layout", **dimensions)
       assert_not carousel.valid?, dimensions.inspect
     end
+  end
+
+  test "published totals are separate from placements distinguish zero and require sources" do
+    carousel = Carousel.new(name: "Published summary", published_horses_count: 48,
+      published_other_animals_count: 0, published_chariots_count: 2)
+    assert_not carousel.valid?
+    assert_includes carousel.errors[:summary_sources], "can't be blank"
+    carousel.summary_sources = "[Operator](https://example.com/) reports riding figures."
+    carousel.save!
+    assert_equal({ "horse" => 48, "menagerie" => 0, "chariot" => 2 }, carousel.published_category_totals)
+    assert carousel.published_counts?
+    assert_empty carousel.figures
+    assert_empty carousel.seats
+
+    [ -1, 1.5, "many" ].each do |invalid|
+      carousel.published_horses_count = invalid
+      assert_not carousel.valid?
+      assert carousel.errors[:published_horses_count].any?
+    end
+    carousel.assign_attributes(published_horses_count: nil, published_other_animals_count: nil, published_chariots_count: nil)
+    assert_not carousel.published_counts?
+    assert carousel.valid?
+  end
+
+  test "data first includes published zeros and partial layout research" do
+    directory = Carousel.create!(name: "AAA Directory")
+    published = Carousel.create!(name: "ZZZ Published", published_other_animals_count: 0, summary_sources: "Confirmed none")
+    partial = Carousel.create!(name: "YYY Partial", rows_count: 3)
+    assert_equal [ partial.id, published.id, directory.id ],
+      Carousel.where(id: [ directory, published, partial ]).with_data_first.order(:name).ids
   end
 
   test "a layout cannot be cleared while seats exist" do

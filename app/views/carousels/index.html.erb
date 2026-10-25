@@ -29,13 +29,16 @@
       <h2><%= link_to carousel.name, carousel %></h2>
       <p class="muted"><%= carousel.location %></p>
       <% if carousel.official_url.present? %><p class="website"><%= link_to carousel.official_url, carousel.official_url, class: "website-link" %></p><% end %>
-      <p><% if carousel.layout_known? %><%= pluralize(carousel.sections_count, "section") %>, <%= pluralize(carousel.rows_count, "row") %><% else %>Layout unknown<% end %>, <%= carousel.status %></p>
+      <p><%= carousel_platform_label(carousel) || "Layout unknown" %>, <%= carousel.status %></p>
       <dl class="facts">
         <% FigureType::CATEGORIES.each do |category| %>
           <dt><%= category_label(category) %></dt>
-          <dd><%= carousel.layout_known? ? @category_counts.fetch([carousel.id, category], 0) : "Unknown" %></dd>
+          <dd class="figure-count"><%= carousel_figure_count(carousel, category, @category_counts.fetch([carousel.id, category], 0)) || "Unknown" %></dd>
         <% end %>
       </dl>
+      <% if carousel.summary_sources.present? %>
+        <p><%= link_to "Summary sources", carousel_path(carousel, anchor: "summary-sources") %></p>
+      <% end %>
     </li>
   <% end %>
 </ul>

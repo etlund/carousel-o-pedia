@@ -1,4 +1,4 @@
-# Directory entries are create-only so later wiki research is never overwritten.
+# Directory metadata is create-only; researched facts fill only missing values.
 carousels = [
   {
     slug: "flying-horses-carousel-oak-bluffs", name: "Flying Horses Carousel",
@@ -10,19 +10,25 @@ carousels = [
     slug: "paragon-carousel-hull", name: "Paragon Carousel",
     city: "Hull", region: "Massachusetts",
     official_url: "https://www.paragoncarousel.com/",
-    source_note: "The operator publishes fall 2026 weekend hours, with the season ending October 25."
+    source_note: "The operator publishes fall 2026 weekend hours, with the season ending October 25.",
+    published_horses_count: 66, published_other_animals_count: 0, published_chariots_count: 2, rows_count: 4,
+    summary_note: "NCA reports 42 jumping and 24 standing horses, two Roman chariots, and four rows. The operator independently reports 66 horses and two Roman chariots. Decorative cherubs and goddesses are not riding animals."
   },
   {
     slug: "bushnell-park-carousel-hartford", name: "Bushnell Park Carousel",
     city: "Hartford", region: "Connecticut",
     official_url: "https://bushnellpark.org/carousel-membership",
-    source_note: "The park describes public carousel operation, with a January through March maintenance closure."
+    source_note: "The park describes public carousel operation, with a January through March maintenance closure.",
+    published_horses_count: 48, published_other_animals_count: 0, published_chariots_count: 2, rows_count: 3,
+    summary_note: "NCA reports 36 jumping and 12 standing horses, two chariots, and three rows for the 1914 Stein & Goldstein carousel. Numeric totals come from the census, not the operator's membership page."
   },
   {
     slug: "janes-carousel-brooklyn", name: "Jane's Carousel",
     city: "Brooklyn", region: "New York",
     official_url: "https://www.brooklynbridgepark.org/places-to-see/janes-carousel/",
-    source_note: "Brooklyn Bridge Park lists the glass-pavilion carousel as a year-round visitor attraction."
+    source_note: "Brooklyn Bridge Park lists the glass-pavilion carousel as a year-round visitor attraction.",
+    published_horses_count: 48, published_other_animals_count: 0, published_chariots_count: 2, rows_count: 3,
+    summary_note: "NCA reports 30 jumping and 18 standing horses, two chariots, and three rows for PTC #61. Brooklyn Bridge Park independently reports 48 horses and two chariots."
   },
   {
     slug: "greenport-carousel-greenport", name: "Greenport Carousel",
@@ -64,13 +70,17 @@ carousels = [
     slug: "glen-echo-dentzel-carousel", name: "Glen Echo Park Dentzel Carousel",
     city: "Glen Echo", region: "Maryland",
     official_url: "https://glenechopark.org/carousel",
-    source_note: "The park publishes 2026 carousel riding hours for its May through September season."
+    source_note: "The park publishes 2026 carousel riding hours for its May through September season.",
+    published_horses_count: 40, published_other_animals_count: 12, published_chariots_count: 2, rows_count: 3,
+    summary_note: "The NCA entry tagged 2020 reports 28 jumping and 12 standing horses, 12 other animals, two chariots, and three rows. The menagerie comprises a giraffe, lion, four ostriches, four rabbits, tiger, and deer. Operator restoration news does not supply a newer numeric inventory."
   },
   {
     slug: "pullen-park-carousel-raleigh", name: "Pullen Park Carousel",
     city: "Raleigh", region: "North Carolina",
     official_url: "https://raleighnc.gov/parks-and-recreation/places/pullen-park",
-    source_note: "The City of Raleigh lists carousel rides among Pullen Park's visitor activities."
+    source_note: "The City of Raleigh lists carousel rides among Pullen Park's visitor activities.",
+    published_horses_count: 29, published_other_animals_count: 23, published_chariots_count: 2, rows_count: 3,
+    summary_note: "The NCA entry tagged 2021 reports 19 jumping and 10 standing horses, 23 other animals, two chariots, and three rows on a bi-level platform. Its two large three-seat chariots count as two vehicles, not six passenger seats."
   },
   {
     slug: "family-kingdom-1923-carousel", name: "Family Kingdom 1923 Carousel",
@@ -124,7 +134,9 @@ carousels = [
     slug: "cafesjians-carousel-st-paul", name: "Cafesjian's Carousel",
     city: "St. Paul", region: "Minnesota",
     official_url: "https://ourfaircarousel.org/",
-    source_note: "The operator describes riding days from May through Labor Day and weekend operation through October."
+    source_note: "The operator describes riding days from May through Labor Day and weekend operation through October.",
+    published_horses_count: 68, published_other_animals_count: 0, published_chariots_count: 2, rows_count: 4,
+    summary_note: "The NCA entry tagged 2020 reports 68 jumping horses, two chariots, and four rows for PTC #33. The operator describes a wheelchair-accessible chariot conversion. Zero-valued counters in the operator's static web output are not used as inventory evidence."
   },
   {
     slug: "silver-beach-carousel-st-joseph", name: "Silver Beach Carousel",
@@ -184,13 +196,17 @@ carousels = [
     slug: "balboa-park-carousel-san-diego", name: "Dorothea Laub Balboa Park Carousel",
     city: "San Diego", region: "California",
     official_url: "https://balboapark.org/attractions-experiences/balboa-park-carousel/",
-    source_note: "Balboa Park advertises carousel rides with current per-ride pricing."
+    source_note: "Balboa Park advertises carousel rides with current per-ride pricing.",
+    published_horses_count: 27, published_other_animals_count: 25, published_chariots_count: 3, rows_count: 3,
+    summary_note: "The NCA entry tagged 2020 reports 12 jumping and 15 standing horses, 25 other animals, three chariots, and three rows on a two-level platform. These are published census totals, not a resolved current inventory: its species breakdown sums to 26 other animals rather than 25. The operator also describes four miniature horses added in the 1970s; whether those are included in NCA's 27 horses is unresolved. The three chariots are described as one double-seat rocking vehicle and two single-seat vehicles."
   },
   {
     slug: "kit-carson-county-carousel-burlington", name: "Kit Carson County Carousel",
     city: "Burlington", region: "Colorado",
     official_url: "https://www.kitcarsoncountycarousel.com/",
-    source_note: "The operator announces its 2026 riding season beginning May 23; operation is seasonal."
+    source_note: "The operator announces its 2026 riding season beginning May 23; operation is seasonal.",
+    published_horses_count: 25, published_other_animals_count: 21, published_chariots_count: 4, rows_count: 3,
+    summary_note: "The NCA entry tagged 2020 reports 25 standing horses, 21 other animals, four chariots, and three rows for stationary PTC #6. The four two-seat chariots are two carved and two plain vehicles. The operator corroborates the three-row stationary menagerie configuration."
   },
   {
     slug: "lakeside-carousel-phoenix-zoo", name: "Phoenix Zoo Lakeside Carousel",
@@ -232,7 +248,9 @@ carousels = [
     slug: "looff-carousel-santa-cruz-beach-boardwalk", name: "Santa Cruz Beach Boardwalk Looff Carousel",
     city: "Santa Cruz", region: "California",
     official_url: "https://beachboardwalk.com/rides/looff-carousel/",
-    source_note: "The Boardwalk promotes the carousel's 2026 anniversary and publishes current operating information."
+    source_note: "The Boardwalk promotes the carousel's 2026 anniversary and publishes current operating information.",
+    published_horses_count: 73, published_other_animals_count: 0, published_chariots_count: 2, rows_count: 4,
+    summary_note: "The NCA entry tagged 2020 reports 71 jumping and two standing horses, two chariots, and four rows. The operator's 2026 anniversary page corroborates the carousel's identity and brass-ring operation but does not supply newer numeric totals."
   },
   {
     slug: "king-arthur-carrousel-disneyland", name: "King Arthur Carrousel",
@@ -244,7 +262,9 @@ carousels = [
     slug: "oaks-park-carousel-portland", name: "Oaks Park Carousel",
     city: "Portland", region: "Oregon",
     official_url: "https://www.oakspark.com/family-rides",
-    source_note: "Oaks Park advertises free carousel rides during general operating hours in its spring through fall season."
+    source_note: "Oaks Park advertises free carousel rides during general operating hours in its spring through fall season.",
+    published_horses_count: 24, published_other_animals_count: 26, published_chariots_count: 4, rows_count: 3,
+    summary_note: "The NCA entry tagged 2020 reports 13 jumping and 11 standing horses, 26 other animals, two chariots, two tubs, and three rows on a two-level platform. The combined chariots-and-tubs category is therefore four vehicles. The operator corroborates a working menagerie carousel but does not provide numeric totals."
   },
   {
     slug: "palace-playland-carousel-old-orchard-beach", name: "Palace Playland Carousel",
@@ -304,7 +324,8 @@ carousels = [
 
 Carousel.transaction do
   carousels.each do |entry|
-    Carousel.find_or_create_by!(slug: entry.fetch(:slug)) do |carousel|
+    carousel = Carousel.find_or_initialize_by(slug: entry.fetch(:slug))
+    if carousel.new_record?
       carousel.assign_attributes(
         entry.slice(:name, :city, :region, :official_url).merge(
           country: "United States", status: "operating",
@@ -316,10 +337,33 @@ Carousel.transaction do
 
             Listed as an operating attraction by its operator; seasonal schedules and temporary closures may apply. Check the official website before visiting. This is not a guarantee that the ride is open today.
 
-            This directory entry does not yet have a researched seating layout, rotation, or figure inventory.
+            Individual figures and placements have not been researched for this directory entry. Published totals and any verified dimensions are recorded separately when available.
           MD
         )
       )
     end
+
+    facts = entry.slice(:published_horses_count, :published_other_animals_count, :published_chariots_count, :sections_count, :rows_count)
+    if %i[ sections_count rows_count ].any? { |attribute| !carousel[attribute].nil? && facts.key?(attribute) && carousel[attribute] != facts[attribute] }
+      Rails.logger.info("Preserving existing layout for #{carousel.slug}; published dimensions differ")
+      facts.except!(:sections_count, :rows_count)
+    end
+    additions = facts.select { |attribute, value| !value.nil? && carousel[attribute].nil? }
+    if additions.any?
+      carousel.assign_attributes(additions)
+      sources = <<~MD.strip
+        Published summary reviewed October 25, 2026.
+
+        #{entry.fetch(:summary_note)}
+
+        Sources: [NCA classic wood carousel census](https://carousels.org/USACensus/stdqueries/census-cCLA.html) and [operator context](#{entry.fetch(:official_url)}).
+
+        Census figures may describe an older configuration, not a current physical survey. Sections are unverified and are not inferred by dividing figure counts by rows. Existing wiki values are preserved when they differ from these published figures.
+      MD
+      unless carousel.summary_sources.to_s.include?(sources)
+        carousel.summary_sources = [ carousel.summary_sources.presence, sources ].compact.join("\n\n")
+      end
+    end
+    carousel.save! if carousel.new_record? || carousel.changed?
   end
 end
