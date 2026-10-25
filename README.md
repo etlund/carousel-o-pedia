@@ -6,6 +6,8 @@ A wiki for carousels, their carved figures, and their history.
 
 The Carousels page supports case-insensitive partial name searches and a state filter. Use either filter alone or combine them, choose **Filter** to apply, and **Clear filters** to return to the full directory. Selections remain visible and are included in the page URL for sharing. The state dropdown lists the distinct states or regions recorded in the directory.
 
+Cards with a complete recorded layout include a 160-pixel seat-chart preview with approximately 10-pixel dots: blue for horses, yellow for other animals, red for chariots/tubs, and outlined dots for unknown or empty seats. It uses the full chart's positions, with one dot per seat or spanning vehicle, and links to the full carousel page. Directory entries and partially known layouts do not show an invented preview.
+
 Carousels default to **With data first**: entries with figure inventory (including unseated figures), any verified platform dimension, or published figure totals appear before directory-only entries. Both groups are alphabetical by name. Choose **Name (A-Z)** in the Sort dropdown for a single alphabetical list. Sorting works with the name and state filters; **Clear filters** also restores the default sort.
 
 Every seat has a code of section number plus row letter. Rows are lettered from the outside in, so `5A` is section 5, outer row. Sections are numbered in the order figures pass someone standing at the rail.

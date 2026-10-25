@@ -16,7 +16,7 @@ class CarouselsController < ApplicationController
       raise ActiveRecord::RecordNotFound, "Unknown state or region"
     end
 
-    @carousels = Carousel.includes(:maker)
+    @carousels = Carousel.includes(:maker, seats: { current_placement: { figure: :figure_type } })
     @carousels = @carousels.with_data_first if @sort == "data_first"
     @carousels = @carousels.order(:name, :id)
     if @query

@@ -3,6 +3,58 @@ require "test_helper"
 class PagesTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "carousel cards preview only complete layouts using current figure categories" do
+    get carousels_path
+    assert_response :success
+    assert_select "svg.mini-seat-chart", 4
+    {
+      "great-northern-carousel" => [ 18, 19, 2 ],
+      "a-carousel-for-missoula" => [ 37, 1, 2 ],
+      "spokane-looff-carrousel" => [ 54, 2, 2 ],
+      "salems-riverfront-carousel" => [ 24, 8, 2 ]
+    }.each do |slug, counts|
+      assert_select "li.card:has(h2 a[href='#{carousel_path(slug)}'])" do
+        assert_select "a.mini-seat-chart-link[href=?][aria-label=?]", carousel_path(slug),
+          "View seating chart for #{Carousel.find_by!(slug:).name}"
+        assert_select "svg.mini-seat-chart[role=img][width='160'][height='160']" do
+          assert_select "circle.mini-seat-dot", counts.sum
+          %w[ horse menagerie chariot ].zip(counts).each do |category, count|
+            assert_select "circle.mini-seat-dot.#{category}[r='25']", count
+          end
+          assert_select "text, rect", 0
+        end
+      end
+    end
+    assert_select "li.card:has(h2 a[href='#{carousel_path('janes-carousel-brooklyn')}']) svg.mini-seat-chart", 0
+    assert_select "li.card:has(h2 a[href='#{carousel_path('flying-horses-carousel-oak-bluffs')}']) svg.mini-seat-chart", 0
+
+    mini = css_select("a.mini-seat-chart-link[href='#{carousel_path(@carousel)}'] [data-seat-code='4A']").first
+    coordinates = mini.attributes.slice("cx", "cy").transform_values(&:value)
+    get carousel_path(@carousel)
+    full = css_select("svg.seat-chart a[href='#{carousel_seat_path(@carousel, '4A')}'] > circle").first
+    assert_equal coordinates, full.attributes.slice("cx", "cy").transform_values(&:value)
+  end
+
+  test "mini charts represent spanning vehicles once and retain unknown and empty positions" do
+    carousel = build_carousel(sections: 2, rows: 3)
+    carousel.seat("1A").update!(rows_spanned: 2)
+    SeatAssignment.new(carousel.seat("1A"), create_figure("Preview vehicle", category: "chariot", carousel:)).save!
+    SeatAssignment.new(carousel.seat("2C"), create_figure("Former horse", category: "horse", carousel:)).save!
+    SeatAssignment.new(carousel.seat("2C"), nil, empty: true).save!
+
+    get carousels_path
+    assert_response :success
+    assert_select "a.mini-seat-chart-link[href='#{carousel_path(carousel)}']" do
+      assert_select "circle.mini-seat-dot", 5
+      assert_select "circle.chariot[data-seat-code='1A'][cx='400.0'][cy='122.5']", 1
+      assert_select "circle[data-seat-code='1B']", 0
+      assert_select "circle.unknown", 3
+      assert_select "circle.empty[data-seat-code='2C']", 1
+      assert_select "circle.chariot title", "1A: Preview vehicle"
+      assert_select "circle.horse", 0
+    end
+  end
+
   test "carousel counts show each category once preferring published totals with mapped fallbacks" do
     carousel = Carousel.create!(name: "Summary facts", rows_count: 3,
       published_horses_count: 48, published_other_animals_count: 0,

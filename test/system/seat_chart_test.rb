@@ -3,6 +3,35 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "mini seat charts use ten pixel category dots and open the full chart" do
+    visit carousels_path
+    assert_selector "svg.mini-seat-chart", count: 4
+    within("li.card", text: "Great Northern Carousel") do
+      assert_selector "circle.mini-seat-dot", count: 39
+      measurements = find("svg.mini-seat-chart").evaluate_script(<<~JS)
+        (() => {
+          const svg = this;
+          const dot = svg.querySelector(".mini-seat-dot.horse");
+          return {
+            width: svg.getBoundingClientRect().width,
+            diameter: dot.getBoundingClientRect().width,
+            horse: getComputedStyle(dot).fill,
+            other: getComputedStyle(svg.querySelector(".mini-seat-dot.menagerie")).fill,
+            chariot: getComputedStyle(svg.querySelector(".mini-seat-dot.chariot")).fill
+          };
+        })()
+      JS
+      assert_in_delta 160, measurements.fetch("width"), 1
+      assert_in_delta 10, measurements.fetch("diameter"), 1
+      assert_equal "rgb(21, 96, 168)", measurements.fetch("horse")
+      assert_equal "rgb(249, 220, 10)", measurements.fetch("other")
+      assert_equal "rgb(224, 40, 42)", measurements.fetch("chariot")
+      find("a.mini-seat-chart-link").click
+    end
+    assert_selector "h1", text: "Great Northern Carousel"
+    assert_selector "svg.seat-chart a.seat", count: 39
+  end
+
   test "published counts appear in a single category list with sources retained" do
     visit carousels_path
     within("li.card", text: "Oaks Park Carousel") do
