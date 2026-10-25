@@ -15,18 +15,21 @@ class Carousel < ApplicationRecord
 
   validates :name, presence: true
   validates :status, inclusion: { in: STATUSES }
-  validates :rotation, inclusion: { in: ROTATIONS }
-  validates :sections_count, numericality: { only_integer: true, greater_than: 0 }
-  validates :rows_count, numericality: { only_integer: true, in: 1..MAX_ROWS }
+  validates :rotation, inclusion: { in: ROTATIONS }, allow_nil: true
+  validates :sections_count, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :rows_count, numericality: { only_integer: true, in: 1..MAX_ROWS }, allow_nil: true
+  validate :layout_dimensions_are_consistent
 
-  blank_as_nil :city, :region, :country, :venue, :body, :other_links
+  blank_as_nil :city, :region, :country, :venue, :body, :other_links, :rotation
   normalizes :official_url, :wikipedia_url, with: ->(value) { value.strip.presence }
   validate :website_urls_are_http
 
-  after_create :fill_missing_seats
+  after_save :fill_missing_seats, if: :layout_added?
+
+  def layout_known? = sections_count.present? && rows_count.present?
 
   # Rows are lettered from the outside in: A is always the outer row.
-  def row_letters = ("A"..).first(rows_count)
+  def row_letters = layout_known? ? ("A"..).first(rows_count) : []
 
   def location = [ city, region, country ].compact_blank.join(", ")
 
@@ -54,6 +57,8 @@ class Carousel < ApplicationRecord
 
   # One entry per section: its seats and how many figures of each category sit there.
   def section_breakdown
+    return [] unless layout_known?
+
     by_section = seats.includes(current_placement: { figure: :figure_type }).group_by(&:section)
     (1..sections_count).map do |number|
       section_seats = by_section.fetch(number, [])
@@ -66,6 +71,8 @@ class Carousel < ApplicationRecord
   # Every spot on the platform not covered by a seat gets an "unknown" seat, so a new
   # carousel starts with a full chart to fill in.
   def fill_missing_seats
+    return unless layout_known?
+
     covered = seats.reload.flat_map { |seat| seat.rows_covered.map { |row| [ seat.section, row ] } }.to_set
     (1..sections_count).each do |section|
       row_letters.each do |row|
@@ -81,6 +88,18 @@ class Carousel < ApplicationRecord
   end
 
   private
+    def layout_added?
+      layout_known? && (saved_change_to_sections_count?(from: nil) || saved_change_to_rows_count?(from: nil))
+    end
+
+    def layout_dimensions_are_consistent
+      if sections_count.nil? != rows_count.nil?
+        errors.add(:base, "Sections and rows must both be provided or both left unknown")
+      elsif !layout_known? && seats.exists?
+        errors.add(:base, "The layout cannot be cleared while seats exist")
+      end
+    end
+
     def website_urls_are_http
       %i[ official_url wikipedia_url ].each do |attribute|
         value = public_send(attribute)

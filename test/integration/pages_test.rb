@@ -3,6 +3,40 @@ require "test_helper"
 class PagesTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "directory carousel pages and cards distinguish unknown layout and counts from zero" do
+    carousel = Carousel.create!(name: "Directory carousel", city: "Seattle", region: "Washington",
+      country: "United States", official_url: "https://example.com/")
+    get carousels_path
+    assert_response :success
+    assert_select "li.card:has(h2 a[href='#{carousel_path(carousel)}'])" do |cards|
+      assert_select "p", text: "Layout unknown, operating"
+      assert_select "p.muted", text: carousel.location
+      assert_select "p.website a.website-link[href=?]", carousel.official_url, text: carousel.official_url
+      assert_equal [ "Unknown" ] * 3, cards.first.css("dl.facts dd").map(&:text)
+    end
+
+    get carousel_path(carousel)
+    assert_response :success
+    assert_select ".layout-unknown", "No seating layout has been recorded yet."
+    assert_select "svg.seat-chart", 0
+    assert_select "table.sections", 0
+    assert_select ".facts dt", text: "Platform"
+    assert_select ".facts dd", text: "Unknown", count: 5
+    assert_select ".facts a.website-link[href=?]", carousel.official_url, text: "Official website"
+    assert_select "a[href=?]", figures_path(carousel_id: carousel.id), text: "View all figures"
+
+    get carousel_seat_path(carousel, "1A")
+    assert_response :not_found
+  end
+
+  test "a known layout with unknown rotation does not invent a direction" do
+    carousel = build_carousel
+    get carousel_path(carousel)
+    assert_response :success
+    assert_select "svg .hub-note", "rotation unknown"
+    assert_select ".facts dd", text: "Unknown", count: 1
+  end
+
   test "carousel summary cards show category counts including zeros" do
     empty_carousel = build_carousel
     get carousels_path

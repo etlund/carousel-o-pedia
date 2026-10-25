@@ -126,6 +126,50 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_equal 48, carousel.seats.count
   end
 
+  test "editors can create directory entries then record their first layout" do
+    sign_in_as users(:editor)
+    get new_carousel_path
+    assert_select "input[name='carousel[sections_count]']:not([required])"
+    assert_select "input[name='carousel[rows_count]']:not([required])"
+    post carousels_path, params: { carousel: { name: "Directory entry", city: "Seattle",
+      region: "Washington", country: "United States", official_url: "https://example.com/" } }
+    carousel = Carousel.find_by!(name: "Directory entry")
+    assert_redirected_to carousel_path(carousel)
+    assert_match "seating layout has not been recorded", flash[:notice]
+    assert_not carousel.layout_known?
+    assert_nil carousel.rotation
+    assert_empty carousel.seats
+
+    get edit_carousel_path(carousel)
+    assert_select "input[name='carousel[sections_count]']"
+    assert_select "input[name='carousel[rows_count]']"
+    assert_select "select[name='carousel[lead_seat_id]']", 0
+    patch carousel_path(carousel), params: { carousel: { sections_count: 3, rows_count: 2 } }
+    assert_redirected_to carousel_path(carousel)
+    assert carousel.reload.layout_known?
+    assert_equal 6, carousel.seats.count
+    get carousel_path(carousel)
+    assert_select "svg.seat-chart a.seat.unknown", 6
+    assert_select "table.sections tbody tr", 3
+    get edit_carousel_path(carousel)
+    assert_select "input[name='carousel[sections_count]']", 0
+    assert_select "select[name='carousel[lead_seat_id]']"
+  end
+
+  test "incomplete or invalid first layouts keep the editing fields and do not create seats" do
+    sign_in_as users(:editor)
+    carousel = Carousel.create!(name: "Directory entry")
+    [ { sections_count: 3 }, { sections_count: 3, rows_count: 7 } ].each do |dimensions|
+      patch carousel_path(carousel), params: { carousel: dimensions }
+      assert_response :unprocessable_entity
+      assert_select "[role=alert]"
+      assert_select "input[name='carousel[sections_count]'][value='3']"
+      assert_select "input[name='carousel[rows_count]']"
+      assert_not carousel.reload.layout_known?
+      assert_empty carousel.seats
+    end
+  end
+
   test "an editor can create update and clear carousel website fields" do
     sign_in_as users(:editor)
     get new_carousel_path

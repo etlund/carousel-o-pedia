@@ -16,13 +16,18 @@ class CarouselsController < ApplicationController
   end
 
   def new
-    @carousel = Carousel.new(rows_count: 3)
+    @carousel = Carousel.new
   end
 
   def create
     @carousel = Carousel.new(carousel_params)
     if @carousel.save
-      redirect_to @carousel, notice: "Carousel added. Every seat starts as unknown; click one on the chart to fill it in."
+      notice = if @carousel.layout_known?
+        "Carousel added. Every seat starts as unknown; click one on the chart to fill it in."
+      else
+        "Carousel added. Its seating layout has not been recorded yet."
+      end
+      redirect_to @carousel, notice:
     else
       render :new, status: :unprocessable_entity
     end
@@ -51,7 +56,7 @@ class CarouselsController < ApplicationController
     # The platform's size is fixed once seats exist; changing it would orphan seat codes.
     def carousel_params
       permitted = %i[ name city region country venue status year_built year_opened maker_id rotation body official_url wikipedia_url other_links ]
-      permitted += %i[ sections_count rows_count ] if @carousel.nil? || @carousel.new_record?
+      permitted += %i[ sections_count rows_count ] unless @carousel&.layout_known?
       params.expect(carousel: permitted)
     end
 end

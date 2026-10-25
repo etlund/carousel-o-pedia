@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_25_164744) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_25_170622) do
   create_table "carousels", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -22,9 +22,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_164744) do
     t.integer "year_built"
     t.integer "year_opened"
     t.integer "maker_id"
-    t.integer "sections_count", null: false
-    t.integer "rows_count", null: false
-    t.string "rotation", default: "counterclockwise", null: false
+    t.integer "sections_count"
+    t.integer "rows_count"
+    t.string "rotation"
     t.text "body"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

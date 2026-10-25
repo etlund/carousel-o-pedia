@@ -7,18 +7,25 @@
 </header>
 
 <div class="grid">
-  <div class="card"><%= render "seat_chart", carousel: @carousel %></div>
+  <div class="card">
+    <% if @carousel.layout_known? %>
+      <%= render "seat_chart", carousel: @carousel %>
+    <% else %>
+      <p class="layout-unknown">No seating layout has been recorded yet.</p>
+    <% end %>
+  </div>
   <div class="stack">
     <dl class="facts card">
-      <dt>Platform</dt><dd><%= pluralize(@carousel.sections_count, "section") %> × <%= pluralize(@carousel.rows_count, "row") %>, turns <%= @carousel.rotation %></dd>
+      <dt>Platform</dt><dd><% if @carousel.layout_known? %><%= pluralize(@carousel.sections_count, "section") %> × <%= pluralize(@carousel.rows_count, "row") %><% else %>Unknown<% end %></dd>
+      <dt>Rotation</dt><dd><%= @carousel.rotation || "Unknown" %></dd>
       <% FigureType::CATEGORIES.each do |category| %>
-        <dt><%= category_label(category) %></dt><dd><%= @totals[category] %></dd>
+        <dt><%= category_label(category) %></dt><dd><%= @carousel.layout_known? ? @totals[category] : "Unknown" %></dd>
       <% end %>
       <% if (lead = @carousel.lead_figure) %><dt>Lead figure</dt><dd><%= link_to lead.name, lead %></dd><% end %>
       <dt>Status</dt><dd><%= @carousel.status.capitalize %></dd>
       <% if @carousel.maker %><dt>Maker</dt><dd><%= link_to @carousel.maker.name, @carousel.maker %></dd><% end %>
       <% if @carousel.year_opened %><dt>Opened</dt><dd><%= @carousel.year_opened %></dd><% end %>
-      <% if @carousel.official_url %><dt>Website</dt><dd><%= link_to "Official website", @carousel.official_url %></dd><% end %>
+      <% if @carousel.official_url %><dt>Website</dt><dd><%= link_to "Official website", @carousel.official_url, class: "website-link" %></dd><% end %>
       <% if @carousel.wikipedia_url %><dt>Wikipedia</dt><dd><%= link_to "Wikipedia", @carousel.wikipedia_url %></dd><% end %>
       <% if @carousel.other_links %><dt>Other links</dt><dd class="prose"><%= wiki_body(@carousel.other_links) %></dd><% end %>
     </dl>
@@ -26,6 +33,7 @@
   </div>
 </div>
 
+<% if @carousel.layout_known? %>
 <h2>Sections</h2>
 <p class="muted">Seat codes are section number plus row letter. Row A is the outer row.<% if authenticated? %> Click a seat to edit it.<% end %></p>
 <div class="table-scroll">
@@ -61,3 +69,4 @@
     </tbody>
   </table>
 </div>
+<% end %>

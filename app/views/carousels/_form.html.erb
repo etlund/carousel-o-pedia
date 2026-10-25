@@ -25,12 +25,12 @@
   <div class="field"><%= form.label :maker_id, "Maker" %><%= form.collection_select :maker_id, Maker.order(:name), :id, :name, include_blank: "Unknown" %></div>
   <fieldset>
     <legend>Platform</legend>
-    <% if carousel.new_record? %>
+    <% if carousel.new_record? || carousel.sections_count_in_database.nil? %>
       <div class="field-row">
-        <div class="field"><%= form.label :sections_count, "Sections" %><%= form.number_field :sections_count, min: 1, required: true %></div>
-        <div class="field"><%= form.label :rows_count, "Rows" %><%= form.number_field :rows_count, min: 1, max: Carousel::MAX_ROWS, required: true %></div>
+        <div class="field"><%= form.label :sections_count, "Sections" %><%= form.number_field :sections_count, min: 1 %></div>
+        <div class="field"><%= form.label :rows_count, "Rows" %><%= form.number_field :rows_count, min: 1, max: Carousel::MAX_ROWS %></div>
       </div>
-      <p class="hint">Count sections around the platform and rows from the outside in. Every seat starts as unknown.</p>
+      <p class="hint">Leave both counts blank until the layout is known. To add a chart, count sections around the platform and rows from the outside in. Every seat starts as unknown, and the size is fixed once recorded.</p>
     <% else %>
       <p><%= pluralize(carousel.sections_count, "section") %> × <%= pluralize(carousel.rows_count, "row") %>. The size can't change once seats exist.</p>
       <div class="field">
@@ -41,7 +41,7 @@
         <p class="hint">The lead figure's section becomes section 1 and its outer-row seat becomes 1A. Every other section is renumbered from there, in the order figures pass the rail.</p>
       </div>
     <% end %>
-    <div class="field"><%= form.label :rotation, "Turns" %><%= form.select :rotation, Carousel::ROTATIONS.map { [ _1.capitalize, _1 ] } %></div>
+    <div class="field"><%= form.label :rotation, "Turns" %><%= form.select :rotation, Carousel::ROTATIONS.map { [ _1.capitalize, _1 ] }, include_blank: "Unknown" %></div>
   </fieldset>
   <%= render "shared/body_field", form: %>
   <div class="actions"><%= form.submit %> <%= link_to "Cancel", carousel.persisted? ? carousel : carousels_path %></div>

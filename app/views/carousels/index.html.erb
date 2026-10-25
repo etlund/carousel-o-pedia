@@ -8,12 +8,12 @@
     <li class="card">
       <h2><%= link_to carousel.name, carousel %></h2>
       <p class="muted"><%= carousel.location %></p>
-      <% if carousel.official_url.present? %><p class="website"><%= link_to carousel.official_url, carousel.official_url %></p><% end %>
-      <p><%= pluralize(carousel.sections_count, "section") %>, <%= pluralize(carousel.rows_count, "row") %>, <%= carousel.status %></p>
+      <% if carousel.official_url.present? %><p class="website"><%= link_to carousel.official_url, carousel.official_url, class: "website-link" %></p><% end %>
+      <p><% if carousel.layout_known? %><%= pluralize(carousel.sections_count, "section") %>, <%= pluralize(carousel.rows_count, "row") %><% else %>Layout unknown<% end %>, <%= carousel.status %></p>
       <dl class="facts">
         <% FigureType::CATEGORIES.each do |category| %>
           <dt><%= category_label(category) %></dt>
-          <dd><%= @category_counts.fetch([carousel.id, category], 0) %></dd>
+          <dd><%= carousel.layout_known? ? @category_counts.fetch([carousel.id, category], 0) : "Unknown" %></dd>
         <% end %>
       </dl>
     </li>

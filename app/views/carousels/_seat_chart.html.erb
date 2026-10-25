@@ -11,7 +11,7 @@
   <% end %>
   <circle cx="<%= c %>" cy="<%= c %>" r="<%= SeatChart::HUB_RADIUS %>" class="hub"/>
   <text x="<%= c %>" y="<%= c - 4 %>" class="hub-label">Center</text>
-  <text x="<%= c %>" y="<%= c + 18 %>" class="hub-note">turns <%= carousel.rotation %> <%= carousel.rotation == "clockwise" ? "↻" : "↺" %></text>
+  <text x="<%= c %>" y="<%= c + 18 %>" class="hub-note"><% if carousel.rotation %>turns <%= carousel.rotation %> <%= carousel.rotation == "clockwise" ? "↻" : "↺" %><% else %>rotation unknown<% end %></text>
   <% chart.section_labels.each do |number, point| %>
     <text x="<%= point.x %>" y="<%= point.y + 5 %>" class="section-number"><%= number %></text>
   <% end %>

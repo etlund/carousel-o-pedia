@@ -23,6 +23,13 @@ class SeatTest < ActiveSupport::TestCase
     assert carousel.seat("4A").tap { _1.rows_spanned = 2 }.valid?
   end
 
+  test "a directory carousel needs a layout before seats can be added" do
+    carousel = Carousel.create!(name: "No layout")
+    seat = carousel.seats.build(section: 1, row: "A", rows_spanned: 2)
+    assert_not seat.valid?
+    assert_includes seat.errors[:carousel], "needs a known layout before seats can be added"
+  end
+
   test "a seat code is unique on its carousel" do
     assert_not build_carousel.seats.build(section: 1, row: "A").valid?
   end

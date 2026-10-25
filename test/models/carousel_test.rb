@@ -1,6 +1,64 @@
 require "test_helper"
 
 class CarouselTest < ActiveSupport::TestCase
+  test "directory records have unknown layouts and create no seats" do
+    carousel = Carousel.create!(name: "Directory carousel")
+    assert_not carousel.layout_known?
+    assert_nil carousel.sections_count
+    assert_nil carousel.rows_count
+    assert_nil carousel.rotation
+    assert_empty carousel.seats
+    assert_empty carousel.row_letters
+    assert_empty carousel.section_breakdown
+    carousel.fill_missing_seats
+    assert_empty carousel.seats.reload
+    assert_raises(ArgumentError) { SeatChart.new(carousel) }
+  end
+
+  test "recording a directory layout creates unknown seats once and retains inventory" do
+    carousel = Carousel.create!(name: "Directory carousel")
+    figure = create_figure("Unplaced", carousel:)
+    assert_difference "Seat.count", 6 do
+      carousel.update!(sections_count: 3, rows_count: 2)
+    end
+    assert carousel.layout_known?
+    assert_equal %w[ 1A 1B 2A 2B 3A 3B ], carousel.seats.map(&:code)
+    assert carousel.seats.all? { _1.state == "unknown" }
+    assert_equal carousel, figure.reload.carousel
+    assert_nil figure.seat
+    assert_no_difference "Seat.count" do
+      carousel.update!(name: "Renamed directory carousel")
+    end
+  end
+
+  test "layout dimensions must be paired and valid" do
+    [
+      { sections_count: 2 }, { rows_count: 2 },
+      { sections_count: 0, rows_count: 2 }, { sections_count: 1, rows_count: 0 },
+      { sections_count: -1, rows_count: 2 }, { sections_count: 1.5, rows_count: 2 },
+      { sections_count: 1, rows_count: Carousel::MAX_ROWS + 1 }
+    ].each do |dimensions|
+      carousel = Carousel.new(name: "Invalid layout", **dimensions)
+      assert_not carousel.valid?, dimensions.inspect
+    end
+  end
+
+  test "a layout cannot be cleared while seats exist" do
+    carousel = build_carousel
+    seat_ids = carousel.seats.ids
+    assert_not carousel.update(sections_count: nil, rows_count: nil)
+    assert_includes carousel.errors[:base], "The layout cannot be cleared while seats exist"
+    assert_equal seat_ids, carousel.seats.reload.ids
+    assert carousel.reload.layout_known?
+  end
+
+  test "rotation can remain unknown but cannot use an invalid value" do
+    carousel = build_carousel
+    assert carousel.update(rotation: "")
+    assert_nil carousel.rotation
+    assert_not carousel.update(rotation: "sideways")
+  end
+
   test "rows are lettered from the outside in" do
     assert_equal %w[ A B C D ], build_carousel(rows: 4).row_letters
   end

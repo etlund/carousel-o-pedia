@@ -8,6 +8,8 @@ Every seat has a code of section number plus row letter. Rows are lettered from 
 
 Carousel summary cards show counts of currently placed horses, other animals, and chariots and tubs, matching the seating chart totals. Figures spanning multiple rows count once; unplaced inventory and ended placements are excluded.
 
+Directory-only carousels can have an unknown seating layout. Their cards and detail pages show **Unknown** rather than invented dimensions or zero animal counts, and no seating chart is drawn. Editors can leave both section and row counts blank, then supply both together once researched; that creates a chart of unknown seats. Once recorded, the platform size stays fixed in the editor. Rotation is independently optional and does not default to a guessed direction.
+
 Carousels have optional **official website**, **Wikipedia**, and **other links** fields. On the carousel index, the city/state/country location remains plain text, and the official website URL appears as a separate clickable link when one is set; the carousel name still links to its wiki page. Carousel detail pages display the available website links in the facts card.
 
 Official and Wikipedia URLs must use HTTP or HTTPS and cannot contain login credentials. Additional named links use the existing sanitized Markdown format, one per line, such as `[NCA gallery](https://carousels.org/)`. The seeds include the known official sites and reference links, including [Great Northern's live website](https://www.greatnortherncarousel.com/); unverified Wikipedia URLs are left blank.
@@ -45,7 +47,7 @@ Reseeding is a separate, intentional operation. Read [Seed behavior and preservi
 
 ## Seeded carousels
 
-The offline seeds contain **206 catalog records across four carousels**, with **171 placed figures and 35 unseated catalog records**. The category columns below count placed figures, matching the carousel summary cards; catalog totals also include reserves, project figures, and non-riding ring dispensers.
+The offline seeds contain **54 U.S. carousels**: four detailed inventories and **50 additional operating-carousel directory entries**. The detailed inventories contain **206 catalog records**, with **171 placed figures and 35 unseated catalog records**. The category columns below count placed figures, matching the carousel summary cards; catalog totals also include reserves, project figures, and non-riding ring dispensers.
 
 | Carousel | Sections | Rows | Catalog records | Horses | Other animals | Chariots and tubs |
 |----------|----------|------|-----------------|--------|---------------|-------------------|
@@ -80,9 +82,20 @@ Eric's saved Salem assignments on **October 24, 2026**, based on [this video](ht
 
 ### Seed behavior and preserving edits
 
-> **All carousel seeds are authoritative for now.** Running `bin/rails db:seed` overwrites wiki edits to seeded attributes, chart shapes, and known placements. Back up an edited database before intentionally reseeding it.
+> **The four detailed inventory seeds are authoritative for now.** Running `bin/rails db:seed` overwrites wiki edits to their seeded attributes, chart shapes, and known placements. Back up an edited database before intentionally reseeding it.
 
-Seeds add missing records and restore seeded data on existing records. Displaced placements are ended using the normal placement history; unrelated figures are not deleted. Rerunning unchanged seeds does not create duplicate records or history entries.
+The [U.S. operating-carousel directory seed](db/seeds/us_operating_carousels.rb) is **create-only**: it adds missing entries by stable slug but never overwrites an existing record, including later website corrections, operating-status changes, researched layouts, figure inventories, or wiki notes. Each new entry records its name, city, state, country, official URL, and source notes. Layout dimensions, rotation, and figure inventories remain unknown until researched.
+
+Directory sources were reviewed on **October 25, 2026**. "Operating" means the operator lists the carousel as a ride or visitor attraction, including seasonal operation; it does not guarantee it is open today or rule out temporary maintenance closures. Check the linked operator website for current hours. Source evidence is included on each carousel page.
+
+To import only the directory into an existing database, without rerunning the detailed inventories:
+
+```sh
+bin/rails db:migrate
+bin/rails runner 'load Rails.root.join("db/seeds/us_operating_carousels.rb")'
+```
+
+Detailed inventory seeds add missing records and restore seeded data on existing records. Displaced placements are ended using the normal placement history; unrelated figures are not deleted. Rerunning unchanged seeds does not create duplicate records or history entries.
 
 Wiki edits are **not automatically written back to seed files**. To preserve a reviewed layout, backfill the final seat assignments, row spans, and confidence levels into the relevant seed, record the source and review date, and update the seed tests before reseeding. A review date is not necessarily the video's filming date.
 
@@ -92,12 +105,13 @@ All currently collected carousel data lives in:
 - [Great Northern seed](db/seeds/great_northern_carousel.rb)
 - [Salem seed](db/seeds/salems_riverfront_carousel.rb)
 - [Spokane seed](db/seeds/spokane_looff_carrousel.rb)
+- [U.S. operating-carousel directory](db/seeds/us_operating_carousels.rb)
 
 Seed files load automatically in filename order and require no network access.
 
 ## Data model
 
-- **Carousel**: location, status, rotation, and the size of its platform (sections × rows).
+- **Carousel**: location, status, website links, optional rotation, and optional platform size (sections × rows, both known or both unknown).
 - **Seat**: one spot on a platform, addressed by its code. A tea-cup or chariot that fills several rows is one seat that spans them. Seats record whether their placement is confirmed or a best reading.
 - **Figure**: one carved figure belonging to a carousel independently of seating, with a **figure type** (bison, trout, horse) whose category (horse, other animal, chariot or tub) sets its chart colour and section count.
 - **Placement**: which figure sits in which seat, with dates, so figures can move.
@@ -113,7 +127,7 @@ Anyone can read. Editing is invite-only:
 - Admins invite editors from the Invitations page. Each link works for 14 days. If email isn't configured yet, copy the link from that page and send it yourself.
 - Every page has a History tab. Recent changes lists every edit, and admins can revert any edit.
 - Page text supports Markdown headings, lists, emphasis, links, and fenced code blocks on carousel, figure, figure type, and maker pages. Bare URLs become links. Blank lines start paragraphs and single line breaks are preserved. Rendered HTML is sanitized before display.
-- A new carousel starts with an unknown seat in every spot. To fill a seat, click it on the chart and choose a figure. Choosing a figure that already sits somewhere else moves it, and its old seat becomes empty.
+- A carousel with a recorded layout starts with an unknown seat in every spot; directory entries have no seats until a layout is added. To fill a seat, click it on the chart and choose a figure. Choosing a figure that already sits somewhere else moves it, and its old seat becomes empty.
 
 ## Testing
 
@@ -123,4 +137,4 @@ bin/rails test:system test/system/seat_chart_test.rb
 bin/rubocop
 ```
 
-The tests cover carousel inventories and seating maps, spanning figures, ownership and cross-carousel transfers, combined inventory filters, migration backfills, edit history, authoritative seed restoration, and unchanged-reseed idempotence. Browser tests exercise chart-to-seat-to-figure navigation and the inventory filtering workflow.
+The tests cover carousel inventories and seating maps, directory seed completeness and non-destructive imports, unknown layouts and later chart creation, spanning figures, ownership and cross-carousel transfers, combined inventory filters, migration backfills, edit history, authoritative seed restoration, and unchanged-reseed idempotence. Browser tests exercise directory-to-chart transitions, chart-to-seat-to-figure navigation, and the inventory filtering workflow.

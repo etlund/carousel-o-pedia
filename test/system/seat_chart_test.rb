@@ -3,6 +3,27 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "directory entries show unknown layout until a seating chart is recorded" do
+    carousel = Carousel.create!(name: "Directory carousel", city: "Seattle", region: "Washington",
+      country: "United States", official_url: "https://example.com/")
+    visit carousels_path
+    within("li.card", text: carousel.name) do
+      assert_text "Layout unknown, operating"
+      assert_selector "dl.facts dd", text: "Unknown", count: 3
+      assert_link carousel.official_url, href: carousel.official_url
+      click_on carousel.name
+    end
+    assert_selector ".layout-unknown", text: "No seating layout has been recorded yet."
+    assert_no_selector "svg.seat-chart"
+    assert_no_selector "table.sections"
+
+    carousel.update!(sections_count: 4, rows_count: 2)
+    visit carousel_path(carousel)
+    assert_selector "svg.seat-chart a.seat.unknown", count: 8
+    assert_selector "svg .hub-note", text: "rotation unknown"
+    assert_selector "table.sections tbody tr", count: 4
+  end
+
   test "carousel card displays the official URL as a link while the title opens the wiki" do
     carousel = Carousel.find_by!(slug: "great-northern-carousel")
     visit carousels_path

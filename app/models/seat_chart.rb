@@ -18,6 +18,8 @@ class SeatChart
   attr_reader :carousel
 
   def initialize(carousel)
+    raise ArgumentError, "A known carousel layout is required for a seat chart" unless carousel.layout_known?
+
     @carousel = carousel
   end
 

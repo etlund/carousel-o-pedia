@@ -60,6 +60,11 @@ class Seat < ApplicationRecord
     def fits_on_carousel
       return unless carousel && section && row
 
+      unless carousel.layout_known?
+        errors.add(:carousel, "needs a known layout before seats can be added")
+        return
+      end
+
       errors.add(:section, "must be between 1 and #{carousel.sections_count}") unless section.between?(1, carousel.sections_count)
       errors.add(:row, "is past the carousel's #{carousel.rows_count} rows") if row_index + rows_spanned > carousel.rows_count
     end
