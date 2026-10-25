@@ -3,6 +3,73 @@ require "test_helper"
 class PagesTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "carousel name search is case insensitive partial and retains its value" do
+    get carousels_path, params: { q: "  lOoFf  " }
+    assert_response :success
+    assert_equal [ "Looff Carrousel", "Santa Cruz Beach Boardwalk Looff Carousel" ], css_select(".cards h2 a").map(&:text)
+    assert_select "input[type=search][name=q][value=?]", "lOoFf"
+    assert_select "form[action=?][method=get]", carousels_path
+    assert_select "a[href=?]", carousels_path, text: "Clear filters"
+
+    get carousels_path, params: { q: "CAFESJIAN'S" }
+    assert_response :success
+    assert_equal [ "Cafesjian's Carousel" ], css_select(".cards h2 a").map(&:text)
+  end
+
+  test "carousel state filter combines with name and retains all state options" do
+    get carousels_path, params: { region: "Montana" }
+    assert_response :success
+    assert_equal [ "A Carousel for Missoula", "Great Northern Carousel" ], css_select(".cards h2 a").map(&:text)
+    assert_select "select[name=region] option[selected][value=Montana]"
+    assert_select "select[name=region] option[value=Montana]", 1
+    assert_select "select[name=region] option[value='New York']", text: "New York"
+    assert_select "select[name=region] option[value='']", text: "All states"
+    assert_equal [ 18, 19, 2 ].map(&:to_s), css_select("li.card:has(h2 a[href='#{carousel_path(@carousel)}']) .facts dd").map(&:text)
+
+    get carousels_path, params: { q: "carousel", region: "New York" }
+    assert_response :success
+    expected = [ "Eldridge Park Carousel", "Greenport Carousel", "Jane's Carousel", "Seabreeze Carousel" ]
+    assert_equal expected, css_select(".cards h2 a").map(&:text)
+    assert_select "input[name=q][value=carousel]"
+    assert_select "select[name=region] option[selected][value='New York']"
+    assert_select "select[name=region] option[value=Montana]"
+  end
+
+  test "carousel filters support empty results and blank filters" do
+    get carousels_path, params: { q: "looff", region: "Montana" }
+    assert_response :success
+    assert_select "main p", "No carousels match these filters."
+    assert_select ".cards li", 0
+    assert_select "input[name=q][value=looff]"
+    assert_select "select[name=region] option[selected][value=Montana]"
+
+    get carousels_path, params: { q: "   ", region: "" }
+    assert_response :success
+    assert_select ".cards li", 54
+    assert_equal "", css_select("input[name=q]").first["value"].to_s
+  end
+
+  test "carousel search treats SQL wildcard characters literally" do
+    special = Carousel.create!(name: "100% Fun_Ride! Carousel", slug: "literal-search-test")
+    [ "100%", "Fun_", "Ride!" ].each do |query|
+      get carousels_path, params: { q: query }
+      assert_response :success
+      assert_equal [ special.name ], css_select(".cards h2 a").map(&:text)
+    end
+    get carousels_path, params: { q: "' OR 1=1 --" }
+    assert_response :success
+    assert_select ".cards li", 0
+  end
+
+  test "invalid carousel filter shapes and unknown states return explicit errors" do
+    get carousels_path, params: { region: "Not a state" }
+    assert_response :not_found
+    [ { q: [ "Carousel" ] }, { q: { name: "Carousel" } }, { region: [ "Montana" ] }, { region: { name: "Montana" } } ].each do |filters|
+      get carousels_path, params: filters
+      assert_response :bad_request
+    end
+  end
+
   test "page titles escape special characters once without allowing HTML" do
     carousel = Carousel.find_by!(slug: "janes-carousel-brooklyn")
     [ "Jane's Carousel", 'A & B <Carousel> "Ride"', "</title><script>alert('title')</script>" ].each do |name|

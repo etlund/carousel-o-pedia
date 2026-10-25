@@ -5,7 +5,18 @@ class CarouselsController < ApplicationController
   before_action :set_carousel, only: %i[ show edit update ]
 
   def index
+    @regions = Carousel.where.not(region: [ nil, "" ]).distinct.order(:region).pluck(:region)
+    @query = params.expect(:q).strip.presence if params[:q].present?
+    @selected_region = params.expect(:region).strip.presence if params[:region].present?
+    if @selected_region && !@regions.include?(@selected_region)
+      raise ActiveRecord::RecordNotFound, "Unknown state or region"
+    end
+
     @carousels = Carousel.includes(:maker).order(:name)
+    if @query
+      @carousels = @carousels.where("LOWER(name) LIKE ? ESCAPE '!'", "%#{Carousel.sanitize_sql_like(@query.downcase, "!")}%")
+    end
+    @carousels = @carousels.where(region: @selected_region) if @selected_region
     @category_counts = Placement.current.joins(:seat, figure: :figure_type)
       .group("seats.carousel_id", "figure_types.category").count
   end

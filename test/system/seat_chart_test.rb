@@ -3,6 +3,35 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "carousel name and state filters combine retain selections and clear" do
+    visit carousels_path
+    assert_selector ".cards > li.card", count: 54
+    fill_in "Name", with: "lOoFf"
+    click_on "Filter"
+    assert_selector ".cards > li.card", count: 2
+    assert_field "Name", with: "lOoFf"
+    assert_selector :select, "State", selected: "All states"
+
+    select "California", from: "State"
+    click_on "Filter"
+    assert_selector ".cards > li.card", count: 1
+    assert_selector ".cards h2", text: "Santa Cruz Beach Boardwalk Looff Carousel"
+    assert_field "Name", with: "lOoFf"
+    assert_selector :select, "State", selected: "California"
+
+    select "Montana", from: "State"
+    click_on "Filter"
+    assert_text "No carousels match these filters."
+    assert_no_selector ".cards > li.card"
+    assert_field "Name", with: "lOoFf"
+    assert_selector :select, "State", selected: "Montana"
+
+    click_on "Clear filters"
+    assert_selector ".cards > li.card", count: 54
+    assert_field "Name", with: ""
+    assert_selector :select, "State", selected: "All states"
+  end
+
   test "directory entries show unknown layout until a seating chart is recorded" do
     carousel = Carousel.create!(name: "Directory carousel", city: "Seattle", region: "Washington",
       country: "United States", official_url: "https://example.com/")

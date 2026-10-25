@@ -3,6 +3,22 @@
   <h1>Carousels</h1>
   <% if authenticated? %><p class="page-actions"><%= link_to "Add a carousel", new_carousel_path, class: "button" %></p><% end %>
 </header>
+<%= form_with url: carousels_path, method: :get, class: "form" do |form| %>
+  <div class="field-row">
+    <div class="field">
+      <%= form.label :q, "Name" %>
+      <%= form.search_field :q, value: @query, placeholder: "Search carousel names" %>
+    </div>
+    <div class="field">
+      <%= form.label :region, "State" %>
+      <%= form.select :region, @regions, include_blank: "All states", selected: @selected_region %>
+    </div>
+  </div>
+  <div class="actions"><%= form.submit "Filter" %> <%= link_to "Clear filters", carousels_path %></div>
+<% end %>
+<% if @carousels.empty? %>
+  <p>No carousels match these filters.</p>
+<% else %>
 <ul class="cards">
   <% @carousels.each do |carousel| %>
     <li class="card">
@@ -19,3 +35,4 @@
     </li>
   <% end %>
 </ul>
+<% end %>
