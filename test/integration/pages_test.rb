@@ -3,6 +3,17 @@ require "test_helper"
 class PagesTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "page titles escape special characters once without allowing HTML" do
+    carousel = Carousel.find_by!(slug: "janes-carousel-brooklyn")
+    [ "Jane's Carousel", 'A & B <Carousel> "Ride"', "</title><script>alert('title')</script>" ].each do |name|
+      carousel.update!(name:)
+      get carousel_path(carousel)
+      assert_response :success
+      assert_select "head > title", count: 1, text: "#{name} · Carousel-pedia"
+      assert_select "script", text: "alert('title')", count: 0
+    end
+  end
+
   test "directory carousel pages and cards distinguish unknown layout and counts from zero" do
     carousel = Carousel.create!(name: "Directory carousel", city: "Seattle", region: "Washington",
       country: "United States", official_url: "https://example.com/")
