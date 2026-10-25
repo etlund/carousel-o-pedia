@@ -43,8 +43,8 @@ h2 { font-size: 1.35rem; margin: 28px 0 8px; }
 .mini-seat-chart { display: block; width: 100%; height: auto; }
 .mini-seat-chart .platform { fill: none; stroke: var(--line); stroke-width: 5; }
 .mini-seat-dot { fill: none; stroke: var(--muted); stroke-width: 3; }
-.mini-seat-dot.horse { fill: var(--blue); stroke: var(--fg); }
-.mini-seat-dot.menagerie { fill: var(--yellow); stroke: var(--fg); }
+.mini-seat-dot.horse { fill: var(--horse); stroke: var(--fg); }
+.mini-seat-dot.menagerie { fill: var(--other); stroke: var(--fg); }
 .mini-seat-dot.chariot { fill: var(--red); stroke: var(--fg); }
 .mini-seat-dot.unknown { stroke-width: 5; stroke-dasharray: 10 10; }
 .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }

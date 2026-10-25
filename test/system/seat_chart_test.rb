@@ -23,13 +23,17 @@ class SeatChartTest < ApplicationSystemTestCase
       JS
       assert_in_delta 160, measurements.fetch("width"), 1
       assert_in_delta 10, measurements.fetch("diameter"), 1
-      assert_equal "rgb(21, 96, 168)", measurements.fetch("horse")
-      assert_equal "rgb(249, 220, 10)", measurements.fetch("other")
+      assert_equal "rgb(159, 211, 242)", measurements.fetch("horse")
+      assert_equal "rgb(247, 184, 102)", measurements.fetch("other")
       assert_equal "rgb(224, 40, 42)", measurements.fetch("chariot")
       find("a.mini-seat-chart-link").click
     end
     assert_selector "h1", text: "Great Northern Carousel"
     assert_selector "svg.seat-chart a.seat", count: 39
+    assert_equal "rgb(159, 211, 242)", find("svg.seat-chart .seat.horse", match: :first)
+      .evaluate_script("getComputedStyle(this.querySelector('rect, circle')).fill")
+    assert_equal "rgb(247, 184, 102)", find("svg.seat-chart .seat.menagerie", match: :first)
+      .evaluate_script("getComputedStyle(this.querySelector('rect, circle')).fill")
   end
 
   test "published counts appear in a single category list with sources retained" do
