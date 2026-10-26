@@ -1,30 +1,9 @@
-<% content_for :title, "#{@carousel.name} #{@seat.code}" %>
-<% figure = @seat.figure %>
+<% content_for :title, "#{@carousel.name} seat #{@seat.code}" %>
 <header class="page-header">
   <p class="muted"><%= link_to @carousel.name, @carousel %></p>
   <div class="title-row"><h1>Seat <%= @seat.code %></h1><%= seat_badge(@seat, size: :large) %></div>
-  <%= render "shared/page_actions", edit: edit_carousel_seat_path(@carousel, @seat), history: history_carousel_seat_path(@carousel, @seat) %>
+  <p class="lede"><%= @seat.state == "empty" ? "This seat is recorded as empty." : "The figure in this seat has not been identified." %></p>
 </header>
-<dl class="facts card">
-  <dt>Position</dt>
-  <dd>Section <%= @seat.section %>, <%= @seat.rows_spanned > 1 ? "rows #{@seat.rows_covered.first} to #{@seat.rows_covered.last}" : "row #{@seat.row}" %></dd>
-  <dt>Confidence</dt><dd><%= @seat.confirmed? ? "Confirmed" : "Best reading, not yet confirmed" %></dd>
-  <dt>Figure now</dt>
-  <dd><%= figure ? link_to(figure.name, figure) : @seat.state.capitalize %></dd>
-</dl>
-<% if figure %>
-  <section class="figure-details" aria-labelledby="figure-heading">
-    <h2 id="figure-heading"><%= link_to figure.name, figure %></h2>
-    <p class="muted"><%= link_to figure.figure_type.name, figure.figure_type %></p>
-    <%= render "figures/details", figure: figure %>
-  </section>
-<% end %>
-<% previous = @placements.reject { |placement| placement.ended_on.nil? } %>
-<% if previous.any? %>
-  <h2>Earlier figures</h2>
-  <ul>
-    <% previous.each do |placement| %>
-      <li><%= link_to placement.figure.name, placement.figure %> until <%= placement.ended_on.year %></li>
-    <% end %>
-  </ul>
-<% end %>
+<div class="seat-unassigned">
+  <%= render "seats/context", seat: @seat, previous_placements: @previous_seat_placements %>
+</div>

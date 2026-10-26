@@ -1,15 +1,24 @@
 <% content_for :title, @figure.name %>
 <header class="page-header">
-  <h1><%= @figure.name %></h1>
-  <p class="muted"><%= link_to @figure.figure_type.name, @figure.figure_type %> · <% if @figure.seat %><%= seat_link(@figure.seat) %><% else %><%= link_to @figure.carousel.name, @figure.carousel %> · Not currently seated<% end %></p>
-  <%= render "shared/page_actions", edit: edit_figure_path(@figure), history: history_figure_path(@figure) %>
+  <p class="muted"><%= link_to @figure.carousel.name, @figure.carousel %></p>
+  <h1 id="figure-heading"><%= @figure.name %></h1>
+  <p class="muted"><%= link_to @figure.figure_type.name, @figure.figure_type %><% unless @seat %> · Not currently seated<% end %></p>
+  <%= render "shared/page_actions", edit: edit_figure_path(@figure), history: history_figure_path(@figure),
+        edit_label: "Edit figure", history_label: "Figure history" %>
 </header>
-<%= render "figures/details", figure: @figure %>
-<% if @placements.size > 1 %>
-  <h2>Seats over time</h2>
-  <ul>
-    <% @placements.each do |placement| %>
-      <li><%= seat_link(placement.seat) %><%= placement.ended_on ? " until #{placement.ended_on.year}" : " (now)" %></li>
+<div class="<%= "seat-layout" if @seat %>">
+  <section class="figure-details" aria-labelledby="figure-heading">
+    <%= render "figures/details", figure: @figure %>
+    <% if @placements.any?(&:ended_on) %>
+      <h2>Seats over time</h2>
+      <ul>
+        <% @placements.each do |placement| %>
+          <li><%= seat_link(placement.seat) %><%= placement.ended_on ? " until #{placement.ended_on.year}" : " (now)" %></li>
+        <% end %>
+      </ul>
     <% end %>
-  </ul>
-<% end %>
+  </section>
+  <% if @seat %>
+    <%= render "seats/context", seat: @seat, previous_placements: @previous_seat_placements %>
+  <% end %>
+</div>

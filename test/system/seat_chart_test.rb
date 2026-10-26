@@ -287,48 +287,121 @@ class SeatChartTest < ApplicationSystemTestCase
     end
   end
 
-  test "clicking a seat on the chart opens its seat page" do
+  test "clicking an occupied seat opens its canonical figure page directly" do
     visit carousel_path("great-northern-carousel")
     assert_selector "h1", text: "Great Northern Carousel"
 
     find("svg.seat-chart a.seat", text: "Gulliver").click
 
-    assert_selector "h1", text: "Seat 9A"
-    within(".figure-details") { click_on "Gulliver" }
     assert_selector "h1", text: "Gulliver"
+    assert_current_path figure_path(Figure.find_by!(name: "Gulliver"))
+    assert_selector ".seat-context h2", text: "Current seat"
+    assert_selector ".seat-context svg.seat-badge[aria-label='Seat 9A']"
+    assert_selector ".seat-context dd", text: "Section 9, row A", exact_text: true
+    assert_no_selector ".seat-context dt", text: "Seat", exact_text: true
+  end
+
+  test "seat numbers fit to the left of the wedge in large and small badges" do
+    carousel = build_carousel(sections: 120, rows: 1)
+    seat = carousel.seat("120A")
+    figure = create_figure("Wide seat number", carousel:)
+    SeatAssignment.new(seat, figure).save!
+
+    [ figure_path(figure), figures_path(carousel_id: carousel.id) ].each do |path|
+      visit path
+      badge = find("svg.seat-badge[aria-label='Seat 120A']")
+      positions = badge.evaluate_script(<<~JS)
+        (() => {
+          const number = this.querySelector("text.section").getBoundingClientRect();
+          const wedge = this.querySelector("g").getBoundingClientRect();
+          const badge = this.getBoundingClientRect();
+          const band = this.querySelector("path.band");
+          const points = band.getAttribute("d").match(/^M([^ ]+) ([^ ]+) L([^ ]+) ([^ ]+)/).slice(1).map(Number);
+          const inner = new DOMPoint(points[0], points[1]).matrixTransform(band.getScreenCTM());
+          const outer = new DOMPoint(points[2], points[3]).matrixTransform(band.getScreenCTM());
+          return { numberLeft: number.left, numberRight: number.right,
+            wedgeLeft: wedge.left, wedgeRight: wedge.right, left: badge.left, right: badge.right,
+            innerX: inner.x, outerX: outer.x, innerY: inner.y, outerY: outer.y,
+            textScale: this.querySelector("text.row").getScreenCTM().a };
+        })()
+      JS
+      assert_operator positions.fetch("numberLeft"), :>=, positions.fetch("left")
+      assert_operator positions.fetch("numberRight"), :<, positions.fetch("wedgeLeft")
+      assert_operator positions.fetch("wedgeRight"), :<=, positions.fetch("right")
+      assert_operator positions.fetch("outerX"), :<, positions.fetch("innerX")
+      assert_operator positions.fetch("outerY"), :<, positions.fetch("innerY")
+      assert_operator positions.fetch("textScale"), :>, 0
+    end
+  end
+
+  test "occupied seat bookmarks open figure content and stack seat context on narrow screens" do
+    seat = Carousel.find_by!(slug: "great-northern-carousel").seat("9A")
+    seat.figure.update!(body: "## About Gulliver\n\nFigure notes stay ahead of the placement details.")
+    visit carousel_seat_path(seat.carousel, seat)
+    assert_current_path figure_path(seat.figure)
+    assert_selector ".figure-details .prose h2", text: "About Gulliver"
+
+    measurements = -> {
+      page.evaluate_script(<<~JS)
+        (() => {
+          const figure = document.querySelector(".figure-details").getBoundingClientRect();
+          const seat = document.querySelector(".seat-context").getBoundingClientRect();
+          return { figureRight: figure.right, figureBottom: figure.bottom, figureWidth: figure.width,
+            seatLeft: seat.left, seatTop: seat.top, seatWidth: seat.width,
+            overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth };
+        })()
+      JS
+    }
+    desktop = measurements.call
+    assert_operator desktop.fetch("seatLeft"), :>, desktop.fetch("figureRight")
+    assert_operator desktop.fetch("figureWidth"), :>, desktop.fetch("seatWidth") * 1.5
+
+    page.driver.browser.manage.window.resize_to(390, 844)
+    mobile = measurements.call
+    assert_operator mobile.fetch("seatTop"), :>=, mobile.fetch("figureBottom")
+    assert_not mobile.fetch("overflow")
+    assert_selector ".seat-context svg.seat-badge[aria-label='Seat 9A']"
+  ensure
+    page.driver.browser.manage.window.resize_to(1400, 1400)
   end
 
   test "Missoula chart links the riding dragon and spanning chariot" do
     visit carousel_path("a-carousel-for-missoula")
     assert_selector "svg.seat-chart a.seat", count: 40
 
-    find("svg.seat-chart a.seat[href='/carousels/a-carousel-for-missoula/13A']").click
-    assert_selector "h1", text: "Seat 13A"
-    within(".figure-details") { click_on "Scaffi" }
+    scaffi = Figure.find_by!(slug: "a-carousel-for-missoula-scaffi")
+    find("svg.seat-chart a.seat[href='#{figure_path(scaffi)}']").click
     assert_selector "h1", text: "Scaffi"
+    assert_selector ".seat-context svg.seat-badge[aria-label='Seat 13A']"
+    assert_current_path figure_path(scaffi)
     assert_selector "a[href='https://www.youtube.com/watch?v=8E3DemQtIis&t=109s']", text: "View this section"
 
     visit carousel_path("a-carousel-for-missoula")
-    find("svg.seat-chart a.seat[href='/carousels/a-carousel-for-missoula/7A']").click
-    assert_selector "h1", text: "Seat 7A"
-    within(".figure-details") { click_on "Altrusa Chariot" }
+    seat = Carousel.find_by!(slug: "a-carousel-for-missoula").seat("7A")
+    find("svg.seat-chart a.seat[href='#{figure_path(seat.figure)}']").click
     assert_selector "h1", text: "Altrusa Chariot"
+    assert_selector ".seat-context svg.seat-badge[aria-label='Seat 7A']"
+    assert_selector ".seat-context dd", text: "Section 7, rows #{seat.rows_covered.first} to #{seat.rows_covered.last}"
+    assert_current_path figure_path(seat.figure)
   end
 
   test "Spokane chart links its giraffe and spanning chariot to their seats" do
     visit carousel_path("spokane-looff-carrousel")
     assert_selector "svg.seat-chart a.seat", count: 58
 
-    find("svg.seat-chart a.seat[href='/carousels/spokane-looff-carrousel/1B']").click
-    assert_selector "h1", text: "Seat 1B"
-    within(".figure-details") { click_on "Dragon Chariot 1" }
+    carousel = Carousel.find_by!(slug: "spokane-looff-carrousel")
+    chariot = carousel.seat("1B").figure
+    find("svg.seat-chart a.seat[href='#{figure_path(chariot)}']").click
     assert_selector "h1", text: "Dragon Chariot 1"
+    assert_selector ".seat-context svg.seat-badge[aria-label='Seat 1B']"
+    assert_current_path figure_path(chariot)
 
     visit carousel_path("spokane-looff-carrousel")
-    find("svg.seat-chart a.seat[href='/carousels/spokane-looff-carrousel/1A']").click
-    assert_selector "h1", text: "Seat 1A"
-    within(".figure-details") { click_on "Geri Giraffe" }
+    giraffe = carousel.seat("1A").figure
+    find("svg.seat-chart a.seat[href='#{figure_path(giraffe)}']").click
     assert_selector "h1", text: "Geri Giraffe"
+    assert_selector ".seat-context svg.seat-badge[aria-label='Seat 1A']"
+    assert_current_path figure_path(giraffe)
   end
 
   test "figure filters include unseated inventory and carousel inventory links retain the selection" do

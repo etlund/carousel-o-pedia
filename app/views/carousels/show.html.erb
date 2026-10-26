@@ -48,7 +48,7 @@
 
 <% if @carousel.layout_known? %>
 <h2>Sections</h2>
-<p class="muted">Seat codes are section number plus row letter. Row A is the outer row. Section counts reflect mapped seats.<% if authenticated? %> Click a seat to edit it.<% end %></p>
+<p class="muted">Seat codes are section number plus row letter. Row A is the outer row. Section counts reflect mapped seats. Occupied seats open their figure; empty and unknown seats open their placement details.</p>
 <div class="table-scroll">
   <table class="sections">
     <thead>
@@ -69,7 +69,7 @@
             <% if seat %>
               <% skip = seat.rows_spanned - 1 %>
               <td colspan="<%= seat.rows_spanned %>" class="<%= seat.category || seat.state %>">
-                <%= link_to seat.figure&.name || seat.state.capitalize, carousel_seat_path(@carousel, seat) %>
+                <%= link_to seat.figure&.name || seat.state.capitalize, seat_destination_path(seat) %>
                 <% unless seat.confirmed? %><span class="badge">check</span><% end %>
               </td>
             <% else %>
