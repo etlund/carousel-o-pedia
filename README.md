@@ -1,8 +1,8 @@
-# Carousel-pedia
+# carousel-o-pedia
 
 A wiki for carousels, their carved figures, and their history.
 
-The site's logo is a red ring with a transparent center, echoing the seating chart. The header and standard site favicon share the same SVG.
+The site's logo is a red ring with a transparent center, echoing the seating chart and replacing the middle "o" in the carousel-o-pedia header wordmark. The header and standard site favicon share the same SVG.
 
 ## Browsing and seating
 

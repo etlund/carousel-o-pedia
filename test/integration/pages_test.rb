@@ -3,12 +3,14 @@ require "test_helper"
 class PagesTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
-  test "site header pairs the red ring logo with the site name and links home" do
+  test "site header uses the red ring for the middle o and links home with the full accessible name" do
     get root_path
     assert_response :success
-    assert_select ".site-header a.brand[href=?]", root_path do
-      assert_select "img[src='/icon.svg'][alt=''][width='28'][height='28']", 1
-      assert_select "span", text: "Carousel-pedia"
+    assert_select "meta[name='application-name'][content='carousel-o-pedia']", 1
+    assert_select ".site-header a.brand[href=?][aria-label='carousel-o-pedia']", root_path do
+      assert_select "span:first-child", text: "carousel-"
+      assert_select "img[src='/icon.svg'][alt=''][width='20'][height='20']", 1
+      assert_select "span:last-child", text: "-pedia"
     end
   end
 
@@ -220,7 +222,7 @@ class PagesTest < ActionDispatch::IntegrationTest
       carousel.update!(name:)
       get carousel_path(carousel)
       assert_response :success
-      assert_select "head > title", count: 1, text: "#{name} · Carousel-pedia"
+      assert_select "head > title", count: 1, text: "#{name} · carousel-o-pedia"
       assert_select "script", text: "alert('title')", count: 0
     end
   end

@@ -1,5 +1,5 @@
-<% content_for :title, "Join Carousel-pedia" %>
-<h1>Join Carousel-pedia</h1>
+<% content_for :title, "Join carousel-o-pedia" %>
+<h1>Join carousel-o-pedia</h1>
 <p><%= @invitation.invited_by.name %> invited <strong><%= @invitation.email_address %></strong> to help edit.</p>
 <%= form_with model: @user, url: invitation_acceptance_path(@invitation.token), method: :patch, scope: :user, class: "form narrow" do |form| %>
   <%= render "shared/errors", record: @user %>

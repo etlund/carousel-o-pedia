@@ -27,7 +27,7 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_includes empty_icon, 'fill="#a9b4c6"'
     assert_includes empty_icon, 'class="empty-favicon"'
 
-    click_on "Carousel-pedia"
+    find("a.brand[aria-label='carousel-o-pedia']").click
     assert_selector "h1", text: "Carousels", exact_text: true
     assert_selector icon_selector, visible: :all, count: 1
     assert_selector "#{icon_selector}[href='/icon.svg']", visible: :all

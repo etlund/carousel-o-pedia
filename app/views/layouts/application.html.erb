@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= safe_join([ content_for(:title), "Carousel-pedia" ].compact, " · ") %></title>
+    <title><%= safe_join([ content_for(:title), "carousel-o-pedia" ].compact, " · ") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="application-name" content="Carousel-pedia">
+    <meta name="application-name" content="carousel-o-pedia">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
@@ -22,9 +22,10 @@
   <body>
     <div class="dots" aria-hidden="true"></div>
     <header class="site-header">
-      <%= link_to root_path, class: "brand" do %>
-        <%= image_tag "/icon.svg", alt: "", width: 28, height: 28 %>
-        <span>Carousel-pedia</span>
+      <%= link_to root_path, class: "brand", aria: { label: "carousel-o-pedia" } do %>
+        <span>carousel-</span>
+        <%= image_tag "/icon.svg", alt: "", width: 20, height: 20 %>
+        <span>-pedia</span>
       <% end %>
       <nav>
         <%= link_to "Carousels", carousels_path %>
