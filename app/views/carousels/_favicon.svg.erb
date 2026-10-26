@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="22 22 756 756" width="32" height="32" role="img" aria-label="<%= carousel.name %> seating chart">
+  <title><%= carousel.name %> seating chart</title>
+  <style>
+    .mini-seat-wedge { fill: #d7dde8; stroke: none; }
+    .empty { fill: #f1f3f6; }
+    .horse { fill: #9fd3f2; }
+    .menagerie { fill: #f7b866; }
+    .chariot { fill: #e0282a; }
+  </style>
+  <% if carousel.layout_known? && seats.any?(&:category) %>
+    <%= render partial: "carousels/seat_wedges", formats: [ :html ], locals: { carousel:, seats: } %>
+  <% else %>
+    <path class="empty-favicon" fill="#a9b4c6"
+          d="<%= wedge_path(SeatChart::HUB_RADIUS, SeatChart::PLATFORM_RADIUS, half_angle: Math::PI, center_x: SeatChart::CENTER, center_y: SeatChart::CENTER) %>"/>
+  <% end %>
+</svg>

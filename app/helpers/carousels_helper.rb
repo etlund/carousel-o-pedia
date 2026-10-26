@@ -1,4 +1,12 @@
+require "base64"
+
 module CarouselsHelper
+  def carousel_favicon_data_uri(carousel)
+    seats = carousel.seats.includes(current_placement: { figure: :figure_type })
+    svg = render(partial: "carousels/favicon", formats: [ :svg ], locals: { carousel:, seats: })
+    "data:image/svg+xml;base64,#{Base64.strict_encode64(svg)}"
+  end
+
   def carousel_figure_count(carousel, category, mapped_count)
     published = carousel.published_category_totals.fetch(category)
     return published unless published.nil?

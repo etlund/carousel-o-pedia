@@ -10,7 +10,7 @@
     <%= yield :head %>
 
     <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="<%= content_for?(:favicon) ? yield(:favicon) : "/icon.svg" %>" type="image/svg+xml" data-turbo-track="dynamic">
     <link rel="apple-touch-icon" href="/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Figtree:wght@400;500;600;700&display=swap">
@@ -22,7 +22,10 @@
   <body>
     <div class="dots" aria-hidden="true"></div>
     <header class="site-header">
-      <%= link_to "Carousel-pedia", root_path, class: "brand" %>
+      <%= link_to root_path, class: "brand" do %>
+        <%= image_tag "/icon.svg", alt: "", width: 28, height: 28 %>
+        <span>Carousel-pedia</span>
+      <% end %>
       <nav>
         <%= link_to "Carousels", carousels_path %>
         <%= link_to "Figures", figures_path %>

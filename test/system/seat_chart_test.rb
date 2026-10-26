@@ -3,6 +3,62 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "carousel favicons follow Turbo navigation and reset to the site icon" do
+    icon_selector = "head link[rel='icon'][type='image/svg+xml']"
+    visit carousels_path
+    assert_selector "#{icon_selector}[href='/icon.svg']", visible: :all, count: 1
+    within("li.card", text: "Great Northern Carousel") { click_on "Great Northern Carousel" }
+    assert_selector "h1", text: "Great Northern Carousel"
+    assert_selector icon_selector, visible: :all, count: 1
+    first_icon = find(icon_selector, visible: :all)["href"]
+    assert first_icon.start_with?("data:image/svg+xml;base64,")
+    assert_includes Base64.strict_decode64(first_icon.split(",", 2).last), 'data-seat-code="4A"'
+
+    click_on "Carousels", match: :first
+    assert_selector "h1", text: "Carousels", exact_text: true
+    assert_selector icon_selector, visible: :all, count: 1
+    assert_selector "#{icon_selector}[href='/icon.svg']", visible: :all
+
+    directory = Carousel.find_by!(slug: "janes-carousel-brooklyn")
+    within("li.card", text: directory.name) { click_on directory.name }
+    assert_selector "h1", text: directory.name
+    assert_selector icon_selector, visible: :all, count: 1
+    empty_icon = Base64.strict_decode64(find(icon_selector, visible: :all)["href"].split(",", 2).last)
+    assert_includes empty_icon, 'fill="#a9b4c6"'
+    assert_includes empty_icon, 'class="empty-favicon"'
+
+    click_on "Carousel-pedia"
+    assert_selector "h1", text: "Carousels", exact_text: true
+    assert_selector icon_selector, visible: :all, count: 1
+    assert_selector "#{icon_selector}[href='/icon.svg']", visible: :all
+  end
+
+  test "red SVG and PNG favicons and empty carousel favicons have transparent center holes" do
+    visit carousel_path("janes-carousel-brooklyn")
+    gray_icon = find("head link[rel='icon'][type='image/svg+xml']", visible: :all)["href"]
+    [ [ "/icon.svg", [ 255, 0, 0, 255 ] ], [ "/icon.png", [ 255, 0, 0, 255 ] ], [ gray_icon, [ 169, 180, 198, 255 ] ] ].each do |source, color|
+      pixels = page.evaluate_async_script(<<~JS, source)
+        const done = arguments[arguments.length - 1];
+        const image = new Image();
+        image.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 32;
+          const context = canvas.getContext("2d");
+          context.drawImage(image, 0, 0, 32, 32);
+          const pixel = (x, y) => Array.from(context.getImageData(x, y, 1, 1).data);
+          done({ center: pixel(16, 16), hole: pixel(18, 16), rim: pixel(16, 6), corner: pixel(0, 0) });
+        };
+        image.onerror = () => done({ error: "Could not load favicon" });
+        image.src = arguments[0];
+      JS
+      assert_not pixels.key?("error"), pixels["error"]
+      assert_equal [ 0, 0, 0, 0 ], pixels.fetch("center")
+      assert_equal [ 0, 0, 0, 0 ], pixels.fetch("hole")
+      assert_equal color, pixels.fetch("rim")
+      assert_equal [ 0, 0, 0, 0 ], pixels.fetch("corner")
+    end
+  end
+
   test "physical addresses retain postal zeros and explain venue precision" do
     carousel = Carousel.create!(name: "Address browser test", street_address: "1 Main Street",
       city: "Hull", region: "Massachusetts", postal_code: "02045", country: "United States",
@@ -21,29 +77,51 @@ class SeatChartTest < ApplicationSystemTestCase
     end
   end
 
-  test "mini seat charts use ten pixel category dots and open the full chart" do
+  test "mini seat charts use compact wedges with heavier best reading outlines and open the full chart" do
     visit carousels_path
     assert_selector "svg.mini-seat-chart", count: 5
     within("li.card", text: "Great Northern Carousel") do
-      assert_selector "circle.mini-seat-dot", count: 39
+      assert_selector "path.mini-seat-wedge", count: 39
       measurements = find("svg.mini-seat-chart").evaluate_script(<<~JS)
         (() => {
           const svg = this;
-          const dot = svg.querySelector(".mini-seat-dot.horse");
+          const bestReading = getComputedStyle(svg.querySelector(".mini-seat-wedge.horse.unsure"));
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 1;
+          const context = canvas.getContext("2d");
+          const borders = ["horse", "menagerie", "chariot"].map(category => {
+            const style = getComputedStyle(svg.querySelector(".mini-seat-wedge." + category + ":not(.unsure)"));
+            context.fillStyle = style.stroke;
+            context.fillRect(0, 0, 1, 1);
+            return { width: style.strokeWidth, color: Array.from(context.getImageData(0, 0, 1, 1).data) };
+          });
           return {
             width: svg.getBoundingClientRect().width,
-            diameter: dot.getBoundingClientRect().width,
-            horse: getComputedStyle(dot).fill,
-            other: getComputedStyle(svg.querySelector(".mini-seat-dot.menagerie")).fill,
-            chariot: getComputedStyle(svg.querySelector(".mini-seat-dot.chariot")).fill
+            borders,
+            horse: getComputedStyle(svg.querySelector(".mini-seat-wedge.horse:not(.unsure)")).fill,
+            other: getComputedStyle(svg.querySelector(".mini-seat-wedge.menagerie:not(.unsure)")).fill,
+            chariot: getComputedStyle(svg.querySelector(".mini-seat-wedge.chariot:not(.unsure)")).fill,
+            bestFill: bestReading.fill,
+            bestStroke: bestReading.stroke,
+            bestWidth: bestReading.strokeWidth,
+            bestDash: bestReading.strokeDasharray,
+            bestScaling: bestReading.vectorEffect
           };
         })()
       JS
-      assert_in_delta 160, measurements.fetch("width"), 1
-      assert_in_delta 10, measurements.fetch("diameter"), 1
+      assert_in_delta 112, measurements.fetch("width"), 0.1
       assert_equal "rgb(159, 211, 242)", measurements.fetch("horse")
       assert_equal "rgb(247, 184, 102)", measurements.fetch("other")
       assert_equal "rgb(224, 40, 42)", measurements.fetch("chariot")
+      [ [ 111, 148, 169, 255 ], [ 173, 129, 71, 255 ], [ 157, 28, 29, 255 ] ].zip(measurements.fetch("borders")).each do |color, border|
+        assert_equal "2px", border.fetch("width")
+        assert_equal color, border.fetch("color")
+      end
+      assert_equal "none", measurements.fetch("bestFill")
+      assert_equal measurements.fetch("horse"), measurements.fetch("bestStroke")
+      assert_equal "2px", measurements.fetch("bestWidth")
+      assert_equal "none", measurements.fetch("bestDash")
+      assert_equal "non-scaling-stroke", measurements.fetch("bestScaling")
       find("a.mini-seat-chart-link").click
     end
     assert_selector "h1", text: "Great Northern Carousel"
@@ -54,9 +132,27 @@ class SeatChartTest < ApplicationSystemTestCase
       .evaluate_script("getComputedStyle(this.querySelector('rect, circle')).fill")
   end
 
+  test "a single section preview draws a complete ring and keeps unknown seats unfilled" do
+    carousel = build_carousel(sections: 1, rows: 1)
+    visit carousels_path(q: carousel.name)
+    wedge = find("svg.mini-seat-chart path.unknown")
+    geometry = wedge.evaluate_script(<<~JS)
+      (() => ({
+        ring: [[200, 0], [-200, 0], [0, 200], [0, -200]].every(([x, y]) => this.isPointInFill(new DOMPoint(x, y))),
+        hub: this.isPointInFill(new DOMPoint(0, 0)),
+        outside: this.isPointInFill(new DOMPoint(400, 0)),
+        fill: getComputedStyle(this).fill
+      }))()
+    JS
+    assert geometry.fetch("ring")
+    assert_not geometry.fetch("hub")
+    assert_not geometry.fetch("outside")
+    assert_equal "none", geometry.fetch("fill")
+  end
+
   test "Glen Echo historical seating is visibly best reading on both charts" do
     visit carousels_path(q: "Glen Echo")
-    assert_selector "svg.mini-seat-chart .mini-seat-dot.unsure", count: 54
+    assert_selector "svg.mini-seat-chart .mini-seat-wedge.unsure", count: 54
     assert_selector "svg.mini-seat-chart .chariot.unsure", count: 2
     find("a.mini-seat-chart-link").click
     assert_selector "h1", text: "Glen Echo Park Dentzel Carousel"

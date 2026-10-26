@@ -1,0 +1,10 @@
+<% chart = SeatChart.new(carousel) %>
+<% chart.seat_wedges(seats).each do |wedge| %>
+  <% seat = wedge.seat %>
+  <path class="mini-seat-wedge <%= seat.category || seat.state %> <%= "unsure" unless seat.confirmed? %>"
+        d="<%= wedge_path(wedge.inner_radius, wedge.outer_radius, half_angle: Math::PI / carousel.sections_count, center_x: 0, center_y: 0) %>"
+        transform="translate(<%= SeatChart::CENTER %> <%= SeatChart::CENTER %>) rotate(<%= wedge.rotation %>)"
+        data-seat-code="<%= seat.code %>">
+    <title><%= seat.code %>: <%= seat.figure&.name || seat.state.capitalize %></title>
+  </path>
+<% end %>

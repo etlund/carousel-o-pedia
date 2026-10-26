@@ -14,6 +14,7 @@ class SeatChart
 
   Point = Data.define(:x, :y)
   SeatShape = Data.define(:seat, :center, :width, :height, :round)
+  SeatWedge = Data.define(:seat, :inner_radius, :outer_radius, :rotation)
 
   attr_reader :carousel
 
@@ -51,6 +52,15 @@ class SeatChart
       else
         SeatShape.new(seat:, center:, width: seat_width(seat.row_index), height: SEAT_HEIGHT, round: false)
       end
+    end
+  end
+
+  def seat_wedges(seats)
+    depth = (PLATFORM_RADIUS - HUB_RADIUS).to_f / carousel.rows_count
+    seats.map do |seat|
+      outer_radius = PLATFORM_RADIUS - seat.row_index * depth
+      inner_radius = PLATFORM_RADIUS - (seat.row_index + seat.rows_spanned) * depth
+      SeatWedge.new(seat:, inner_radius:, outer_radius:, rotation: angle(seat.section - 1) * 180 / Math::PI)
     end
   end
 

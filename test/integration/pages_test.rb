@@ -3,6 +3,15 @@ require "test_helper"
 class PagesTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "site header pairs the red ring logo with the site name and links home" do
+    get root_path
+    assert_response :success
+    assert_select ".site-header a.brand[href=?]", root_path do
+      assert_select "img[src='/icon.svg'][alt=''][width='28'][height='28']", 1
+      assert_select "span", text: "Carousel-pedia"
+    end
+  end
+
   test "carousel cards preview only complete layouts using current figure categories" do
     get carousels_path
     assert_response :success
@@ -17,23 +26,22 @@ class PagesTest < ActionDispatch::IntegrationTest
       assert_select "li.card:has(h2 a[href='#{carousel_path(slug)}'])" do
         assert_select "a.mini-seat-chart-link[href=?][aria-label=?]", carousel_path(slug),
           "View seating chart for #{Carousel.find_by!(slug:).name}"
-        assert_select "svg.mini-seat-chart[role=img][width='160'][height='160']" do
-          assert_select "circle.mini-seat-dot", counts.sum
+        assert_select "svg.mini-seat-chart[role=img][width='112'][height='112']" do
+          assert_select "path.mini-seat-wedge", counts.sum
           %w[ horse menagerie chariot ].zip(counts).each do |category, count|
-            assert_select "circle.mini-seat-dot.#{category}[r='25']", count
+            assert_select "path.mini-seat-wedge.#{category}", count
           end
-          assert_select "text, rect", 0
+          assert_select "text, rect, circle", 0
         end
       end
     end
     assert_select "li.card:has(h2 a[href='#{carousel_path('janes-carousel-brooklyn')}']) svg.mini-seat-chart", 0
     assert_select "li.card:has(h2 a[href='#{carousel_path('flying-horses-carousel-oak-bluffs')}']) svg.mini-seat-chart", 0
 
-    mini = css_select("a.mini-seat-chart-link[href='#{carousel_path(@carousel)}'] [data-seat-code='4A']").first
-    coordinates = mini.attributes.slice("cx", "cy").transform_values(&:value)
+    assert_select "a.mini-seat-chart-link[href=?] path[data-seat-code='4A'] title", carousel_path(@carousel),
+      text: "4A: #{@carousel.seat("4A").figure.name}"
     get carousel_path(@carousel)
-    full = css_select("svg.seat-chart a[href='#{carousel_seat_path(@carousel, '4A')}'] > circle").first
-    assert_equal coordinates, full.attributes.slice("cx", "cy").transform_values(&:value)
+    assert_select "svg.seat-chart a[href=?] > circle", carousel_seat_path(@carousel, "4A"), count: 1
   end
 
   test "mini charts represent spanning vehicles once and retain unknown and empty positions" do
@@ -46,13 +54,13 @@ class PagesTest < ActionDispatch::IntegrationTest
     get carousels_path
     assert_response :success
     assert_select "a.mini-seat-chart-link[href='#{carousel_path(carousel)}']" do
-      assert_select "circle.mini-seat-dot", 5
-      assert_select "circle.chariot.unsure[data-seat-code='1A'][cx='400.0'][cy='122.5']", 1
-      assert_select "circle[data-seat-code='1B']", 0
-      assert_select "circle.unknown", 3
-      assert_select "circle.empty[data-seat-code='2C']", 1
-      assert_select "circle.chariot title", "1A: Preview vehicle"
-      assert_select "circle.horse", 0
+      assert_select "path.mini-seat-wedge", 5
+      assert_select "path.chariot.unsure[data-seat-code='1A'][transform='translate(400 400) rotate(-90.0)']", 1
+      assert_select "path[data-seat-code='1B']", 0
+      assert_select "path.unknown", 3
+      assert_select "path.empty[data-seat-code='2C']", 1
+      assert_select "path.chariot title", "1A: Preview vehicle"
+      assert_select "path.horse", 0
     end
   end
 

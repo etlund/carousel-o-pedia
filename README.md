@@ -2,11 +2,15 @@
 
 A wiki for carousels, their carved figures, and their history.
 
+The site's logo is a red ring with a transparent center, echoing the seating chart. The header and standard site favicon share the same SVG.
+
 ## Browsing and seating
 
 The Carousels page supports case-insensitive partial name searches and a state filter. Use either filter alone or combine them, choose **Filter** to apply, and **Clear filters** to return to the full directory. Selections remain visible and are included in the page URL for sharing. The state dropdown lists the distinct states or regions recorded in the directory.
 
-Cards with a complete recorded layout include a 160-pixel seat-chart preview with approximately 10-pixel dots matching the full chart's colors: light blue for horses, orange for other animals, red for chariots/tubs, and outlined dots for unknown or empty seats. Dashed colored dots mark best-reading placements, matching the full chart's uncertainty markers. It uses the full chart's positions, with one dot per seat or spanning vehicle, and links to the full carousel page. Directory entries and partially known layouts do not show an invented preview.
+Cards with a complete recorded layout include a compact 112-pixel seat-chart preview with touching wedges: light blue for horses, orange for other animals, and red for chariots/tubs. Confirmed placements are solid with darker category-colored 2-pixel borders; best-reading placements have unfilled, category-colored 2-pixel outlines; unknown or empty seats have gray outlines. Rows run from the outside in, with section 1 at the top. One wedge represents each seat, spanning every row covered by a vehicle, and the whole preview links to the full carousel page. The full-size chart retains its existing symbols and dashed uncertainty markers. Directory entries and partially known layouts do not show an invented preview.
+
+Carousel detail pages with mapped figures also use that chart as their SVG favicon. At favicon sizes, all wedges are filled without outlines, using the same category colors regardless of placement confidence. Unknown and empty seats use neutral grays. Carousels without a recorded layout or mapped figures use a gray ring. The home page and other site pages keep the standard red-ring icon. Both rings have transparent centers matching the seating chart's hub proportions. The self-contained carousel icon updates with the page's seating data, including during Turbo navigation; the standard red-ring PNG and Apple touch icon remain as fallbacks.
 
 Carousels default to **With data first**: entries with figure inventory (including unseated figures), any verified platform dimension, or published figure totals appear before directory-only entries. Both groups are alphabetical by name. Choose **Name (A-Z)** in the Sort dropdown for a single alphabetical list. Sorting works with the name and state filters; **Clear filters** also restores the default sort.
 

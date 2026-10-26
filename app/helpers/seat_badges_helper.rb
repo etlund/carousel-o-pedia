@@ -38,9 +38,11 @@ module SeatBadgesHelper
 
   private
     # One band of the wedge, an annular sector between two radii.
-    def wedge_path(inner, outer)
-      cos, sin = Math.cos(BADGE_HALF_ANGLE), Math.sin(BADGE_HALF_ANGLE)
-      point = ->(radius, sign) { "#{(BADGE_CENTER_X + radius * cos).round(2)} #{(BADGE_CENTER_Y + sign * radius * sin).round(2)}" }
-      "M#{point[inner, -1]} L#{point[outer, -1]} A#{outer} #{outer} 0 0 1 #{point[outer, 1]} L#{point[inner, 1]} A#{inner} #{inner} 0 0 0 #{point[inner, -1]} Z"
+    def wedge_path(inner, outer, half_angle: BADGE_HALF_ANGLE, center_x: BADGE_CENTER_X, center_y: BADGE_CENTER_Y)
+      point = ->(radius, angle) { "#{(center_x + radius * Math.cos(angle)).round(2)} #{(center_y + radius * Math.sin(angle)).round(2)}" }
+      # Splitting the arcs also supports a single section covering the full circle.
+      "M#{point[inner, -half_angle]} L#{point[outer, -half_angle]} " \
+        "A#{outer} #{outer} 0 0 1 #{point[outer, 0]} A#{outer} #{outer} 0 0 1 #{point[outer, half_angle]} " \
+        "L#{point[inner, half_angle]} A#{inner} #{inner} 0 0 0 #{point[inner, 0]} A#{inner} #{inner} 0 0 0 #{point[inner, -half_angle]} Z"
     end
 end
