@@ -48,14 +48,13 @@
 
 <% if @carousel.layout_known? %>
 <h2>Sections</h2>
-<p class="muted">Seat codes are section number plus row letter. Row A is the outer row. Section counts reflect mapped seats. Occupied seats open their figure; empty and unknown seats open their placement details.</p>
+<p class="muted">Seat codes are section number plus row letter. Row A is the outer row. Occupied seats open their figure; empty and unknown seats open their placement details.</p>
 <div class="table-scroll">
   <table class="sections">
     <thead>
       <tr>
         <th>Section</th>
         <% @carousel.row_letters.each do |letter| %><th><%= letter %></th><% end %>
-        <% FigureType::CATEGORIES.each do |category| %><th class="num"><%= category_label(category) %></th><% end %>
       </tr>
     </thead>
     <tbody>
@@ -76,7 +75,6 @@
               <td class="none">none</td>
             <% end %>
           <% end %>
-          <% FigureType::CATEGORIES.each do |category| %><td class="num"><%= section[:counts][category] %></td><% end %>
         </tr>
       <% end %>
     </tbody>

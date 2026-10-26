@@ -390,7 +390,11 @@ class PagesTest < ActionDispatch::IntegrationTest
     get carousel_path(@carousel)
     assert_response :success
     assert_select "svg.seat-chart a.seat", 39
+    assert_equal [ "Section", *@carousel.row_letters ], css_select("table.sections thead th").map(&:text)
     assert_select "table.sections tbody tr", 14
+    css_select("table.sections tbody tr").each do |row|
+      assert_equal @carousel.row_letters.size, row.css("td").sum { |cell| (cell["colspan"] || 1).to_i }
+    end
     assert_select "a[href=?]", figure_path(@carousel.seat("9A").figure)
   end
 

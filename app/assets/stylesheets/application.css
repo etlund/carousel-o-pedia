@@ -71,7 +71,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
 .sections td.menagerie { box-shadow: inset 4px 0 var(--other); }
 .sections td.chariot { box-shadow: inset 4px 0 var(--special); }
 .sections td.none, .sections td.unknown a { color: var(--muted); }
-.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 999px; background: var(--other); color: var(--other-fg); margin-left: 4px; }
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 999px; background: var(--line); color: var(--fg); margin-left: 4px; }
 .type-list { columns: 3 12em; }
 
 /* Round seat chart */
