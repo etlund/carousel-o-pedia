@@ -2,8 +2,8 @@
 # check=error=true
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t carousel_pedia .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name carousel_pedia carousel_pedia
+# docker build -t carousel_o_pedia .
+# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name carousel_o_pedia carousel_o_pedia
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 

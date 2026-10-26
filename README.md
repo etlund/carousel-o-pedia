@@ -41,9 +41,13 @@ The seat editor lists only figures belonging to that carousel, including unseate
 ## Getting started
 
 ```sh
+git clone https://github.com/etlund/carousel-o-pedia.git
+cd carousel-o-pedia
 bin/setup --skip-server  # installs gems and prepares the database
 bin/dev                  # http://localhost:3000
 ```
+
+The Rails application namespace is `CarouselOPedia`, and Docker/Kamal service and image names use `carousel_o_pedia`. The existing `carousel_pedia_storage` volume and `_carousel_pedia_session` cookie key intentionally retain their names to preserve stored data and browser sessions. For an existing Kamal deployment, stop the old `carousel_pedia` service before starting `carousel_o_pedia` against the shared SQLite volume; changing the volume name requires a separate data migration.
 
 Preparing a new database loads the seed data described below. Preparing an existing database does not automatically refresh its seeded inventory.
 
