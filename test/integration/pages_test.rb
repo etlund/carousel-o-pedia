@@ -14,10 +14,10 @@ class PagesTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "carousel cards preview only complete layouts using current figure categories" do
+  test "carousel cards preview complete layouts using current figure categories" do
     get carousels_path
     assert_response :success
-    assert_select "svg.mini-seat-chart", 5
+    assert_select "svg.mini-seat-chart", Carousel.count
     {
       "great-northern-carousel" => [ 18, 19, 2 ],
       "a-carousel-for-missoula" => [ 37, 1, 2 ],
@@ -37,13 +37,42 @@ class PagesTest < ActionDispatch::IntegrationTest
         end
       end
     end
-    assert_select "li.card:has(h2 a[href='#{carousel_path('janes-carousel-brooklyn')}']) svg.mini-seat-chart", 0
-    assert_select "li.card:has(h2 a[href='#{carousel_path('flying-horses-carousel-oak-bluffs')}']) svg.mini-seat-chart", 0
+    assert_select "li.card:has(h2 a[href='#{carousel_path('janes-carousel-brooklyn')}']) svg.mini-seat-chart", 1
+    assert_select "li.card:has(h2 a[href='#{carousel_path('flying-horses-carousel-oak-bluffs')}']) svg.mini-seat-chart", 1
 
     assert_select "a.mini-seat-chart-link[href=?] path[data-seat-code='4A'] title", carousel_path(@carousel),
       text: "4A: #{@carousel.seat("4A").figure.name}"
     get carousel_path(@carousel)
     assert_select "svg.seat-chart a[href=?] > circle", figure_path(@carousel.seat("4A").figure), count: 1
+  end
+
+  test "mini charts show platform outlines for unknown layouts and evenly spaced rings for known rows" do
+    layouts = [ {}, { sections_count: 12 } ] + (1..Carousel::MAX_ROWS).map { |rows_count| { rows_count: } }
+    layouts.each_with_index do |layout, index|
+      carousel = Carousel.create!(name: "Partial preview #{index}", **layout)
+
+      get carousels_path, params: { q: carousel.name }
+      assert_response :success
+      assert_select "a.mini-seat-chart-link[href=?][aria-label=?]", carousel_path(carousel),
+        "View carousel details for #{carousel.name}" do
+        assert_select "svg.mini-seat-chart[role=img][width='112'][height='112']" do |charts|
+          description = carousel.rows_count ? "#{carousel.rows_count} #{'row'.pluralize(carousel.rows_count)} shown as concentric rings" : "Layout unknown"
+          assert_includes charts.first["aria-label"], description
+          assert_select "path.mini-seat-platform", 1
+          assert_select "path.mini-seat-wedge, text, rect", 0
+          assert_select "circle.mini-seat-row-divider", (carousel.rows_count || 1) - 1
+          css_select("circle.mini-seat-row-divider").each_with_index do |circle, row|
+            assert_equal "400", circle["cx"]
+            assert_equal "400", circle["cy"]
+            assert_in_delta 100 + (row + 1) * 270.0 / carousel.rows_count, circle["r"].to_f
+          end
+        end
+      end
+      assert_empty carousel.seats
+      get carousel_path(carousel)
+      assert_response :success
+      assert_select "svg.seat-chart", 0
+    end
   end
 
   test "mini charts represent spanning vehicles once and retain unknown and empty positions" do
@@ -666,7 +695,7 @@ class PagesTest < ActionDispatch::IntegrationTest
   test "figure filters handle all figures, no matches, and invalid selections explicitly" do
     get figures_path, params: { carousel_id: "", figure_type_id: "" }
     assert_response :success
-    assert_select "table tbody tr", 260
+    assert_select "table tbody tr", Figure.count
 
     get figures_path, params: {
       carousel_id: Carousel.find_by!(slug: "salems-riverfront-carousel").id,

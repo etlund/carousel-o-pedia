@@ -36,7 +36,7 @@
           <dd class="figure-count"><%= carousel_figure_count(carousel, category, @category_counts.fetch([carousel.id, category], 0)) || "Unknown" %></dd>
         <% end %>
       </dl>
-      <% if carousel.layout_known? %><%= render "mini_seat_chart", carousel: %><% end %>
+      <%= render "mini_seat_chart", carousel: %>
       <% if carousel.summary_sources.present? %>
         <p><%= link_to "Summary sources", carousel_path(carousel, anchor: "summary-sources") %></p>
       <% end %>

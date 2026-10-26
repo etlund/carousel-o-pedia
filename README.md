@@ -8,7 +8,7 @@ The site's logo is a red ring with a transparent center, echoing the seating cha
 
 The Carousels page supports case-insensitive partial name searches and a state filter. Use either filter alone or combine them, choose **Filter** to apply, and **Clear filters** to return to the full directory. Selections remain visible and are included in the page URL for sharing. The state dropdown lists the distinct states or regions recorded in the directory.
 
-Cards with a complete recorded layout include a compact 112-pixel seat-chart preview with touching wedges: blue for horses, orange for other animals, and red for chariots/tubs. Confirmed placements use the base category colors; best-reading placements use faded fills mixed equally with white; unknown or empty seats remain unfilled. All wedges have uniform medium-gray 2-pixel outlines. Rows run from the outside in, with section 1 at the top. One wedge represents each seat, spanning every row covered by a vehicle, and the whole preview links to the full carousel page. The full-size chart retains its existing symbols and dashed uncertainty markers. Directory entries and partially known layouts do not show an invented preview.
+Every card includes a compact 112-pixel seat-chart preview linking to the carousel page. Complete recorded layouts use touching wedges: blue for horses, orange for other animals, and red for chariots/tubs. Confirmed placements use the base category colors; best-reading placements use faded fills mixed equally with white; unknown or empty seats remain unfilled. All wedges have uniform medium-gray 2-pixel outlines. Rows run from the outside in, with section 1 at the top. One wedge represents each seat, spanning every row covered by a vehicle. Incomplete layouts show a gray platform with inner and outer outlines and a transparent center hole. When the row count is known, evenly spaced concentric boundaries show those rows without inventing sections or seat positions. The full-size chart retains its existing symbols and dashed uncertainty markers.
 
 Carousel detail pages with mapped figures also use that chart as their SVG favicon. At favicon sizes, all wedges are filled without outlines, using the same category colors regardless of placement confidence. Unknown and empty seats use neutral grays. Carousels without a recorded layout or mapped figures use a gray ring. The home page and other site pages keep the standard red-ring icon. Both rings have transparent centers matching the seating chart's hub proportions. The self-contained carousel icon updates with the page's seating data, including during Turbo navigation; the standard red-ring PNG and Apple touch icon remain as fallbacks.
 
@@ -20,7 +20,7 @@ Carousel summary cards and detail pages list horses, other animals, and chariots
 
 Published totals describe source-reported riding figures and remain stored separately from placements; they never create placeholder figures or seats. Mapped counts exclude unplaced inventory and ended placements and count figures spanning multiple rows once. The seating chart and section table always use mapped data, which may differ from the displayed published totals. Editors must supply Markdown source notes for published totals. Source dates, historical configurations, and disagreements remain available in **Summary sources**.
 
-Directory-only carousels can have an unknown or partially researched seating layout. Each dimension is independently optional: for example, a known row count is shown even while sections remain unknown. No chart or seats are created until both dimensions are known. Once both are recorded, platform size stays fixed in the editor. Unmapped counts remain **Unknown** without a complete layout. Rotation is independently optional and does not default to a guessed direction.
+Directory-only carousels can have an unknown or partially researched seating layout. Each dimension is independently optional: for example, a known row count is shown even while sections remain unknown. No full-size chart or seats are created until both dimensions are known; card previews show only the known level of detail. Once both are recorded, platform size stays fixed in the editor. Unmapped counts remain **Unknown** without a complete layout. Rotation is independently optional and does not default to a guessed direction.
 
 Carousels have optional **street address**, **ZIP or postal code**, and Markdown **address sources and notes**. Cards and detail pages show the physical address alongside the existing city/state/country; unknown street addresses and postal codes remain blank. Postal codes are text so leading zeros are preserved. Public visitor-entrance or venue addresses are distinguished from exact carousel locations in the source notes; mailing offices and PO boxes are not substitutes for ride addresses.
 
@@ -161,7 +161,7 @@ Reseeding is a separate, intentional operation. Read [Seed behavior and preservi
 
 ## Seeded carousels
 
-The offline seeds contain **54 U.S. carousels**: four detailed inventories and **50 additional operating-carousel directory entries**. Glen Echo also has a historical seating reference. Together they contain **260 catalog records**, with **225 placed figures and 35 unseated catalog records**. The category columns below count placed figures, matching the carousel summary cards; catalog totals also include reserves, project figures, and non-riding ring dispensers.
+The offline seeds contain **54 U.S. carousels**: four detailed inventories and **50 additional operating-carousel directory entries**. Glen Echo also has a historical seating reference, and Elitch Gardens has two photographically identified chariots with unknown seats. Together they contain **262 catalog records**, with **225 placed figures and 37 unseated catalog records**. The category columns below count placed figures; published summary totals can differ. Catalog totals also include reserves, project figures, and non-riding ring dispensers.
 
 | Carousel | Sections | Rows | Catalog records | Horses | Other animals | Chariots and tubs |
 |----------|----------|------|-----------------|--------|---------------|-------------------|
@@ -170,6 +170,7 @@ The offline seeds contain **54 U.S. carousels**: four detailed inventories and *
 | Spokane Looff Carrousel | 20 | 3 | 60 | 54 | 2 | 2 |
 | Salem's Riverfront Carousel | 12 | 3 | 62 | 24 | 8 | 2 |
 | Glen Echo Park Dentzel Carousel (1994 reference) | 18 | 3 | 54 | 40 | 12 | 2 |
+| Elitch Gardens Carousel (partial photographic inventory) | Unknown | 4 | 2 | 0 | 0 | 0 |
 
 ### Great Northern Carousel
 
@@ -219,6 +220,29 @@ The first summary-research pass covers ten carousels, using the [NCA classic woo
 The census summaries alone do not establish section counts; none is inferred from animal counts or row counts. Separate position-level research now supplies Glen Echo's historical chart, described below. The other nine still have no seating charts. Several census entries are tagged 2020; Pullen's is tagged 2021. These are published snapshots, not current physical surveys. Oaks Park's four vehicles comprise two chariots and two tubs. Balboa's figures are explicitly **as reported**: NCA lists 25 other animals but its species breakdown sums to 26, and inclusion of the operator's four miniature horses is unresolved. Those caveats are retained on its page.
 
 Directory sources were reviewed on **October 25, 2026**. "Operating" means the operator lists the carousel as a ride or visitor attraction, including seasonal operation; it does not guarantee it is open today or rule out temporary maintenance closures. Check the linked operator website for current hours. Source evidence is included on each carousel page.
+
+### Elitch Gardens Carousel (Denver, PTC #51)
+
+An additional summary reviewed **October 26, 2026** uses the [NCA census record last updated in 2018](https://carousels.org/USACensus/census.pl?NCANo=26): **four rows, 44 jumping and 18 standing horses (62 total), no other animals, and four chariots**, built in 1928. The [operator](https://elitchgardens.com/attractions/carousel/) instead advertises **64 horses**; this discrepancy remains explicit rather than silently combining the sources. Neither source establishes section count or exact seating.
+
+The [Elitch Gardens research seed](db/seeds/us_researched_elitch_gardens.rb) adds two descriptive chariot records from NCA photographs dated August 5, 2003: [Angel and Cherubs](https://carousels.org/psp/ElitchGardensPTC/Elitch_08.html) and [Miss Liberty and Bald Eagle](https://carousels.org/psp/ElitchGardensPTC/Elitch_13a.html). These are decorative descriptions, not verified personal names, and remain **unplaced**. They do not resolve all four census vehicles or their radial spans. No horse placeholders or seating chart are invented. This is not PTC #6 in Burlington, the subject of Wikipedia's “Elitch Gardens Carousel” article.
+
+The photographic import requires an empty inventory and no existing source identities, preserving existing wiki figures and subsequent edits or transfers. Source notes append once. The targeted import updates **only Elitch Gardens**, creates its directory entry if missing, and applies its summary and photographic inventory together in one transaction. It does not run other seeds or restore authoritative inventories. Repeated runs preserve edits, placements, and timestamps; failures roll back the entire import and exit unsuccessfully.
+
+Run locally:
+
+```sh
+bin/rails carousels:import_elitch_gardens
+```
+
+For production, first commit and deploy these changes so the command and data are present in the running image. Take a database backup, then use the Kamal alias:
+
+```sh
+bin/kamal app exec --reuse "bin/rails backups:create"
+bin/kamal import-elitch-gardens
+```
+
+The alias runs `bin/rails carousels:import_elitch_gardens` inside the existing production container against its persistent database. Output reports the environment, stored published totals, inventory count, and how many figures were added (zero on an unchanged repeat run). Existing values take precedence over research values. If an existing inventory prevents the photographic import, it is retained rather than supplemented with potentially duplicate figures. Do **not** run `db:seed` as a substitute.
 
 ### Historical seating research
 

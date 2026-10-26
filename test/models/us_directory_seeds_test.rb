@@ -11,7 +11,8 @@ class UsDirectorySeedsTest < ActiveSupport::TestCase
     "cafesjians-carousel-st-paul" => [ 68, 0, 2, 4 ],
     "balboa-park-carousel-san-diego" => [ 27, 25, 3, 3 ],
     "looff-carousel-santa-cruz-beach-boardwalk" => [ 73, 0, 2, 4 ],
-    "oaks-park-carousel-portland" => [ 24, 26, 4, 3 ]
+    "oaks-park-carousel-portland" => [ 24, 26, 4, 3 ],
+    "elitch-gardens-carousel-denver" => [ 62, 0, 4, 4 ]
   }.freeze
 
   test "directory seed adds fifty operating US carousels without invented layouts or figures" do
@@ -36,8 +37,13 @@ class UsDirectorySeedsTest < ActiveSupport::TestCase
       expected = EXPECTED_SUMMARIES[carousel.slug] || [ nil, nil, nil, nil ]
       assert_equal expected, carousel.attributes.values_at("published_horses_count", "published_other_animals_count", "published_chariots_count", "rows_count")
       if EXPECTED_SUMMARIES.key?(carousel.slug)
-        assert_includes carousel.summary_sources, "https://carousels.org/USACensus/stdqueries/census-cCLA.html"
-        assert_includes carousel.summary_sources, "October 25, 2026"
+        if carousel.slug == "elitch-gardens-carousel-denver"
+          assert_includes carousel.summary_sources, "https://carousels.org/USACensus/census.pl?NCANo=26"
+          assert_includes carousel.summary_sources, "October 26, 2026"
+        else
+          assert_includes carousel.summary_sources, "https://carousels.org/USACensus/stdqueries/census-cCLA.html"
+          assert_includes carousel.summary_sources, "October 25, 2026"
+        end
       else
         assert_nil carousel.summary_sources
       end
@@ -47,9 +53,13 @@ class UsDirectorySeedsTest < ActiveSupport::TestCase
       assert_includes carousel.body, "October 25, 2026"
       assert_includes carousel.body, "seasonal"
     end
-    assert_equal 10, carousels.where.not(rows_count: nil).count
+    assert_equal 11, carousels.where.not(rows_count: nil).count
     assert_includes Carousel.find_by!(slug: "balboa-park-carousel-san-diego").summary_sources, "26 other animals rather than 25"
     assert_includes Carousel.find_by!(slug: "oaks-park-carousel-portland").summary_sources, "two chariots, two tubs"
+    sources = Carousel.find_by!(slug: "elitch-gardens-carousel-denver").summary_sources
+    assert_includes sources, "44 jumping horses, 18 standing horses"
+    assert_includes sources, "64 hand-carved horses"
+    assert_includes sources, "not PTC #6"
   end
 
   test "directory research fills missing facts without replacing existing metadata or source notes" do

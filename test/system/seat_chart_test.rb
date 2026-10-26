@@ -79,7 +79,7 @@ class SeatChartTest < ApplicationSystemTestCase
 
   test "mini seat charts use base and faded fills with uniform gray outlines and open the full chart" do
     visit carousels_path
-    assert_selector "svg.mini-seat-chart", count: 5
+    assert_selector "svg.mini-seat-chart", count: Carousel.count
     within("li.card", text: "Great Northern Carousel") do
       assert_selector "path.mini-seat-wedge", count: 39
       measurements = find("svg.mini-seat-chart").evaluate_script(<<~JS)
@@ -134,6 +134,43 @@ class SeatChartTest < ApplicationSystemTestCase
       .evaluate_script("getComputedStyle(this.querySelector('rect, circle')).fill")
   end
 
+  test "incomplete mini charts have a gray platform with an open hub and known row boundaries" do
+    [ nil, 3 ].each do |rows_count|
+      carousel = Carousel.create!(name: "Partial browser preview #{rows_count || 'unknown'}", rows_count:)
+      visit carousels_path(q: carousel.name)
+      assert_selector "svg.mini-seat-chart", count: 1
+      assert_selector "circle.mini-seat-row-divider", count: (rows_count || 1) - 1
+      platform = find("path.mini-seat-platform")
+      geometry = platform.evaluate_script(<<~JS)
+        (() => ({
+          ring: [[600, 400], [200, 400], [400, 600], [400, 200]].every(([x, y]) => this.isPointInFill(new DOMPoint(x, y))),
+          hub: this.isPointInFill(new DOMPoint(400, 400)),
+          outside: this.isPointInFill(new DOMPoint(790, 400)),
+          radialSeam: this.isPointInStroke(new DOMPoint(165, 400)),
+          fill: getComputedStyle(this).fill,
+          stroke: getComputedStyle(this).stroke,
+          width: getComputedStyle(this).strokeWidth,
+          scaling: getComputedStyle(this).vectorEffect
+        }))()
+      JS
+      assert geometry.fetch("ring")
+      assert_not geometry.fetch("hub")
+      assert_not geometry.fetch("outside")
+      assert_not geometry.fetch("radialSeam")
+      assert_equal "rgb(215, 221, 232)", geometry.fetch("fill")
+      assert_equal "rgb(128, 128, 128)", geometry.fetch("stroke")
+      assert_equal "2px", geometry.fetch("width")
+      assert_equal "non-scaling-stroke", geometry.fetch("scaling")
+      all("circle.mini-seat-row-divider").each do |divider|
+        assert_equal [ "none", "rgb(128, 128, 128)", "2px", "non-scaling-stroke" ],
+          divider.evaluate_script("[getComputedStyle(this).fill, getComputedStyle(this).stroke, getComputedStyle(this).strokeWidth, getComputedStyle(this).vectorEffect]")
+      end
+      find("a.mini-seat-chart-link").click
+      assert_selector "h1", text: carousel.name
+      assert_no_selector "svg.seat-chart"
+    end
+  end
+
   test "a single section preview draws a complete ring and keeps unknown seats unfilled" do
     carousel = build_carousel(sections: 1, rows: 1)
     visit carousels_path(q: carousel.name)
@@ -143,6 +180,7 @@ class SeatChartTest < ApplicationSystemTestCase
         ring: [[200, 0], [-200, 0], [0, 200], [0, -200]].every(([x, y]) => this.isPointInFill(new DOMPoint(x, y))),
         hub: this.isPointInFill(new DOMPoint(0, 0)),
         outside: this.isPointInFill(new DOMPoint(400, 0)),
+        radialSeam: this.isPointInStroke(new DOMPoint(-235, 0)),
         fill: getComputedStyle(this).fill,
         stroke: getComputedStyle(this).stroke,
         width: getComputedStyle(this).strokeWidth
@@ -151,6 +189,7 @@ class SeatChartTest < ApplicationSystemTestCase
     assert geometry.fetch("ring")
     assert_not geometry.fetch("hub")
     assert_not geometry.fetch("outside")
+    assert_not geometry.fetch("radialSeam")
     assert_equal "none", geometry.fetch("fill")
     assert_equal "rgb(128, 128, 128)", geometry.fetch("stroke")
     assert_equal "2px", geometry.fetch("width")
@@ -426,6 +465,6 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_selector :select, "Type", selected: "All types"
 
     click_on "Clear filters"
-    assert_selector "table tbody tr", count: 260
+    assert_selector "table tbody tr", count: Figure.count
   end
 end
