@@ -65,3 +65,6 @@ end
 
 gem "paper_trail", "~> 17.0"
 gem "redcarpet", "~> 3.6"
+
+gem "dotenv-rails", "~> 3.2"
+gem "aws-sdk-s3", require: false

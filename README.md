@@ -47,11 +47,100 @@ bin/setup --skip-server  # installs gems and prepares the database
 bin/dev                  # http://localhost:3000
 ```
 
-The Rails application namespace is `CarouselOPedia`, and Docker/Kamal service and image names use `carousel_o_pedia`. The existing `carousel_pedia_storage` volume and `_carousel_pedia_session` cookie key intentionally retain their names to preserve stored data and browser sessions. For an existing Kamal deployment, stop the old `carousel_pedia` service before starting `carousel_o_pedia` against the shared SQLite volume; changing the volume name requires a separate data migration.
+The Rails application namespace is `CarouselOPedia`, the Kamal service is `carousel_o_pedia`, and the production image is `ghcr.io/etlund/carousel-o-pedia`. The existing `carousel_pedia_storage` volume and `_carousel_pedia_session` cookie key intentionally retain their names to preserve stored data and browser sessions. For an existing Kamal deployment, stop the old `carousel_pedia` service before starting `carousel_o_pedia` against the shared SQLite volume; changing the volume name requires a separate data migration.
 
 Preparing a new database loads the seed data described below. Preparing an existing database does not automatically refresh its seeded inventory.
 
 In development, sign in as `admin@example.com` with password `carousel`.
+
+### Local environment variables
+
+Rails automatically loads environment variables from `.env` in the project root
+using `dotenv-rails`. Add entries in `KEY=value` format, then read them with
+`ENV.fetch("KEY")` (required) or `ENV["KEY"]` (optional). Restart the Rails server
+or console after editing the file.
+
+Environment-specific files such as `.env.development` and `.env.test` are also
+supported. Variables already set in the process environment take precedence.
+Environment files are ignored by Git; do not commit secrets.
+
+### Production deployment with Kamal
+
+[Kamal configuration](config/deploy.yml) targets the Ubuntu x64 Droplet at `201.79.38.100`, using SSH as root with `~/.ssh/id_ed25519`. The image is built for `amd64`, including when deploying from an Apple Silicon Mac. Kamal Proxy obtains HTTPS certificates for `carouselopedia.org`; Rails trusts the HTTPS-terminating proxy and uses secure cookies.
+
+Prerequisites:
+
+- Point the domain's A record at the Droplet. Publish an AAAA record only if server IPv6 works.
+- Allow inbound TCP 80 and 443 publicly, and TCP 22 from the deployment computer's public IP. Do not expose port 3000. Allow outbound traffic for Docker images and certificates.
+- Verify the server's SSH host fingerprint through DigitalOcean's console, then confirm key-based SSH works.
+- Run Docker locally. Kamal's first setup can install Docker on the Droplet.
+- Create a GitHub personal access token (classic) with `write:packages` for the `etlund` account. Store it locally, not in Git or chat. Confirm the resulting GHCR package remains private.
+- Keep `config/master.key` available locally; it is read by [.kamal/secrets](.kamal/secrets) and excluded from Git and Docker images.
+- Generate a production `SECRET_KEY_BASE` once with `bin/rails secret`, store it in your password manager, and export it into the deployment shell. Keep this value stable across deployments; do not reuse a validation placeholder or generate a new value on every deploy.
+
+Set `KAMAL_REGISTRY_PASSWORD` and `SECRET_KEY_BASE` in the deployment shell using your password manager or hidden terminal prompts. The tracked secrets file references the environment variables; it must never contain the values themselves.
+
+**Before the first deploy**, decide the production data import and administrator credentials. `bin/kamal setup` starts a publicly reachable app, and its entrypoint runs `db:prepare`, which seeds a fresh database. To preserve development edits and history, prepare a consistent SQLite backup using SQLite's backup facility and import it as `storage/production.sqlite3` in the persistent volume before application startup. Do not copy a live SQLite file directly or rerun inventory seeds over edited data. Review imported accounts, remove the known development password, and invalidate imported login sessions and invitation links before going live. Never commit database backups or private data.
+
+The current application has no photo-attachment feature or Active Storage tables; no uploaded photos need migrating for this launch. If attachments are introduced later, copy and back up their files together with the database while uploads are paused.
+
+To set the administrator password in a **separate prepared launch database**, use its absolute path:
+
+```sh
+DATABASE_URL=sqlite3:/absolute/path/to/launch/production.sqlite3 \
+  bin/rails users:reset_password EMAIL=you@example.com
+```
+
+This prompts without echoing the password, requires at least 12 characters, and revokes that user's sessions. Do not omit `DATABASE_URL` when preparing the launch copy: without it this command operates on development. Keep the prepared database private and use the same artifact for the initial import. The unmodified development backup should be retained separately.
+
+Once credentials, the data import, and off-server backups are ready:
+
+```sh
+bin/kamal setup    # first deployment; installs Docker and starts the application
+bin/kamal deploy   # subsequent deployments of committed changes
+bin/kamal logs     # inspect application logs
+curl --fail https://carouselopedia.org/up
+```
+
+SQLite and uploaded files persist in `carousel_pedia_storage`; the queue, cache, and cable databases are separate production files created by `db:prepare`. Schedule consistent off-server database and upload backups and test a restore. Droplet snapshots alone are not a tested application backup.
+
+Outbound email is not configured yet. Until SMTP and a verified sender are configured, send invitation links manually from the Invitations page and do not rely on password-reset email. The other registered domains are not configured as aliases or redirects yet.
+
+### Database backups to DigitalOcean Spaces
+
+Production schedules `DatabaseBackupJob` daily at 03:00 in the application's time zone (UTC by default). It uses SQLite's online backup API, including committed WAL data, checks SQLite integrity and foreign keys, and uploads the primary database privately to `carouselopedia-backups` in `mkc1`. The regional endpoint is `https://mkc1.digitaloceanspaces.com`, not the bucket-prefixed URL or CDN endpoint. The SDK uses the conventional `us-east-1` signing region; the endpoint determines the actual storage location.
+
+Store `BACKUP_ACCESS_KEY_ID` and `BACKUP_SECRET_ACCESS_KEY` locally alongside the other deployment secrets, or export them in the deployment terminal. Use a dedicated Spaces key restricted to this bucket, permitting object upload, download, listing, and deletion. Kamal passes these secrets to the application; no secret values belong in tracked files.
+
+Objects are written under `database/production/` with unique timestamped names and SHA-256 metadata. Only matching backup filenames older than 30 days are deleted, and deletion runs only after a successful upload. Temporary local files are removed automatically. The primary database includes accounts, sessions, catalog data, and history; treat backups as sensitive. Queue/cache/cable databases are not backed up and can be recreated. There are currently no uploaded attachments.
+
+Before launch, test upload and restore against the prepared launch copy:
+
+```sh
+BACKUP_BUCKET=carouselopedia-backups \
+BACKUP_ENDPOINT=https://mkc1.digitaloceanspaces.com \
+DATABASE_URL=sqlite3:/absolute/path/to/launch/production.sqlite3 \
+  bin/rails backups:create
+```
+
+The command prints the uploaded object key. Use that exact key to download and verify it:
+
+```sh
+BACKUP_BUCKET=carouselopedia-backups \
+BACKUP_ENDPOINT=https://mkc1.digitaloceanspaces.com \
+  bin/rails backups:verify KEY=database/production/KEY_FROM_PREVIOUS_COMMAND.sqlite3
+```
+
+Verification checks the downloaded SHA-256, SQLite integrity, foreign keys, and catalog/history counts in a temporary restored database. It never replaces the live or development database. Compare the reported counts with the source; keep the object key and checksum with the launch record.
+
+After deployment, trigger and verify backups with:
+
+```sh
+bin/kamal app exec --reuse "bin/rails backups:create"
+bin/kamal app exec --reuse "bin/rails backups:verify KEY=database/production/EXACT_BACKUP_FILENAME.sqlite3"
+```
+
+Failures propagate to the command or Solid Queue failed-job records and application logs; no failure is reported as success. External failure/staleness alerts are not yet configured. Check `bin/kamal logs` and the bucket's latest backup timestamp, and arrange external alerting before relying on unattended backups. A stopped application or queue cannot run its own backup job. Keep Droplet-level backups as an additional layer.
 
 ### Updating an existing database
 
@@ -195,6 +284,7 @@ Every record keeps its edit history through PaperTrail.
 Anyone can read. Editing is invite-only:
 
 - Create the first admin on a new server with `bin/rails users:create_admin EMAIL=you@example.com NAME="Your Name"`. It asks for a password.
+- Reset an existing user's password with `bin/rails users:reset_password EMAIL=you@example.com` (or `bin/kamal app exec --interactive --reuse "bin/rails users:reset_password EMAIL=you@example.com"` on the deployed server). It prompts for a password of at least 12 characters and revokes that user's sessions.
 - Admins invite editors from the Invitations page. Each link works for 14 days. If email isn't configured yet, copy the link from that page and send it yourself.
 - Every page has a History tab. Recent changes lists every edit, and admins can revert any edit.
 - Page text supports Markdown headings, lists, emphasis, links, and fenced code blocks on carousel, figure, figure type, and maker pages. Bare URLs become links. Blank lines start paragraphs and single line breaks are preserved. Rendered HTML is sanitized before display.
