@@ -3,6 +3,24 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "physical addresses retain postal zeros and explain venue precision" do
+    carousel = Carousel.create!(name: "Address browser test", street_address: "1 Main Street",
+      city: "Hull", region: "Massachusetts", postal_code: "02045", country: "United States",
+      address_sources: "Visitor entrance, not an exact carousel coordinate.\n\n[Directions](https://example.com/directions)")
+    visit carousels_path(q: carousel.name)
+    within("li.card") do
+      assert_selector "p.muted", text: carousel.location, exact_text: true
+      assert_no_text carousel.street_address
+      assert_no_text carousel.postal_code
+      click_on carousel.name
+    end
+    assert_selector ".page-header p.address", text: carousel.address
+    within("#address-sources") do
+      assert_text "Visitor entrance, not an exact carousel coordinate."
+      assert_link "Directions", href: "https://example.com/directions"
+    end
+  end
+
   test "mini seat charts use ten pixel category dots and open the full chart" do
     visit carousels_path
     assert_selector "svg.mini-seat-chart", count: 5
@@ -152,7 +170,7 @@ class SeatChartTest < ApplicationSystemTestCase
     carousel = Carousel.find_by!(slug: "great-northern-carousel")
     visit carousels_path
     within("li.card", text: carousel.name) do
-      assert_selector "p.muted", text: carousel.location
+      assert_selector "p.muted", text: carousel.location, exact_text: true
       assert_no_selector "p.muted a"
       assert_selector "p.website a[href='https://www.greatnortherncarousel.com/']", text: carousel.official_url
       click_on carousel.name
@@ -217,11 +235,12 @@ class SeatChartTest < ApplicationSystemTestCase
     select "Unicorn", from: "Type"
     click_on "Filter"
 
+    # Selected attributes arrive with Turbo's response, unlike live form values.
+    assert_selector "select[name='carousel_id'] option[selected]", text: "Salem's Riverfront Carousel", visible: :all
+    assert_selector "select[name='figure_type_id'] option[selected]", text: "Unicorn", visible: :all
     assert_selector "table tbody tr", count: 1
     assert_selector "table tbody tr", text: "Mr. Sprinkles"
     assert_selector "table tbody tr", text: "not currently seated"
-    assert_selector :select, "Carousel", selected: "Salem's Riverfront Carousel"
-    assert_selector :select, "Type", selected: "Unicorn"
 
     click_on "Mr. Sprinkles"
     assert_selector ".page-header", text: "Not currently seated"

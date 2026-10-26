@@ -315,6 +315,27 @@ class PagesTest < ActionDispatch::IntegrationTest
     [ "Website", "Wikipedia", "Other links" ].each { assert_select ".facts dt", text: _1, count: 0 }
   end
 
+  test "carousel addresses display as escaped text with sanitized source notes" do
+    carousel = build_carousel
+    carousel.update!(street_address: '1 Main & <script>alert("address")</script>',
+      city: "Hull", region: "Massachusetts", postal_code: "02045", country: "United States",
+      address_sources: "[Visitor directions](https://example.com/directions)\n<script>alert('source')</script>")
+    get carousels_path
+    assert_response :success
+    assert_select "li.card:has(h2 a[href='#{carousel_path(carousel)}']) p.muted", text: carousel.location do
+      assert_select "script, a", 0
+      assert_select "p", text: /1 Main|02045/, count: 0
+    end
+    get carousel_path(carousel)
+    assert_response :success
+    assert_select ".page-header p.address", text: carousel.address
+    assert_select ".page-header script", 0
+    assert_select "#address-sources a[href=?]", "https://example.com/directions", text: "Visitor directions"
+    assert_select "#address-sources script", 0
+    get carousel_path(build_carousel)
+    assert_select "#address-sources", 0
+  end
+
   test "carousel summary counts exclude ended and unplaced figures and count spanning figures once" do
     carousel = build_carousel(sections: 3, rows: 2)
     horse = create_figure("Moving horse")

@@ -34,7 +34,8 @@ class Carousel < ApplicationRecord
   validates :summary_sources, presence: true, if: :published_counts?
   validate :layout_dimensions_are_consistent
 
-  blank_as_nil :city, :region, :country, :venue, :body, :other_links, :rotation, :summary_sources
+  blank_as_nil :city, :region, :country, :venue, :body, :other_links, :rotation, :summary_sources, :address_sources
+  normalizes :street_address, :postal_code, with: ->(value) { value.strip.presence }
   normalizes :official_url, :wikipedia_url, with: ->(value) { value.strip.presence }
   validate :website_urls_are_http
 
@@ -52,6 +53,12 @@ class Carousel < ApplicationRecord
   def row_letters = layout_known? ? ("A"..).first(rows_count) : []
 
   def location = [ city, region, country ].compact_blank.join(", ")
+
+  def address
+    region_and_postal_code = [ region, postal_code ].compact_blank.join(" ")
+    locality = [ city, region_and_postal_code ].compact_blank.join(", ")
+    [ street_address, locality, country ].compact_blank.join(", ")
+  end
 
   def seat(code) = seats.find_by(Seat.parse_code(code) || { id: nil })
 

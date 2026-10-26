@@ -3,6 +3,38 @@ require "test_helper"
 class EditingTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "editors can create update and clear physical addresses with history" do
+    sign_in_as users(:editor)
+    get new_carousel_path
+    assert_select "input[name='carousel[street_address]'][autocomplete=street-address]:not([required])"
+    assert_select "input[name='carousel[postal_code]'][type=text]:not([required])"
+    assert_select "textarea[name='carousel[address_sources]']"
+    post carousels_path, params: { carousel: { name: "Address editing test", street_address: "  1 Main Street  ",
+      city: "Hull", region: "Massachusetts", postal_code: "  02045 ", country: "United States",
+      address_sources: "[Operator](https://example.com/)" } }
+    carousel = Carousel.find_by!(name: "Address editing test")
+    assert_redirected_to carousel_path(carousel)
+    assert_equal "1 Main Street", carousel.street_address
+    assert_equal "02045", carousel.postal_code
+    assert_empty carousel.seats
+
+    patch carousel_path(carousel), params: { carousel: { street_address: "2 Main Street", postal_code: "02045-1234",
+      address_sources: "[Updated entrance](https://example.com/entrance)" } }
+    assert_redirected_to carousel_path(carousel)
+    assert_equal "2 Main Street", carousel.reload.street_address
+    assert_equal "02045-1234", carousel.postal_code
+    get history_carousel_path(carousel)
+    assert_select ".changes ins", "2 Main Street"
+    get edit_carousel_path(carousel)
+    assert_select "input[name='carousel[postal_code]'][value='02045-1234']"
+
+    patch carousel_path(carousel), params: { carousel: { street_address: " ", postal_code: "", address_sources: "" } }
+    assert_redirected_to carousel_path(carousel)
+    assert_nil carousel.reload.street_address
+    assert_nil carousel.postal_code
+    assert_nil carousel.address_sources
+  end
+
   test "reading is public but editing needs a signed-in editor" do
     get carousel_path(@carousel)
     assert_response :success

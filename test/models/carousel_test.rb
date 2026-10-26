@@ -1,6 +1,33 @@
 require "test_helper"
 
 class CarouselTest < ActiveSupport::TestCase
+  test "addresses normalize blanks preserve leading postal zeros and leave locations unchanged" do
+    carousel = Carousel.create!(name: "Address test", street_address: "  1 Main Street  ",
+      city: "Hull", region: "Massachusetts", postal_code: "  02045  ", country: "United States",
+      address_sources: "[Operator](https://example.com/)")
+    assert_equal "1 Main Street", carousel.street_address
+    assert_equal "02045", carousel.postal_code
+    assert_equal "1 Main Street, Hull, Massachusetts 02045, United States", carousel.address
+    assert_equal "Hull, Massachusetts, United States", carousel.location
+    carousel.update!(street_address: "  ", postal_code: "", address_sources: " ")
+    assert_nil carousel.street_address
+    assert_nil carousel.postal_code
+    assert_nil carousel.address_sources
+    assert_equal carousel.location, carousel.address
+  end
+
+  test "addresses handle partial and international locations without stray punctuation" do
+    [
+      [ {}, "" ],
+      [ { street_address: "Visitor entrance" }, "Visitor entrance" ],
+      [ { postal_code: "00123" }, "00123" ],
+      [ { city: "Paris", postal_code: "75001", country: "France" }, "Paris, 75001, France" ],
+      [ { region: "Ontario", postal_code: "M5V 3L9", country: "Canada" }, "Ontario M5V 3L9, Canada" ]
+    ].each do |attributes, expected|
+      assert_equal expected, Carousel.new(**attributes).address
+    end
+  end
+
   test "data first includes unseated inventory or known layouts without duplicating carousels" do
     directory = Carousel.create!(name: "AAA Directory")
     notes_only = Carousel.create!(name: "BBB Notes", body: "Some history", official_url: "https://example.com/")

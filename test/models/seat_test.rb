@@ -63,10 +63,11 @@ class SeatTest < ActiveSupport::TestCase
 
   test "only one figure sits in a seat at a time" do
     seat = build_carousel.seat("1A")
-    seat.placements.create!(figure: create_figure("First"))
+    seat.placements.create!(figure: create_figure("First", carousel: seat.carousel))
 
-    second = seat.placements.build(figure: create_figure("Second"))
+    second = seat.placements.build(figure: create_figure("Second", carousel: seat.carousel))
     assert_not second.valid?
+    assert_includes second.errors[:seat_id], "has already been taken"
 
     second.ended_on = Date.new(1990, 1, 1)
     assert second.valid?

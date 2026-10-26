@@ -1,7 +1,7 @@
 <% content_for :title, @carousel.name %>
 <header class="page-header">
   <h1><%= @carousel.name %></h1>
-  <p class="muted"><%= @carousel.location %></p>
+  <p class="muted address"><%= @carousel.address %></p>
   <p><%= link_to "View all figures", figures_path(carousel_id: @carousel.id) %></p>
   <%= render "shared/page_actions", edit: edit_carousel_path(@carousel), history: history_carousel_path(@carousel) %>
 </header>
@@ -29,6 +29,12 @@
       <% if @carousel.wikipedia_url %><dt>Wikipedia</dt><dd><%= link_to "Wikipedia", @carousel.wikipedia_url %></dd><% end %>
       <% if @carousel.other_links %><dt>Other links</dt><dd class="prose"><%= wiki_body(@carousel.other_links) %></dd><% end %>
     </dl>
+    <% if @carousel.address_sources.present? %>
+      <section id="address-sources" class="prose">
+        <h2>Address sources</h2>
+        <%= wiki_body(@carousel.address_sources) %>
+      </section>
+    <% end %>
     <% if @carousel.summary_sources.present? %>
       <section id="summary-sources" class="prose">
         <h2>Summary sources</h2>

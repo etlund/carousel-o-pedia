@@ -18,7 +18,11 @@ Published totals describe source-reported riding figures and remain stored separ
 
 Directory-only carousels can have an unknown or partially researched seating layout. Each dimension is independently optional: for example, a known row count is shown even while sections remain unknown. No chart or seats are created until both dimensions are known. Once both are recorded, platform size stays fixed in the editor. Unmapped counts remain **Unknown** without a complete layout. Rotation is independently optional and does not default to a guessed direction.
 
-Carousels have optional **official website**, **Wikipedia**, and **other links** fields. On the carousel index, the city/state/country location remains plain text, and the official website URL appears as a separate clickable link when one is set; the carousel name still links to its wiki page. Carousel detail pages display the available website links in the facts card.
+Carousels have optional **street address**, **ZIP or postal code**, and Markdown **address sources and notes**. Cards and detail pages show the physical address alongside the existing city/state/country; unknown street addresses and postal codes remain blank. Postal codes are text so leading zeros are preserved. Public visitor-entrance or venue addresses are distinguished from exact carousel locations in the source notes; mailing offices and PO boxes are not substitutes for ride addresses.
+
+Coordinates and a map are deferred to the [carousel map implementation plan](docs/carousel-map-plan.md). An address is not a verified map point. The plan covers reviewed coordinates, geocoding/provider decisions, shared directory filters, accuracy labels, accessibility, and failure handling.
+
+Carousels have optional **official website**, **Wikipedia**, and **other links** fields. On the carousel index, the city/state/country remains plain text, and the official website URL appears as a separate clickable link when one is set; the carousel name still links to its wiki page. Carousel detail pages display the full address, including the street and postal code, and the available website links in the facts card.
 
 Official and Wikipedia URLs must use HTTP or HTTPS and cannot contain login credentials. Additional named links use the existing sanitized Markdown format, one per line, such as `[NCA gallery](https://carousels.org/)`. The seeds include the known official sites and reference links, including [Great Northern's live website](https://www.greatnortherncarousel.com/); unverified Wikipedia URLs are left blank.
 
@@ -134,6 +138,17 @@ The directory records must already exist; for a new database, normal seed loadin
 
 ### Applying seed updates
 
+The [address data](db/seeds/carousel_addresses.json) includes public visitor addresses, ZIP codes, source links, and venue/entrance caveats reviewed October 26, 2026. The [address seed](db/seeds/zz_carousel_addresses.rb) runs after the other seeds and fills only missing address fields. If either the existing street or postal code differs, it preserves the entire existing pair instead of mixing a new ZIP with an edited street. It retains existing source notes and does not change seating or inventory.
+
+To apply only addresses to an existing directory after migrating:
+
+```sh
+bin/rails db:migrate
+bin/rails runner 'load Rails.root.join("db/seeds/zz_carousel_addresses.rb")'
+```
+
+All seeded carousel records must already exist. The address import makes no geocoding or other network requests.
+
 To import only the directory into an existing database, without rerunning the detailed inventories:
 
 ```sh
@@ -153,12 +168,13 @@ All currently collected carousel data lives in:
 - [Spokane seed](db/seeds/spokane_looff_carrousel.rb)
 - [U.S. operating-carousel directory](db/seeds/us_operating_carousels.rb)
 - [Sourced historical layouts and ring research](db/seeds/us_researched_layouts.rb)
+- [Physical address data](db/seeds/carousel_addresses.json) and [fill-only address import](db/seeds/zz_carousel_addresses.rb)
 
 Seed files load automatically in filename order and require no network access.
 
 ## Data model
 
-- **Carousel**: location, status, website links, published figure totals with source notes, optional rotation, and independently optional section/row counts. Both dimensions are required to draw a seating chart.
+- **Carousel**: physical address with source notes, city/state/country, status, website links, published figure totals with source notes, optional rotation, and independently optional section/row counts. Both dimensions are required to draw a seating chart.
 - **Seat**: one spot on a platform, addressed by its code. A tea-cup or chariot that fills several rows is one seat that spans them. Seats record whether their placement is confirmed or a best reading.
 - **Figure**: one carved figure belonging to a carousel independently of seating, with a **figure type** (bison, trout, horse) whose category (horse, other animal, chariot or tub) sets its chart colour and section count.
 - **Placement**: which figure sits in which seat, with dates, so figures can move.

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_25_182304) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_26_160000) do
   create_table "carousels", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -35,6 +35,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_182304) do
     t.integer "published_other_animals_count"
     t.integer "published_chariots_count"
     t.text "summary_sources"
+    t.string "street_address"
+    t.string "postal_code"
+    t.text "address_sources"
     t.index ["maker_id"], name: "index_carousels_on_maker_id"
     t.index ["slug"], name: "index_carousels_on_slug", unique: true
   end

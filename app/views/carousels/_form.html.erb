@@ -1,10 +1,19 @@
 <%= form_with model: carousel, class: "form" do |form| %>
   <%= render "shared/errors", record: carousel %>
   <div class="field"><%= form.label :name %><%= form.text_field :name, required: true %></div>
+  <div class="field">
+    <%= form.label :street_address %><%= form.text_field :street_address, autocomplete: "street-address" %>
+    <p class="hint">Use the public ride location or visitor entrance, not a mailing office or PO box. Note when this is a park or venue address rather than the carousel's own door.</p>
+  </div>
   <div class="field-row">
     <div class="field"><%= form.label :city %><%= form.text_field :city %></div>
     <div class="field"><%= form.label :region, "State or region" %><%= form.text_field :region %></div>
+    <div class="field"><%= form.label :postal_code, "ZIP or postal code" %><%= form.text_field :postal_code, autocomplete: "postal-code" %></div>
     <div class="field"><%= form.label :country %><%= form.text_field :country %></div>
+  </div>
+  <div class="field">
+    <%= form.label :address_sources, "Address sources and notes" %><%= form.text_area :address_sources, rows: 3 %>
+    <p class="hint">Use Markdown links, a review date, and any entrance or address-precision caveats. An address does not establish the carousel's exact map coordinates.</p>
   </div>
   <div class="field"><%= form.label :venue %><%= form.text_field :venue %></div>
   <fieldset>

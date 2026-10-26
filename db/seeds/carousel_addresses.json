@@ -1,0 +1,380 @@
+[
+  {
+    "slug": "a-carousel-for-missoula",
+    "street_address": "101 Carousel Drive",
+    "postal_code": "59802",
+    "source_url": "https://www.missoulacarousel.org/getting-here/",
+    "notes": "Operator-published visitor address for the carousel in Caras Park."
+  },
+  {
+    "slug": "balboa-park-carousel-san-diego",
+    "street_address": "1889 Zoo Place",
+    "postal_code": "92101",
+    "source_url": "https://sandiegomuseumcouncil.org/museums/balboa-park-carousel/",
+    "notes": "Carousel-specific address published by the San Diego Museum Council and corroborated by the operator's 2021 historical-resource announcement: https://foreverbalboapark.org/balboa-park-carousel-designated-historical-resource/. This is not Forever Balboa Park's administrative address on El Prado."
+  },
+  {
+    "slug": "bay-beach-amusement-park-green-bay",
+    "street_address": "1313 Bay Beach Road",
+    "postal_code": "54301",
+    "source_url": "https://www.greenbaywi.gov/445/Bay-Beach-Amusement-Park",
+    "notes": "As reported in the city's park-specific Physical Address block. Public amusement-park address, not a ride-specific door or the City Hall contact address."
+  },
+  {
+    "slug": "beech-bend-grand-carousel",
+    "street_address": "798 Beech Bend Park Road",
+    "postal_code": "42101",
+    "source_url": "https://beechbend.com/about-us/contact-us/",
+    "notes": "Public Beech Bend Park visitor address. The carousel is one attraction inside the park."
+  },
+  {
+    "slug": "burke-lake-park-carousel",
+    "street_address": "7315 Ox Road",
+    "postal_code": "22039",
+    "source_url": "https://www.fairfaxcounty.gov/parks/burke-lake",
+    "notes": "Fairfax County Park Authority's Burke Lake Park address, not the unrelated county government-center address. Venue-level location rather than the carousel's door."
+  },
+  {
+    "slug": "busch-gardens-williamsburg-kinder-karussel",
+    "street_address": "1 Busch Gardens Boulevard",
+    "postal_code": "23185",
+    "source_url": "https://buschgardens.com/williamsburg/plan-your-visit/park-info/",
+    "notes": "Operator-published park visitor address. Kinder Karussel is inside the park, not directly at this entrance."
+  },
+  {
+    "slug": "bushnell-park-carousel-hartford",
+    "street_address": "1 Jewell Street",
+    "postal_code": "06103",
+    "source_url": "https://ctvisit.com/listings/bushnell-park-carousel",
+    "notes": "Carousel-specific address published by the Connecticut Office of Tourism, corroborating the operator's directions: https://bushnellpark.org/information/getting-here."
+  },
+  {
+    "slug": "cafesjians-carousel-st-paul",
+    "street_address": "1225 Estabrook Drive",
+    "postal_code": "55103",
+    "source_url": "https://comozooconservatory.org/visitors/directions-parking/",
+    "notes": "Como Zoo and Conservatory visitor address. The carousel operator explicitly links these directions at https://ourfaircarousel.org/. This is a shared venue approach, not a verified carousel-door address."
+  },
+  {
+    "slug": "camden-park-carousel",
+    "street_address": "5000 Waverly Road",
+    "postal_code": "25704",
+    "source_url": "https://www.camdenpark.com/rides-attractions/main-rides/",
+    "notes": "Operator-published Camden Park address. The carousel is inside the amusement park."
+  },
+  {
+    "slug": "canobie-lake-park-antique-carousel-salem",
+    "street_address": "85 North Policy Street",
+    "postal_code": "03079",
+    "source_url": "https://www.canobie.com/plan/directions/",
+    "notes": "Explicitly labeled Physical Address in the operator's directions. The operator warns that some mapping systems show an incorrect park address. This is the park entrance, not the carousel's door."
+  },
+  {
+    "slug": "carousel-gardens-new-orleans",
+    "street_address": "7 Victory Avenue",
+    "postal_code": "70124",
+    "source_url": "https://neworleanscitypark.org/visit-city-park/carousel-gardens-amusement-park/",
+    "notes": "Carousel Gardens Amusement Park visitor address, distinct from City Park's general administrative address at 1 Palm Drive."
+  },
+  {
+    "slug": "cedar-point-cedar-downs-sandusky",
+    "street_address": "1 Cedar Point Drive",
+    "postal_code": "44870",
+    "source_url": "https://www.sixflags.com/cedarpoint/directions",
+    "notes": "Published on Cedar Point's Park Map & Directions page. Park visitor address; Cedar Downs is an attraction inside the park."
+  },
+  {
+    "slug": "columbus-zoo-grand-carousel-powell",
+    "street_address": "4850 West Powell Road",
+    "postal_code": "43065",
+    "source_url": "https://www.columbuszoo.org/ride/grand-carousel",
+    "notes": "Zoo visitor address published on its Grand Carousel page. This is a venue entrance, not a ride-specific door."
+  },
+  {
+    "slug": "eldridge-park-carousel-elmira",
+    "street_address": "96 Eldridge Park Drive",
+    "postal_code": "14901",
+    "source_url": "https://www.eldridgepark.org/new",
+    "notes": "Operator-published Eldridge Park visitor address. The carousel is within the park."
+  },
+  {
+    "slug": "elitch-gardens-carousel-denver",
+    "street_address": "2000 Elitch Circle",
+    "postal_code": "80204",
+    "source_url": "https://elitchgardens.com/plan-a-visit/parking-directions/",
+    "notes": "Explicit Elitch Gardens Address on the operator's parking and directions page. Park entrance rather than the carousel's precise location."
+  },
+  {
+    "slug": "family-kingdom-1923-carousel",
+    "street_address": "300 South Ocean Boulevard",
+    "postal_code": "29577",
+    "source_url": "https://www.familykingdomfun.com/contact-us",
+    "notes": "Park address from the operator's structured business-location metadata. Visible contact text has conflicting street/ZIP information; the structured location is recorded here, not silently treated as unanimous evidence. Confirm routing before coordinate collection."
+  },
+  {
+    "slug": "flying-horses-carousel-oak-bluffs",
+    "street_address": "15 Lake Avenue",
+    "postal_code": "02557",
+    "source_url": "https://vineyardtrust.org/property/flying-horses-carousel/",
+    "notes": "Street address is published by the operator. ZIP 02557 has secondary postal-directory support, but is not printed on the operator's property page; confirm it before precise map-location verification."
+  },
+  {
+    "slug": "frontier-city-grand-carousel-oklahoma-city",
+    "street_address": "I-35 between Hefner Road and NE 122nd Street",
+    "postal_code": "73131",
+    "source_url": "https://www.travelok.com/listings/view.profile/id.2910",
+    "notes": "Oklahoma's official tourism listing provides this highway-segment visitor location and ZIP. It is a sourced approach description, not a verified numbered entrance or precise Grand Carousel position."
+  },
+  {
+    "slug": "glen-echo-dentzel-carousel",
+    "street_address": "7300 MacArthur Boulevard",
+    "postal_code": "20812",
+    "source_url": "https://glenechopark.org/carousel",
+    "notes": "Glen Echo Park's published address. Park-level visitor location, not a separately verified carousel entrance."
+  },
+  {
+    "slug": "great-northern-carousel",
+    "street_address": "989 Carousel Way",
+    "postal_code": "59601-3396",
+    "source_url": "https://www.greatnortherncarousel.com/",
+    "notes": "Carousel operator's published address, including its ZIP+4."
+  },
+  {
+    "slug": "greenport-carousel-greenport",
+    "street_address": "115 Front Street",
+    "postal_code": "11944",
+    "source_url": "https://villageofgreenport.gov/recreation/carousel/",
+    "notes": "The village confirms Jess Owen Carousel House in Mitchell Park, but does not publish a house number on its carousel page. The numbered address has secondary OpenStreetMap support and needs entrance-level confirmation before mapping. OpenStreetMap attribution and license: https://www.openstreetmap.org/copyright."
+  },
+  {
+    "slug": "herschell-carrousel-factory-museum-north-tonawanda",
+    "street_address": "180 Thompson Street",
+    "postal_code": "14120",
+    "source_url": "https://www.carrouselmuseum.org/hours-admission--directions.html",
+    "notes": "Museum's public Hours, Admission & Directions address. The Big Carrousel is within this museum."
+  },
+  {
+    "slug": "herschell-spillman-carousel-dearborn",
+    "street_address": "20900 Oakwood Boulevard",
+    "postal_code": "48124",
+    "source_url": "https://www.thehenryford.org/visit/venues/greenfield-village",
+    "notes": "The Henry Ford's shared visitor-campus address for Greenfield Village. The carousel is inside the village, not directly at this address's entrance."
+  },
+  {
+    "slug": "idlewild-merry-go-round-ligonier",
+    "street_address": "2574 Lincoln Highway",
+    "postal_code": "15658",
+    "source_url": "https://web.archive.org/web/20260713100136/https://idlewild.com/plan-your-visit/",
+    "notes": "Park visitor address from the July 13, 2026 archived official Plan Your Visit page. This is historical operator evidence, not a current physical entrance survey."
+  },
+  {
+    "slug": "indiana-beach-carousel-monticello",
+    "street_address": "5224 East Indiana Beach Road",
+    "postal_code": "47960",
+    "source_url": "https://www.indianabeach.com/directions/",
+    "notes": "Operator-published Indiana Beach park visitor address. The carousel is one attraction within the park."
+  },
+  {
+    "slug": "janes-carousel-brooklyn",
+    "street_address": "Dock Street entrance, Brooklyn Bridge Park",
+    "postal_code": "11201",
+    "source_url": "https://janescarousel.com/directions/location/",
+    "notes": "The operator identifies Dock Street and Main Street park entrances; its directions link supplies ZIP 11201. This is a public approach description, not a guessed numbered building address or an administrative-office location."
+  },
+  {
+    "slug": "kemah-boardwalk-carousel-texas",
+    "street_address": "215 Kipp Avenue",
+    "postal_code": "77565",
+    "source_url": "https://web.archive.org/web/20260929182230/https://www.kemahboardwalk.com/",
+    "notes": "Boardwalk visitor address from the September 29, 2026 archived official homepage. Venue-level address, not the carousel's exact position."
+  },
+  {
+    "slug": "kiddie-park-san-antonio",
+    "street_address": "3903 North St. Mary's Street",
+    "postal_code": "78212-3199",
+    "source_url": "https://sazoo.org/contact-us/",
+    "notes": "San Antonio Zoo visitor address for the zoo-adjacent Kiddie Park location. The operator at https://www.kiddiepark.com/ confirms the 2019 relocation; the former Broadway address is not used."
+  },
+  {
+    "slug": "king-arthur-carrousel-disneyland",
+    "street_address": "1313 Disneyland Drive",
+    "postal_code": "92802",
+    "source_url": "https://www.waze.com/live-map/directions/disneyland-disneyland-dr-1313-anaheim?to=place.w.158662994.1586498869.324277",
+    "notes": "Secondary directory evidence for the Disneyland resort address, not King Arthur Carrousel's door or a specific parking entrance. The resort street address is listed by Waze; the shared resort ZIP is corroborated by https://pnwmousemeet.com/locations/disney-california-adventure-park/. Confirm the arrival entrance with Disney before mapping."
+  },
+  {
+    "slug": "kings-island-grand-carousel-mason",
+    "street_address": "6300 Kings Island Drive",
+    "postal_code": "45034",
+    "source_url": "https://www.sixflags.com/kingsisland/directions",
+    "notes": "The operator's displayed address says Kings Island, OH 45034, while its linked Google directions use Mason, OH 45040. The displayed operator ZIP is retained as reported; confirm this discrepancy before coordinate collection. Park entrance, not the Grand Carousel's exact position."
+  },
+  {
+    "slug": "kit-carson-county-carousel-burlington",
+    "street_address": "Kit Carson County Fairgrounds, off 15th Street",
+    "postal_code": "80807",
+    "source_url": "https://www.kitcarsoncountycarousel.com/contact",
+    "notes": "The operator locates the carousel at the fairgrounds and gives directions via 15th Street north of Rose Avenue/Old Highway 24. This is a descriptive visitor approach; a numbered carousel entrance has not been verified."
+  },
+  {
+    "slug": "knoebels-grand-carousel-elysburg",
+    "street_address": "391 Knoebels Boulevard",
+    "postal_code": "17824",
+    "source_url": "https://www.discovernepa.com/listing/knoebels-amusement-resort/",
+    "notes": "Regional tourism listing for the amusement resort's visitor address. The Grand Carousel is inside the resort, not at a separately verified street entrance."
+  },
+  {
+    "slug": "lagoon-merry-go-round-farmington",
+    "street_address": "375 North Lagoon Drive",
+    "postal_code": "84025",
+    "source_url": "https://www.lagoonpark.com/contact-us/",
+    "notes": "Operator's physical park address, explicitly distinguished from its separate PO box. The carousel is inside the park."
+  },
+  {
+    "slug": "lake-compounce-carousel-bristol",
+    "street_address": "185 Enterprise Drive",
+    "postal_code": "06010",
+    "source_url": "https://www.lakecompounce.com/plan-your-visit/directions/",
+    "notes": "Park visitor address from the operator's directions page. Not a ride-specific street entrance."
+  },
+  {
+    "slug": "lakeside-carousel-phoenix-zoo",
+    "street_address": "455 North Galvin Parkway",
+    "postal_code": "85008",
+    "source_url": "https://www.phoenixzoo.org/visit/",
+    "notes": "Phoenix Zoo's main visitor address. The Lakeside Carousel is within the zoo."
+  },
+  {
+    "slug": "lakeside-park-carousel-fond-du-lac",
+    "street_address": "North Main Street, Lakeside Park",
+    "postal_code": "54935",
+    "source_url": "https://www.fdl.wi.gov/parks/parks/",
+    "notes": "The city parks directory and https://lakesideparkrides.com/ identify the North Main Street park approach. No specific carousel-door number was verified. ZIP 54935 has area/address-lookup corroboration rather than an explicit ride-specific postal listing; confirm before precise mapping."
+  },
+  {
+    "slug": "little-amerricka-merry-go-round-marshall",
+    "street_address": "700 East Main Street",
+    "postal_code": "53559",
+    "source_url": "https://www.littleamerricka.com/contact_us",
+    "notes": "Operator-published amusement-park address. The carousel is inside the park."
+  },
+  {
+    "slug": "looff-carousel-santa-cruz-beach-boardwalk",
+    "street_address": "400 Beach Street",
+    "postal_code": "95060",
+    "source_url": "https://beachboardwalk.com/faqs/",
+    "notes": "Boardwalk visitor address from the official FAQ. ZIP corroborated by the U.S. Census address lookup at https://geocoding.geo.census.gov/geocoder/. This is not a precise carousel location."
+  },
+  {
+    "slug": "moreys-piers-carousel-surfside-wildwood",
+    "street_address": "Boardwalk at 25th Avenue",
+    "postal_code": "08260",
+    "source_url": "https://en.wikipedia.org/wiki/Morey%27s_Piers",
+    "notes": "Secondary source identifies Surfside Pier at 25th Avenue in North Wildwood, not Mariner's Pier or the operator's shared 3501 Boardwalk office. The carousel's Surfside location is corroborated by https://www.moreyspiers.com/moreys-rides/carousel-surfside-pier/. This is an intersection/venue approach."
+  },
+  {
+    "slug": "myriad-gardens-mos-carousel",
+    "street_address": "301 West Reno Avenue",
+    "postal_code": "73102",
+    "source_url": "https://myriadgardens.org/contact-us/",
+    "notes": "Myriad Gardens visitor address. Mo's Carousel is inside the gardens, not at a separately verified street entrance."
+  },
+  {
+    "slug": "nashville-zoo-carousel",
+    "street_address": "3777 Nolensville Pike",
+    "postal_code": "37211",
+    "source_url": "https://www.nashvillezoo.org/visit",
+    "notes": "Zoo visitor-entrance address. The carousel is within the zoo grounds."
+  },
+  {
+    "slug": "oaks-park-carousel-portland",
+    "street_address": "7805 SE Oaks Park Way",
+    "postal_code": "97202",
+    "source_url": "https://www.oakspark.com/contact",
+    "notes": "Operator-published Oaks Park visitor address, not a separately verified carousel-door location."
+  },
+  {
+    "slug": "palace-playland-carousel-old-orchard-beach",
+    "street_address": "1 Old Orchard Street",
+    "postal_code": "04064",
+    "source_url": "https://www.palaceplayland.com/contact-us/",
+    "notes": "Operator-published amusement-park address. The carousel is one attraction inside the park."
+  },
+  {
+    "slug": "paragon-carousel-hull",
+    "street_address": "205 Nantasket Avenue",
+    "postal_code": "02045",
+    "source_url": "https://www.paragoncarousel.com/contact",
+    "notes": "Carousel operator's published street address and ZIP."
+  },
+  {
+    "slug": "pioneer-park-carousel-fairbanks",
+    "street_address": "Airport Way, Pioneer Park",
+    "postal_code": "99701",
+    "source_url": "https://www.explorefairbanks.com/listing/alaskaland/10146/",
+    "notes": "Fairbanks visitor bureau's Pioneer Park/Alaskaland location. Street-level park approach without a verified carousel-door number; the borough's unrelated Terminal Street administrative address is not used."
+  },
+  {
+    "slug": "pullen-park-carousel-raleigh",
+    "street_address": "520 Ashe Avenue",
+    "postal_code": "27606",
+    "source_url": "https://raleighnc.gov/parks-and-recreation/places/pullen-park",
+    "notes": "City of Raleigh's public Pullen Park address. The carousel is inside the park."
+  },
+  {
+    "slug": "salems-riverfront-carousel",
+    "street_address": "101 Front Street NE",
+    "postal_code": "97301",
+    "source_url": "https://www.salemcarousel.org/",
+    "notes": "Carousel operator's published visitor address."
+  },
+  {
+    "slug": "san-francisco-zoo-carousel",
+    "street_address": "Sloat Boulevard at the Great Highway",
+    "postal_code": "94132",
+    "source_url": "https://www.sfzoo.org/contact/",
+    "notes": "The zoo describes this intersection as its visitor entrance. The separate administrative address at 1 Zoo Road is not substituted for it. ZIP has secondary U.S. Census address-lookup corroboration for the zoo complex, not a ride-specific address."
+  },
+  {
+    "slug": "seabreeze-carousel-rochester",
+    "street_address": "4600 Culver Road",
+    "postal_code": "14622",
+    "source_url": "https://seabreeze.com/plan-your-visit/directions/",
+    "notes": "Operator-published Seabreeze park address. The carousel is within the park."
+  },
+  {
+    "slug": "shelburne-museum-carousel-vermont",
+    "street_address": "6000 Shelburne Road",
+    "postal_code": "05482",
+    "source_url": "https://shelburnemuseum.org/visit/contact-us/",
+    "notes": "Museum's physical visitor address, distinguished from its separate PO box. The carousel is inside the museum grounds."
+  },
+  {
+    "slug": "silver-beach-carousel-st-joseph",
+    "street_address": "333 Broad Street",
+    "postal_code": "49085",
+    "source_url": "https://silverbeachcarousel.com/",
+    "notes": "Carousel operator's published address. The ZIP also has U.S. Census address-lookup corroboration."
+  },
+  {
+    "slug": "spokane-looff-carrousel",
+    "street_address": "507 North Howard Street",
+    "postal_code": "99201",
+    "source_url": "https://my.spokanecity.org/riverfrontspokane/visitor-info/",
+    "notes": "City-published Riverfront Park visitor address, not a separately verified Looff Carrousel door. ZIP corroborated by the U.S. Census address lookup at https://geocoding.geo.census.gov/geocoder/."
+  },
+  {
+    "slug": "wonder-go-round-fairyland-oakland",
+    "street_address": "699 Bellevue Avenue",
+    "postal_code": "94610",
+    "source_url": "https://fairyland.org/getting-to-fairyland/",
+    "notes": "Children's Fairyland visitor-entrance address. Wonder-Go-Round is inside the park."
+  },
+  {
+    "slug": "worlds-of-fun-grand-carrousel-kansas-city",
+    "street_address": "4545 Worlds of Fun Avenue",
+    "postal_code": "64161",
+    "source_url": "https://worldsoffun.enchantedparks.com/park-info/",
+    "notes": "Operator-published Worlds of Fun visitor address. The Grand Carrousel is an attraction inside the park."
+  }
+]
