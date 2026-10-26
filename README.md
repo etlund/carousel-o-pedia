@@ -64,6 +64,8 @@ Environment-specific files such as `.env.development` and `.env.test` are also
 supported. Variables already set in the process environment take precedence.
 Environment files are ignored by Git; do not commit secrets.
 
+The project's `bin/kamal` entrypoint also loads `.env` before running Kamal, so deployment secrets do not need to be exported separately. Existing process environment values still take precedence.
+
 ### Production deployment with Kamal
 
 [Kamal configuration](config/deploy.yml) targets the Ubuntu x64 Droplet at `201.79.38.100`, using SSH as root with `~/.ssh/id_ed25519`. The image is built for `amd64`, including when deploying from an Apple Silicon Mac. Kamal Proxy obtains HTTPS certificates for `carouselopedia.org`; Rails trusts the HTTPS-terminating proxy and uses secure cookies.
@@ -75,10 +77,11 @@ Prerequisites:
 - Verify the server's SSH host fingerprint through DigitalOcean's console, then confirm key-based SSH works.
 - Run Docker locally. Kamal's first setup can install Docker on the Droplet.
 - Create a GitHub personal access token (classic) with `write:packages` for the `etlund` account. Store it locally, not in Git or chat. Confirm the resulting GHCR package remains private.
-- Keep `config/master.key` available locally; it is read by [.kamal/secrets](.kamal/secrets) and excluded from Git and Docker images.
 - Generate a production `SECRET_KEY_BASE` once with `bin/rails secret`, store it in your password manager, and export it into the deployment shell. Keep this value stable across deployments; do not reuse a validation placeholder or generate a new value on every deploy.
 
 Set `KAMAL_REGISTRY_PASSWORD` and `SECRET_KEY_BASE` in the deployment shell using your password manager or hidden terminal prompts. The tracked secrets file references the environment variables; it must never contain the values themselves.
+
+Production currently uses environment variables for all secrets; it does not read Rails encrypted credentials and does not require `RAILS_MASTER_KEY`. The checked-in encrypted credentials file is left untouched. If encrypted credentials are adopted later, recover the corresponding key or deliberately provision a new encrypted credentials file and key before enabling that configuration.
 
 **Before the first deploy**, decide the production data import and administrator credentials. `bin/kamal setup` starts a publicly reachable app, and its entrypoint runs `db:prepare`, which seeds a fresh database. To preserve development edits and history, prepare a consistent SQLite backup using SQLite's backup facility and import it as `storage/production.sqlite3` in the persistent volume before application startup. Do not copy a live SQLite file directly or rerun inventory seeds over edited data. Review imported accounts, remove the known development password, and invalidate imported login sessions and invitation links before going live. Never commit database backups or private data.
 

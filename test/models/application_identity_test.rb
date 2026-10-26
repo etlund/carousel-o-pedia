@@ -26,6 +26,7 @@ class ApplicationIdentityTest < ActiveSupport::TestCase
     assert_equal "amd64", deployment.fetch("builder").fetch("arch")
     assert_equal "root", deployment.fetch("ssh").fetch("user")
     assert_includes deployment.fetch("env").fetch("secret"), "SECRET_KEY_BASE"
+    assert_not_includes deployment.fetch("env").fetch("secret"), "RAILS_MASTER_KEY"
   end
 
   test "production schedules private off-server database backups" do
