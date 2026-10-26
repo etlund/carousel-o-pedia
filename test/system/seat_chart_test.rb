@@ -77,7 +77,7 @@ class SeatChartTest < ApplicationSystemTestCase
     end
   end
 
-  test "mini seat charts use compact wedges with heavier best reading outlines and open the full chart" do
+  test "mini seat charts use base and faded fills with uniform gray outlines and open the full chart" do
     visit carousels_path
     assert_selector "svg.mini-seat-chart", count: 5
     within("li.card", text: "Great Northern Carousel") do
@@ -85,43 +85,45 @@ class SeatChartTest < ApplicationSystemTestCase
       measurements = find("svg.mini-seat-chart").evaluate_script(<<~JS)
         (() => {
           const svg = this;
-          const bestReading = getComputedStyle(svg.querySelector(".mini-seat-wedge.horse.unsure"));
           const canvas = document.createElement("canvas");
           canvas.width = canvas.height = 1;
           const context = canvas.getContext("2d");
-          const borders = ["horse", "menagerie", "chariot"].map(category => {
-            const style = getComputedStyle(svg.querySelector(".mini-seat-wedge." + category + ":not(.unsure)"));
-            context.fillStyle = style.stroke;
+          const color = value => {
+            context.fillStyle = value;
             context.fillRect(0, 0, 1, 1);
-            return { width: style.strokeWidth, color: Array.from(context.getImageData(0, 0, 1, 1).data) };
-          });
+            return Array.from(context.getImageData(0, 0, 1, 1).data);
+          };
           return {
             width: svg.getBoundingClientRect().width,
-            borders,
-            horse: getComputedStyle(svg.querySelector(".mini-seat-wedge.horse:not(.unsure)")).fill,
-            other: getComputedStyle(svg.querySelector(".mini-seat-wedge.menagerie:not(.unsure)")).fill,
-            chariot: getComputedStyle(svg.querySelector(".mini-seat-wedge.chariot:not(.unsure)")).fill,
-            bestFill: bestReading.fill,
-            bestStroke: bestReading.stroke,
-            bestWidth: bestReading.strokeWidth,
-            bestDash: bestReading.strokeDasharray,
-            bestScaling: bestReading.vectorEffect
+            wedges: [...svg.querySelectorAll(".mini-seat-wedge")].map(wedge => {
+              const style = getComputedStyle(wedge);
+              return {
+                category: ["horse", "menagerie", "chariot"].find(category => wedge.classList.contains(category)),
+                unsure: wedge.classList.contains("unsure"),
+                fill: color(style.fill),
+                stroke: color(style.stroke),
+                width: style.strokeWidth,
+                dash: style.strokeDasharray,
+                scaling: style.vectorEffect
+              };
+            })
           };
         })()
       JS
       assert_in_delta 112, measurements.fetch("width"), 0.1
-      assert_equal "rgb(159, 211, 242)", measurements.fetch("horse")
-      assert_equal "rgb(247, 184, 102)", measurements.fetch("other")
-      assert_equal "rgb(224, 40, 42)", measurements.fetch("chariot")
-      [ [ 111, 148, 169, 255 ], [ 173, 129, 71, 255 ], [ 157, 28, 29, 255 ] ].zip(measurements.fetch("borders")).each do |color, border|
-        assert_equal "2px", border.fetch("width")
-        assert_equal color, border.fetch("color")
+      fills = {
+        "horse" => [ [ 159, 211, 242, 255 ], [ 207, 233, 248.5, 255 ] ],
+        "menagerie" => [ [ 247, 184, 102, 255 ], [ 251, 219.5, 178.5, 255 ] ],
+        "chariot" => [ [ 224, 40, 42, 255 ], [ 239.5, 147.5, 148.5, 255 ] ]
+      }
+      measurements.fetch("wedges").each do |wedge|
+        expected_fill = fills.fetch(wedge.fetch("category"))[wedge.fetch("unsure") ? 1 : 0]
+        expected_fill.zip(wedge.fetch("fill")).each { |expected, actual| assert_in_delta expected, actual, 0.5 }
+        assert_equal [ 128, 128, 128, 255 ], wedge.fetch("stroke")
+        assert_equal "2px", wedge.fetch("width")
+        assert_equal "none", wedge.fetch("dash")
+        assert_equal "non-scaling-stroke", wedge.fetch("scaling")
       end
-      assert_equal "none", measurements.fetch("bestFill")
-      assert_equal measurements.fetch("horse"), measurements.fetch("bestStroke")
-      assert_equal "2px", measurements.fetch("bestWidth")
-      assert_equal "none", measurements.fetch("bestDash")
-      assert_equal "non-scaling-stroke", measurements.fetch("bestScaling")
       find("a.mini-seat-chart-link").click
     end
     assert_selector "h1", text: "Great Northern Carousel"
@@ -141,13 +143,17 @@ class SeatChartTest < ApplicationSystemTestCase
         ring: [[200, 0], [-200, 0], [0, 200], [0, -200]].every(([x, y]) => this.isPointInFill(new DOMPoint(x, y))),
         hub: this.isPointInFill(new DOMPoint(0, 0)),
         outside: this.isPointInFill(new DOMPoint(400, 0)),
-        fill: getComputedStyle(this).fill
+        fill: getComputedStyle(this).fill,
+        stroke: getComputedStyle(this).stroke,
+        width: getComputedStyle(this).strokeWidth
       }))()
     JS
     assert geometry.fetch("ring")
     assert_not geometry.fetch("hub")
     assert_not geometry.fetch("outside")
     assert_equal "none", geometry.fetch("fill")
+    assert_equal "rgb(128, 128, 128)", geometry.fetch("stroke")
+    assert_equal "2px", geometry.fetch("width")
   end
 
   test "Glen Echo historical seating is visibly best reading on both charts" do

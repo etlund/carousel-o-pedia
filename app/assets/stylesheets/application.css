@@ -42,12 +42,12 @@ h2 { font-size: 1.35rem; margin: 28px 0 8px; }
 .cards .website { overflow-wrap: anywhere; }
 .mini-seat-chart-link { display: block; width: 112px; max-width: 100%; margin: 12px auto 0; border-radius: 50%; }
 .mini-seat-chart { display: block; width: 100%; height: auto; }
-.mini-seat-wedge { fill: none; stroke: var(--muted); stroke-width: .7; vector-effect: non-scaling-stroke; }
+.mini-seat-wedge { fill: none; stroke: #808080; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .mini-seat-wedge.horse { --seat-color: var(--horse); }
 .mini-seat-wedge.menagerie { --seat-color: var(--other); }
 .mini-seat-wedge.chariot { --seat-color: var(--red); }
-.mini-seat-wedge:is(.horse, .menagerie, .chariot) { fill: var(--seat-color); stroke: color-mix(in srgb, var(--seat-color) 70%, black); stroke-width: 2; }
-.mini-seat-wedge.unsure:is(.horse, .menagerie, .chariot) { fill: none; stroke: var(--seat-color); }
+.mini-seat-wedge:is(.horse, .menagerie, .chariot) { fill: var(--seat-color); }
+.mini-seat-wedge.unsure:is(.horse, .menagerie, .chariot) { fill: color-mix(in srgb, var(--seat-color) 50%, white); }
 .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 .stack { display: grid; gap: 16px; }

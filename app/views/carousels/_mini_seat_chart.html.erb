@@ -1,6 +1,6 @@
 <%= link_to carousel, class: "mini-seat-chart-link", aria: { label: "View seating chart for #{carousel.name}" } do %>
   <svg class="mini-seat-chart" viewBox="22 22 756 756" width="112" height="112" role="img"
-       aria-label="Seat chart preview of <%= carousel.name %>. Light blue: horses; orange: other animals; red: chariots and tubs. Solid wedges: confirmed placements; colored outlines: best-reading placements; gray outlines: unknown or empty seats.">
+       aria-label="Seat chart preview of <%= carousel.name %>. Blue: horses; orange: other animals; red: chariots and tubs. Base category fills: confirmed placements; faded fills: best-reading placements; unfilled wedges: unknown or empty seats. All wedges have gray outlines.">
     <%= render "seat_wedges", carousel:, seats: carousel.seats %>
   </svg>
 <% end %>
