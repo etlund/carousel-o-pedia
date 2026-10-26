@@ -43,7 +43,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "a.mini-seat-chart-link[href=?] path[data-seat-code='4A'] title", carousel_path(@carousel),
       text: "4A: #{@carousel.seat("4A").figure.name}"
     get carousel_path(@carousel)
-    assert_select "svg.seat-chart a[href=?] > circle", carousel_seat_path(@carousel, "4A"), count: 1
+    assert_select "svg.seat-chart a[href=?] > circle", figure_path(@carousel.seat("4A").figure), count: 1
   end
 
   test "mini charts represent spanning vehicles once and retain unknown and empty positions" do
@@ -391,14 +391,58 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "svg.seat-chart a.seat", 39
     assert_select "table.sections tbody tr", 14
-    assert_select "a[href=?]", "/carousels/great-northern-carousel/9A"
+    assert_select "a[href=?]", figure_path(@carousel.seat("9A").figure)
   end
 
   test "seat codes work as URLs in either case" do
-    get "/carousels/great-northern-carousel/1a"
+    %w[1a 1A].each do |code|
+      get "/carousels/great-northern-carousel/#{code}"
+      assert_response :found
+      assert_redirected_to figure_path(@carousel.seat("1A").figure)
+      follow_redirect!
+      assert_response :success
+      assert_select "h1", "Titan the Hippocampus"
+      assert_select ".seat-context h2", "Current seat"
+      assert_select ".seat-context svg.seat-badge[aria-label='Seat 1A']"
+      assert_select ".seat-context dt", text: "Seat", count: 0
+    end
+  end
+
+  test "occupied seat bookmarks follow reassignment without permanent redirects" do
+    carousel = build_carousel
+    seat = carousel.seat("1A")
+    first = create_figure("First occupant", carousel:)
+    second = create_figure("Second occupant", carousel:)
+
+    [ first, second ].each do |figure|
+      SeatAssignment.new(seat, figure).save!
+      get carousel_seat_path(carousel, seat)
+      assert_response :found
+      assert_redirected_to figure_path(figure)
+    end
+
+    SeatAssignment.new(seat, nil).save!
+    get carousel_seat_path(carousel, seat)
     assert_response :success
     assert_select "h1", "Seat 1A"
-    assert_select "a", "Titan the Hippocampus"
+    assert_select ".facts dd", "Unknown"
+  end
+
+  test "charts and section tables link occupied seats to figures and vacant positions to seats" do
+    carousel = build_carousel(sections: 3, rows: 1)
+    figure = create_figure("Direct figure link", carousel:)
+    SeatAssignment.new(carousel.seat("1A"), figure).save!
+    SeatAssignment.new(carousel.seat("2A"), nil, empty: true).save!
+
+    get carousel_path(carousel)
+    assert_response :success
+    [ "svg.seat-chart", "table.sections" ].each do |selector|
+      assert_select "#{selector} a[href=?]", figure_path(figure), count: 1
+      %w[2A 3A].each do |code|
+        assert_select "#{selector} a[href=?]", carousel_seat_path(carousel, code), count: 1
+      end
+      assert_select "#{selector} a[href=?]", carousel_seat_path(carousel, "1A"), count: 0
+    end
   end
 
   test "unknown seats and carousels are not found" do
@@ -408,7 +452,17 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "seat and figure pages share the current figure details and rendered sources" do
+  test "figure pages link their carousel above the figure name whether seated or unseated" do
+    [ @carousel.seat("1A").figure, create_figure("Unseated navigation test") ].each do |figure|
+      get figure_path(figure)
+      assert_response :success
+      assert_select ".page-header > p:first-child a[href=?]", carousel_path(figure.carousel), text: figure.carousel.name
+      assert_select ".page-header > p:first-child + h1", figure.name
+      assert_select ".page-header a[href=?]", carousel_path(figure.carousel), count: 1
+    end
+  end
+
+  test "the canonical figure page renders figure details and sanitized sources" do
     figure = @carousel.seat("1A").figure
     carver = Maker.create!(name: "Detail Test Carver", kind: "person")
     figure.update!(
@@ -417,23 +471,20 @@ class PagesTest < ActionDispatch::IntegrationTest
       body: "## Sources\n\n[Figure reference](https://example.com/figure)\n\n<script>alert('unsafe')</script>"
     )
 
-    [ carousel_seat_path(@carousel, "1A"), figure_path(figure) ].each do |path|
-      get path
-      assert_response :success
-      assert_select ".lede", "A distinctive carved figure."
-      assert_select ".facts dd", text: "Other animals"
-      assert_select ".facts dd", text: "Jumper"
-      assert_select ".facts a[href=?]", maker_path(carver), text: carver.name
-      assert_select ".facts dd", text: "2001"
-      assert_select ".facts dd", text: "Detail Test Sponsor"
-      assert_select ".prose h2", "Sources"
-      assert_select ".prose a[href=?]", "https://example.com/figure", text: "Figure reference"
-      assert_select ".prose script", 0
-    end
-
-    get carousel_seat_path(@carousel, "1A")
-    assert_select ".figure-details h2 a[href=?]", figure_path(figure), text: figure.name
-    assert_select ".figure-details a[href=?]", figure_type_path(figure.figure_type), text: figure.figure_type.name
+    get figure_path(figure)
+    assert_response :success
+    assert_select ".lede", "A distinctive carved figure."
+    assert_select ".facts dd", text: "Other animals"
+    assert_select ".facts dd", text: "Jumper"
+    assert_select ".facts a[href=?]", maker_path(carver), text: carver.name
+    assert_select ".facts dd", text: "2001"
+    assert_select ".facts dd", text: "Detail Test Sponsor"
+    assert_select ".prose h2", "Sources"
+    assert_select ".prose a[href=?]", "https://example.com/figure", text: "Figure reference"
+    assert_select ".prose script", 0
+    assert_select ".page-header h1", figure.name
+    assert_select ".page-header a[href=?]", figure_type_path(figure.figure_type), text: figure.figure_type.name
+    assert_select "title", "#{figure.name} · carousel-o-pedia"
   end
 
   test "seat details follow the current figure and omit missing optional fields" do
@@ -446,13 +497,44 @@ class PagesTest < ActionDispatch::IntegrationTest
     SeatAssignment.new(seat, current).save!
 
     get carousel_seat_path(carousel, seat)
+    assert_redirected_to figure_path(current)
+    follow_redirect!
     assert_response :success
-    assert_select ".figure-details h2", current.name
+    assert_select "h1", current.name
     assert_select ".figure-details .facts dt", count: 1, text: "Category"
     assert_select ".figure-details .lede", 0
     assert_select ".figure-details", text: /Former/, count: 0
     assert_select "h2", "Earlier figures"
     assert_select "li a[href=?]", figure_path(former), text: former.name
+
+    get figure_path(former)
+    assert_response :success
+    assert_select ".page-header", text: /Not currently seated/
+    assert_select ".seat-context", 0
+    assert_select ".figure-details h2", "Seats over time"
+    assert_select ".figure-details a.seat-link[href=?]", carousel_seat_path(carousel, seat)
+  end
+
+  test "a figure's seats over time remain separate from its current seat's earlier occupants" do
+    carousel = build_carousel(sections: 2, rows: 1)
+    original_seat = carousel.seat("1A")
+    current_seat = carousel.seat("2A")
+    traveler = create_figure("Traveling figure", carousel:)
+    earlier_occupant = create_figure("Earlier occupant", carousel:)
+    SeatAssignment.new(original_seat, traveler).save!
+    SeatAssignment.new(current_seat, earlier_occupant).save!
+    SeatAssignment.new(current_seat, traveler).save!
+
+    get figure_path(traveler)
+    assert_response :success
+    assert_select ".figure-details h2", "Seats over time"
+    [ original_seat, current_seat ].each do |seat|
+      assert_select ".figure-details a.seat-link[href=?]", carousel_seat_path(carousel, seat), count: 1
+    end
+    assert_select ".seat-context svg.seat-badge[aria-label='Seat 2A']"
+    assert_select ".seat-context h2", "Earlier figures"
+    assert_select ".seat-context a[href=?]", figure_path(earlier_occupant), text: earlier_occupant.name
+    assert_select ".figure-details a[href=?]", figure_path(earlier_occupant), count: 0
   end
 
   test "empty and unknown seats do not show details from earlier figures" do
@@ -464,6 +546,8 @@ class PagesTest < ActionDispatch::IntegrationTest
       SeatAssignment.new(seat, nil, empty:).save!
       get carousel_seat_path(carousel, seat)
       assert_response :success
+      assert_select "h1", "Seat 1A"
+      assert_select "title", "#{carousel.name} seat 1A · carousel-o-pedia"
       assert_select ".facts dd", text: empty ? "Empty" : "Unknown"
       assert_select ".figure-details", 0
       assert_select "h2", "Earlier figures"
@@ -471,11 +555,41 @@ class PagesTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "figure pages separate figure and placement controls for readers and editors" do
+    seat = @carousel.seat("1A")
+    figure = seat.figure
+
+    get figure_path(figure)
+    assert_select ".page-header a[href=?]", history_figure_path(figure), text: "Figure history"
+    assert_select ".seat-context a[href=?]", history_carousel_seat_path(@carousel, seat), text: "Seat history"
+    assert_select "a[href=?]", edit_figure_path(figure), count: 0
+    assert_select "a[href=?]", edit_carousel_seat_path(@carousel, seat), count: 0
+    assert_select ".seat-context dt", text: "Figure now", count: 0
+
+    sign_in_as users(:editor)
+    get figure_path(figure)
+    assert_select ".page-header a.button[href=?]", edit_figure_path(figure), text: "Edit figure"
+    assert_select ".seat-context a.button[href=?]", edit_carousel_seat_path(@carousel, seat), text: "Edit placement"
+
+    get edit_carousel_seat_path(@carousel, seat)
+    assert_response :success
+    assert_select "a[href=?]", figure_path(figure), text: "Cancel"
+    get history_carousel_seat_path(@carousel, seat)
+    assert_response :success
+
+    SeatAssignment.new(seat, nil, empty: true).save!
+    get carousel_seat_path(@carousel, seat)
+    assert_select ".page-header .lede", "This seat is recorded as empty."
+    assert_select ".seat-context a.button[href=?]", edit_carousel_seat_path(@carousel, seat), text: "Edit placement"
+    assert_select ".page-header .page-actions", 0
+  end
+
   test "figure, type and index pages render" do
     get figure_path(Figure.find_by!(name: "Gulliver"))
     assert_response :success
-    assert_select "a.seat-link[href=?]", "/carousels/great-northern-carousel/9A" do
+    assert_select ".seat-context" do
       assert_select "svg.seat-badge[aria-label=?]", "Seat 9A"
+      assert_select "a[href=?]", carousel_path(@carousel), text: @carousel.name
     end
 
     get figure_type_path(FigureType.find_by!(name: "Bobcat"))
@@ -570,12 +684,13 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select ".prose h2", text: "Sources"
     assert_select ".prose ul li a[href=?]", "https://www.missoulacarousel.org/building-a-community-dream-a-carousel-for-missoula/", text: "A Community Dream: The Carousel"
     assert_select "a", text: "Columbia Belle"
-    assert_select "a[href=?]", carousel_seat_path(carousel, "13A"), text: /Scaffi/
+    assert_select "a[href=?]", figure_path(carousel.seat("13A").figure), text: /Scaffi/
     assert_select ".prose a[href=?]", "https://www.youtube.com/watch?v=8E3DemQtIis&t=100s"
 
     get figure_path(Figure.find_by!(slug: "a-carousel-for-missoula-scaffi"))
     assert_response :success
-    assert_select "a.seat-link[href=?]", carousel_seat_path(carousel, "13A")
+    assert_select ".seat-context svg.seat-badge[aria-label='Seat 13A']"
+    assert_select ".seat-context a[href=?]", history_carousel_seat_path(carousel, "13A")
     assert_select ".prose a[href=?]", "https://www.youtube.com/watch?v=8E3DemQtIis&t=109s"
 
     patches = Figure.find_by!(slug: "a-carousel-for-missoula-patches")
@@ -604,8 +719,8 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "svg.seat-chart a.seat.unknown", 0
     assert_select "table.sections tbody tr", 20
     assert_select "table.sections td[colspan='2']", 2
-    assert_select "a[href=?]", carousel_seat_path(carousel, "1A"), text: /Geri/
-    assert_select "a[href=?]", carousel_seat_path(carousel, "11A"), text: /Sneaky/
+    assert_select "a[href=?]", figure_path(carousel.seat("1A").figure), text: /Geri/
+    assert_select "a[href=?]", figure_path(carousel.seat("11A").figure), text: /Sneaky/
     assert_select ".prose h2", text: "Documented collection"
     assert_select ".prose h2", text: "Sources"
     assert_select ".prose", text: /confirms twenty radial rows/

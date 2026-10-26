@@ -1,8 +1,8 @@
 # A small wedge showing where a seat sits, read like an airplane seat map: one slice of
-# the platform with the hub on the left and the rail on the right, every row letter
-# inside it, the seat's own row highlighted, and the section number past the rail.
+# the platform with the rail on the left and the hub on the right, every row letter
+# inside it, the seat's own row highlighted, and the section number before the wedge.
 module SeatBadgesHelper
-  BADGE_CENTER_X = -40.0  # the hub, off the left edge
+  BADGE_CENTER_X = -40.0  # Hub of the unreflected geometry.
   BADGE_CENTER_Y = 12.0
   BADGE_INNER_RADIUS = 48.0
   BADGE_ROW_DEPTH = 14.0
@@ -13,16 +13,19 @@ module SeatBadgesHelper
     covered = seat.rows_covered
     outer = BADGE_INNER_RADIUS + letters.size * BADGE_ROW_DEPTH
     # Room for the carousel's widest section number, so badges line up in lists.
-    width = (BADGE_CENTER_X + outer + 6 + 8 * seat.carousel.sections_count.to_s.size + 4).round
+    number_width = 10 * seat.carousel.sections_count.to_s.size
+    wedge_offset = number_width + 2
+    width = (BADGE_CENTER_X + outer + wedge_offset + 4).round
     kind = seat.category || seat.state
+    reflection = 2 * BADGE_CENTER_X + outer + BADGE_INNER_RADIUS
 
-    # Rows run from the outside in, so the innermost row is drawn first, at the narrow end.
-    bands = letters.reverse.each_with_index.map do |letter, index|
-      inner = BADGE_INNER_RADIUS + index * BADGE_ROW_DEPTH
+    # Reflect only the bands; position the upright labels from the outer row inward.
+    bands = letters.each_with_index.map do |letter, index|
+      inner = outer - (index + 1) * BADGE_ROW_DEPTH
       on = covered.include?(letter)
       safe_join([
-        tag.path(d: wedge_path(inner, inner + BADGE_ROW_DEPTH), class: [ "band", ("on" if on) ]),
-        tag.text(on ? letter : letter.downcase, x: (BADGE_CENTER_X + inner + BADGE_ROW_DEPTH / 2).round(1), y: 15.5, class: [ "row", ("on" if on) ])
+        tag.path(d: wedge_path(inner, inner + BADGE_ROW_DEPTH), transform: "translate(#{reflection} 0) scale(-1 1)", class: [ "band", ("on" if on) ]),
+        tag.text(on ? letter : letter.downcase, x: (reflection - BADGE_CENTER_X - inner - BADGE_ROW_DEPTH / 2).round(1), y: 15.5, class: [ "row", ("on" if on) ])
       ])
     end
 
@@ -30,8 +33,8 @@ module SeatBadgesHelper
             role: "img", "aria-label": "Seat #{seat.code}") do
       safe_join([
         tag.title("Seat #{seat.code}: section #{seat.section}, #{seat.rows_spanned > 1 ? "rows #{covered.first} to #{covered.last}" : "row #{seat.row}"}"),
-        *bands,
-        tag.text(seat.section, x: (BADGE_CENTER_X + outer + 6).round(1), y: 16.5, class: "section")
+        tag.text(seat.section, x: wedge_offset, y: 16.5, class: "section", "text-anchor": "end"),
+        tag.g(safe_join(bands), transform: "translate(#{wedge_offset} 0)")
       ])
     end
   end

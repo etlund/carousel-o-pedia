@@ -18,7 +18,7 @@
   <% chart.seat_shapes(carousel.seats.includes(current_placement: { figure: :figure_type })).each do |shape| %>
     <% seat = shape.seat %>
     <% label = seat.figure&.chart_label || (seat.state == "unknown" ? "?" : "empty") %>
-    <a href="<%= carousel_seat_path(carousel, seat) %>" class="seat <%= seat.category || seat.state %> <%= "unsure" unless seat.confirmed? %>">
+    <a href="<%= seat_destination_path(seat) %>" class="seat <%= seat.category || seat.state %> <%= "unsure" unless seat.confirmed? %>">
       <title><%= seat.code %>: <%= seat.figure&.name || seat.state.capitalize %></title>
       <% if shape.round %>
         <circle cx="<%= shape.center.x %>" cy="<%= shape.center.y %>" r="<%= shape.width / 2 %>"/>

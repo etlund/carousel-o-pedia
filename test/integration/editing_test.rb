@@ -70,7 +70,11 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_equal @carousel, rocky.carousel
 
     patch carousel_seat_path(@carousel, "9C"), params: { seat: { figure_id: rocky.id, confidence: "confirmed", rows_spanned: 1 } }
-    assert_redirected_to carousel_seat_path(@carousel, "9C")
+    assert_redirected_to figure_path(rocky)
+    follow_redirect!
+    assert_response :success
+    assert_select ".flash", text: "Saved."
+    assert_select "h1", rocky.name
     assert_equal rocky, @carousel.seat("9C").figure
     assert @carousel.seat("9C").confirmed?
   end
@@ -99,6 +103,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     sign_in_as users(:editor)
     figure = @carousel.seat("9C").figure
     patch carousel_seat_path(@carousel, "9C"), params: { seat: { figure_id: "empty", confidence: "confirmed", rows_spanned: 1 } }
+    assert_redirected_to carousel_seat_path(@carousel, "9C")
     assert_equal "empty", @carousel.seat("9C").state
     assert_equal @carousel, figure.reload.carousel
     assert_nil figure.seat
@@ -141,7 +146,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     patch carousel_seat_path(@carousel, "9C"), params: {
       seat: { figure_id: figure.id, confidence: "confirmed", rows_spanned: 1 }
     }
-    assert_redirected_to carousel_seat_path(@carousel, "9C")
+    assert_redirected_to figure_path(figure)
     assert_equal @carousel, figure.reload.carousel
     assert_equal figure, @carousel.seat("9C").figure
 

@@ -6,7 +6,11 @@ class SeatsController < ApplicationController
   before_action :set_seat
 
   def show
-    @placements = @seat.placements.includes(figure: :figure_type)
+    if (figure = @seat.figure)
+      redirect_to figure, status: :found
+    else
+      @previous_seat_placements = @seat.placements.where.not(ended_on: nil).includes(:figure)
+    end
   end
 
   def edit
@@ -18,7 +22,7 @@ class SeatsController < ApplicationController
       @seat.update!(seat_params)
       SeatAssignment.new(@seat, Figure.find_by(id: choice), empty: choice == EMPTY).save!
     end
-    redirect_to carousel_seat_path(@carousel, @seat), notice: "Saved."
+    redirect_to @seat.figure || carousel_seat_path(@carousel, @seat), notice: "Saved."
   rescue ActiveRecord::RecordInvalid
     render :edit, status: :unprocessable_entity
   end

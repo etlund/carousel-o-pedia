@@ -16,6 +16,8 @@ class FiguresController < ApplicationController
 
   def show
     @placements = @figure.placements.includes(seat: :carousel)
+    @seat = @figure.seat
+    @previous_seat_placements = @seat.placements.where.not(ended_on: nil).includes(:figure) if @seat
   end
 
   def new

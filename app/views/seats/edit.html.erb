@@ -22,5 +22,5 @@
       <%= form.select :confidence, [ [ "Confirmed", "confirmed" ], [ "Best reading, not yet confirmed", "best_reading" ] ] %>
     </div>
   </div>
-  <div class="actions"><%= form.submit "Save seat" %> <%= link_to "Cancel", carousel_seat_path(@carousel, @seat) %></div>
+  <div class="actions"><%= form.submit "Save seat" %> <%= link_to "Cancel", seat_destination_path(@seat) %></div>
 <% end %>

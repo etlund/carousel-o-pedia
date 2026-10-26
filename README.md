@@ -14,7 +14,7 @@ Carousel detail pages with mapped figures also use that chart as their SVG favic
 
 Carousels default to **With data first**: entries with figure inventory (including unseated figures), any verified platform dimension, or published figure totals appear before directory-only entries. Both groups are alphabetical by name. Choose **Name (A-Z)** in the Sort dropdown for a single alphabetical list. Sorting works with the name and state filters; **Clear filters** also restores the default sort.
 
-Every seat has a code of section number plus row letter. Rows are lettered from the outside in, so `5A` is section 5, outer row. Sections are numbered in the order figures pass someone standing at the rail.
+Every seat has a code of section number plus row letter. Seat badges put the red section number outside the wide left edge of the row-letter wedge. Row A is on the left at the outer rail; subsequent rows run inward toward the narrow right edge, with upright letters. Rows are lettered from the outside in, so `5A` is section 5, outer row. Sections are numbered in the order figures pass someone standing at the rail.
 
 Carousel summary cards and detail pages list horses, other animals, and chariots and tubs **once**. Each category prefers its published total; when that value is blank, it falls back to the mapped-seat count if the layout is known, or **Unknown** otherwise. Published zero is a verified count and is never replaced by a mapped value.
 
@@ -30,7 +30,9 @@ Carousels have optional **official website**, **Wikipedia**, and **other links**
 
 Official and Wikipedia URLs must use HTTP or HTTPS and cannot contain login credentials. Additional named links use the existing sanitized Markdown format, one per line, such as `[NCA gallery](https://carousels.org/)`. The seeds include the known official sites and reference links, including [Great Northern's live website](https://www.greatnortherncarousel.com/); unverified Wikipedia URLs are left blank.
 
-Occupied seat pages also show the current figure's description, type, category, available carving and sponsor details, and Markdown notes and sources. Earlier figures remain listed separately.
+Occupied seats in charts and section tables open the canonical Figure page directly. Existing occupied-seat URLs temporarily redirect to the current figure, so bookmarks follow the position if its occupant changes. Empty and unknown seats retain a focused Seat page with status, position, confidence, and earlier figures.
+
+Figure pages show a carousel backlink above the figure name to preserve the navigation hierarchy, followed by the figure's description, type, category, available carving and sponsor details, and Markdown notes and sources. **Edit figure** and **Figure history** apply to the carved object. Seated figures have a secondary **Current seat** panel with the seat badge, carousel, position, confidence, **Edit placement**, **Seat history**, and earlier occupants. The figure's own **Seats over time** remains separate from the position's earlier figures. On narrow screens the seating panel follows the figure content. Unseated figures retain their carousel link without inventing a current seat. Placement editing and seat history keep their existing URLs; saving an occupied placement returns to its figure, while saving an empty/unknown placement returns to the seat. Edit controls are shown only to signed-in editors.
 
 Every figure belongs to a carousel, even when it has no seat. The Figures page filters by carousel, type, or both, and includes unseated reserves and project figures. Choose **Filter** to apply the selections or **Clear filters** to return to the full list. Carousel pages link to their full inventory with **View all figures**.
 

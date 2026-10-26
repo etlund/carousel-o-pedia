@@ -1,0 +1,30 @@
+<% occupied = seat.figure.present? %>
+<aside class="seat-context stack" aria-label="Seat details and history">
+  <section class="card" aria-labelledby="seat-heading">
+    <div class="title-row">
+      <h2 id="seat-heading"><%= occupied ? "Current seat" : "Seat details" %></h2>
+      <%= seat_badge(seat, size: :large) if occupied %>
+    </div>
+    <dl class="facts">
+      <% if occupied %>
+        <dt>Carousel</dt><dd><%= link_to seat.carousel.name, seat.carousel %></dd>
+      <% end %>
+      <dt>Position</dt>
+      <dd>Section <%= seat.section %>, <%= seat.rows_spanned > 1 ? "rows #{seat.rows_covered.first} to #{seat.rows_covered.last}" : "row #{seat.row}" %></dd>
+      <dt>Confidence</dt><dd><%= seat.confirmed? ? "Confirmed" : "Best reading, not yet confirmed" %></dd>
+      <% unless occupied %><dt>Status</dt><dd><%= seat.state.capitalize %></dd><% end %>
+    </dl>
+    <%= render "shared/page_actions", edit: edit_carousel_seat_path(seat.carousel, seat), history: history_carousel_seat_path(seat.carousel, seat),
+          edit_label: "Edit placement", history_label: "Seat history" %>
+  </section>
+  <% if previous_placements.any? %>
+    <section class="card" aria-labelledby="earlier-figures-heading">
+      <h2 id="earlier-figures-heading">Earlier figures</h2>
+      <ul>
+        <% previous_placements.each do |placement| %>
+          <li><%= link_to placement.figure.name, placement.figure %> until <%= placement.ended_on.year %></li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+</aside>
