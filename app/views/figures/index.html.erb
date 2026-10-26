@@ -21,13 +21,14 @@
 <% else %>
 <div class="table-scroll">
   <table>
-    <thead><tr><th>Figure</th><th>Type</th><th>Where</th></tr></thead>
+    <thead><tr><th>Figure</th><th>Type</th><th>Where</th><th>Seat</th></tr></thead>
     <tbody>
       <% @figures.each do |figure| %>
         <tr>
           <td><%= link_to figure.name, figure %></td>
           <td><%= link_to figure.figure_type.name, figure.figure_type %></td>
-          <td><% if figure.seat %><%= seat_link(figure.seat) %><% else %><%= link_to figure.carousel.name, figure.carousel %> <span class="muted">(not currently seated)</span><% end %></td>
+          <td><%= link_to figure.carousel.name, figure.carousel %><% unless figure.seat %> <span class="muted">(not currently seated)</span><% end %></td>
+          <td><% if figure.seat %><%= link_to seat_badge(figure.seat), carousel_seat_path(figure.seat.carousel, figure.seat), class: "seat-link" %><% end %></td>
         </tr>
       <% end %>
     </tbody>

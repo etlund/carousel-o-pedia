@@ -606,6 +606,34 @@ class PagesTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "figures table separates linked seat badges from carousel locations" do
+    carousel = build_carousel
+    seated = create_figure("Seated figure", carousel:)
+    unseated = create_figure("Unseated figure", carousel:)
+    seat = carousel.seat("1A")
+    SeatAssignment.new(seat, seated).save!
+
+    get figures_path, params: { carousel_id: carousel.id }
+    assert_response :success
+    assert_equal [ "Figure", "Type", "Where", "Seat" ], css_select("table thead th").map(&:text)
+
+    [ seated, unseated ].each do |figure|
+      assert_select "table tbody tr:has(td:first-child a[href='#{figure_path(figure)}'])" do
+        assert_select "td", 4
+        assert_select "td:nth-child(3) a[href=?]", carousel_path(carousel), text: carousel.name
+        assert_select "td:nth-child(3) svg", 0
+        if figure == seated
+          assert_select "td:nth-child(4) a.seat-link[href=?]", carousel_seat_path(carousel, seat) do
+            assert_select "svg.seat-badge[aria-label='Seat 1A']", 1
+          end
+        else
+          assert_select "td:nth-child(3) .muted", "(not currently seated)"
+          assert_select "td:nth-child(4)", text: "", count: 1
+        end
+      end
+    end
+  end
+
   test "figure filters include unseated inventory and combine carousel and type" do
     salem = Carousel.find_by!(slug: "salems-riverfront-carousel")
     dragon = FigureType.find_by!(slug: "dragon")
