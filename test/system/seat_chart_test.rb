@@ -5,7 +5,7 @@ class SeatChartTest < ApplicationSystemTestCase
 
   test "mini seat charts use ten pixel category dots and open the full chart" do
     visit carousels_path
-    assert_selector "svg.mini-seat-chart", count: 4
+    assert_selector "svg.mini-seat-chart", count: 5
     within("li.card", text: "Great Northern Carousel") do
       assert_selector "circle.mini-seat-dot", count: 39
       measurements = find("svg.mini-seat-chart").evaluate_script(<<~JS)
@@ -34,6 +34,23 @@ class SeatChartTest < ApplicationSystemTestCase
       .evaluate_script("getComputedStyle(this.querySelector('rect, circle')).fill")
     assert_equal "rgb(247, 184, 102)", find("svg.seat-chart .seat.menagerie", match: :first)
       .evaluate_script("getComputedStyle(this.querySelector('rect, circle')).fill")
+  end
+
+  test "Glen Echo historical seating is visibly best reading on both charts" do
+    visit carousels_path(q: "Glen Echo")
+    assert_selector "svg.mini-seat-chart .mini-seat-dot.unsure", count: 54
+    assert_selector "svg.mini-seat-chart .chariot.unsure", count: 2
+    find("a.mini-seat-chart-link").click
+    assert_selector "h1", text: "Glen Echo Park Dentzel Carousel"
+    assert_selector "svg.seat-chart a.seat.unsure", count: 54
+    assert_text "1994 reference arrangement, not a verified current survey"
+    within("table.sections") do
+      assert_link "Chariot at 8A"
+      assert_link "Chariot at 17A"
+      assert_link "Ostrich at 8B"
+      assert_link "Ostrich at 8C"
+      assert_link "Unidentified horse at 2A"
+    end
   end
 
   test "published counts appear in a single category list with sources retained" do
@@ -215,6 +232,6 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_selector :select, "Type", selected: "All types"
 
     click_on "Clear filters"
-    assert_selector "table tbody tr", count: 206
+    assert_selector "table tbody tr", count: 260
   end
 end

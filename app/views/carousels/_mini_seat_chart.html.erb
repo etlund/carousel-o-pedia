@@ -1,11 +1,11 @@
 <% chart = SeatChart.new(carousel) %>
 <%= link_to carousel, class: "mini-seat-chart-link", aria: { label: "View seating chart for #{carousel.name}" } do %>
   <svg class="mini-seat-chart" viewBox="0 0 <%= SeatChart::SIZE %> <%= SeatChart::SIZE %>" width="160" height="160" role="img"
-       aria-label="Seat chart preview of <%= carousel.name %>. Light blue: horses; orange: other animals; red: chariots and tubs; outlines: unknown or empty seats.">
+       aria-label="Seat chart preview of <%= carousel.name %>. Light blue: horses; orange: other animals; red: chariots and tubs; outlines: unknown or empty seats. Dashed colored dots: best-reading placements.">
     <circle cx="<%= SeatChart::CENTER %>" cy="<%= SeatChart::CENTER %>" r="<%= SeatChart::PLATFORM_RADIUS %>" class="platform"/>
     <% chart.seat_shapes(carousel.seats).each do |shape| %>
       <% seat = shape.seat %>
-      <circle class="mini-seat-dot <%= seat.category || seat.state %>" cx="<%= shape.center.x %>" cy="<%= shape.center.y %>" r="25" data-seat-code="<%= seat.code %>">
+      <circle class="mini-seat-dot <%= seat.category || seat.state %> <%= "unsure" unless seat.confirmed? %>" cx="<%= shape.center.x %>" cy="<%= shape.center.y %>" r="25" data-seat-code="<%= seat.code %>">
         <title><%= seat.code %>: <%= seat.figure&.name || seat.state.capitalize %></title>
       </circle>
     <% end %>

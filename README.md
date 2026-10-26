@@ -6,7 +6,7 @@ A wiki for carousels, their carved figures, and their history.
 
 The Carousels page supports case-insensitive partial name searches and a state filter. Use either filter alone or combine them, choose **Filter** to apply, and **Clear filters** to return to the full directory. Selections remain visible and are included in the page URL for sharing. The state dropdown lists the distinct states or regions recorded in the directory.
 
-Cards with a complete recorded layout include a 160-pixel seat-chart preview with approximately 10-pixel dots matching the full chart's colors: light blue for horses, orange for other animals, red for chariots/tubs, and outlined dots for unknown or empty seats. It uses the full chart's positions, with one dot per seat or spanning vehicle, and links to the full carousel page. Directory entries and partially known layouts do not show an invented preview.
+Cards with a complete recorded layout include a 160-pixel seat-chart preview with approximately 10-pixel dots matching the full chart's colors: light blue for horses, orange for other animals, red for chariots/tubs, and outlined dots for unknown or empty seats. Dashed colored dots mark best-reading placements, matching the full chart's uncertainty markers. It uses the full chart's positions, with one dot per seat or spanning vehicle, and links to the full carousel page. Directory entries and partially known layouts do not show an invented preview.
 
 Carousels default to **With data first**: entries with figure inventory (including unseated figures), any verified platform dimension, or published figure totals appear before directory-only entries. Both groups are alphabetical by name. Choose **Name (A-Z)** in the Sort dropdown for a single alphabetical list. Sorting works with the name and state filters; **Clear filters** also restores the default sort.
 
@@ -55,7 +55,7 @@ Reseeding is a separate, intentional operation. Read [Seed behavior and preservi
 
 ## Seeded carousels
 
-The offline seeds contain **54 U.S. carousels**: four detailed inventories and **50 additional operating-carousel directory entries**. The detailed inventories contain **206 catalog records**, with **171 placed figures and 35 unseated catalog records**. The category columns below count placed figures, matching the carousel summary cards; catalog totals also include reserves, project figures, and non-riding ring dispensers.
+The offline seeds contain **54 U.S. carousels**: four detailed inventories and **50 additional operating-carousel directory entries**. Glen Echo also has a historical seating reference. Together they contain **260 catalog records**, with **225 placed figures and 35 unseated catalog records**. The category columns below count placed figures, matching the carousel summary cards; catalog totals also include reserves, project figures, and non-riding ring dispensers.
 
 | Carousel | Sections | Rows | Catalog records | Horses | Other animals | Chariots and tubs |
 |----------|----------|------|-----------------|--------|---------------|-------------------|
@@ -63,6 +63,7 @@ The offline seeds contain **54 U.S. carousels**: four detailed inventories and *
 | A Carousel for Missoula | 14 | 3 | 45 | 37 | 1 | 2 |
 | Spokane Looff Carrousel | 20 | 3 | 60 | 54 | 2 | 2 |
 | Salem's Riverfront Carousel | 12 | 3 | 62 | 24 | 8 | 2 |
+| Glen Echo Park Dentzel Carousel (1994 reference) | 18 | 3 | 54 | 40 | 12 | 2 |
 
 ### Great Northern Carousel
 
@@ -109,9 +110,29 @@ The first summary-research pass covers ten carousels, using the [NCA classic woo
 | Santa Cruz Beach Boardwalk Looff Carousel | 73 | 0 | 2 | 4 |
 | Oaks Park Carousel | 24 | 26 | 4 | 3 |
 
-**No section count was verified for these ten**, so none is inferred from animal counts or row counts, and they still have no seating charts. Several census entries are tagged 2020; Pullen's is tagged 2021. These are published snapshots, not current physical surveys. Oaks Park's four vehicles comprise two chariots and two tubs. Balboa's figures are explicitly **as reported**: NCA lists 25 other animals but its species breakdown sums to 26, and inclusion of the operator's four miniature horses is unresolved. Those caveats are retained on its page.
+The census summaries alone do not establish section counts; none is inferred from animal counts or row counts. Separate position-level research now supplies Glen Echo's historical chart, described below. The other nine still have no seating charts. Several census entries are tagged 2020; Pullen's is tagged 2021. These are published snapshots, not current physical surveys. Oaks Park's four vehicles comprise two chariots and two tubs. Balboa's figures are explicitly **as reported**: NCA lists 25 other animals but its species breakdown sums to 26, and inclusion of the operator's four miniature horses is unresolved. Those caveats are retained on its page.
 
 Directory sources were reviewed on **October 25, 2026**. "Operating" means the operator lists the carousel as a ride or visitor attraction, including seasonal operation; it does not guarantee it is open today or rule out temporary maintenance closures. Check the linked operator website for current hours. Source evidence is included on each carousel page.
+
+### Historical seating research
+
+The [researched-layout seed](db/seeds/us_researched_layouts.rb) records a five-carousel research pass:
+
+- **Glen Echo:** the [summer 1994 NPS HABS survey](https://tile.loc.gov/storage-services/master/pnp/habshaer/md/md1300/md1366/data/md1366data.pdf) explicitly numbers all 54 positions in eighteen sections and three rings. Outside-to-inside horse counts are **12/14/14**, with **4 other animals per ring**. Chariots occupy **8A and 17A**, each only in the outer ring; independently catalogued ostriches occupy their B and C positions. The source's lead horse anchors 1A. Descriptive labels such as "Unidentified horse at 2A" are not guessed personal identities. **Every placement is best reading: this is a historical reference, not a verified current arrangement.**
+- **Cafesjian's:** the [archived official roster](https://web.archive.org/web/20180120065911/http://www.ourfaircarousel.org/our-horses-and-chariots/) lists **16/16/18/18 horses**, with Red Chariot and Blue Chariot in the outside ring. Exact chariot columns and whether they extend into the second ring remain unverified, so the source notes retain these ring counts without inventing a regular-grid chart or empty seats.
+- **Paragon, Bushnell Park, and Jane's:** additional source notes explain the remaining geometry gaps. Building sides, standing/jumping totals, and partial photographs are not treated as seat-column counts or exact placements.
+
+The seating import runs only when Glen Echo has no section count, no seats, no figure inventory, and a compatible or unknown row count. Existing charts, figures, placements, and subsequent wiki edits are not restored or overwritten. Conflicting partial data is logged for manual review. Research notes append once and retain existing source notes.
+
+To apply this research to an existing directory without restoring the four detailed inventories:
+
+```sh
+bin/rails runner 'load Rails.root.join("db/seeds/us_researched_layouts.rb")'
+```
+
+The directory records must already exist; for a new database, normal seed loading creates them first.
+
+### Applying seed updates
 
 To import only the directory into an existing database, without rerunning the detailed inventories:
 
@@ -131,6 +152,7 @@ All currently collected carousel data lives in:
 - [Salem seed](db/seeds/salems_riverfront_carousel.rb)
 - [Spokane seed](db/seeds/spokane_looff_carrousel.rb)
 - [U.S. operating-carousel directory](db/seeds/us_operating_carousels.rb)
+- [Sourced historical layouts and ring research](db/seeds/us_researched_layouts.rb)
 
 Seed files load automatically in filename order and require no network access.
 

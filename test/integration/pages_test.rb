@@ -6,12 +6,13 @@ class PagesTest < ActionDispatch::IntegrationTest
   test "carousel cards preview only complete layouts using current figure categories" do
     get carousels_path
     assert_response :success
-    assert_select "svg.mini-seat-chart", 4
+    assert_select "svg.mini-seat-chart", 5
     {
       "great-northern-carousel" => [ 18, 19, 2 ],
       "a-carousel-for-missoula" => [ 37, 1, 2 ],
       "spokane-looff-carrousel" => [ 54, 2, 2 ],
-      "salems-riverfront-carousel" => [ 24, 8, 2 ]
+      "salems-riverfront-carousel" => [ 24, 8, 2 ],
+      "glen-echo-dentzel-carousel" => [ 40, 12, 2 ]
     }.each do |slug, counts|
       assert_select "li.card:has(h2 a[href='#{carousel_path(slug)}'])" do
         assert_select "a.mini-seat-chart-link[href=?][aria-label=?]", carousel_path(slug),
@@ -46,7 +47,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "a.mini-seat-chart-link[href='#{carousel_path(carousel)}']" do
       assert_select "circle.mini-seat-dot", 5
-      assert_select "circle.chariot[data-seat-code='1A'][cx='400.0'][cy='122.5']", 1
+      assert_select "circle.chariot.unsure[data-seat-code='1A'][cx='400.0'][cy='122.5']", 1
       assert_select "circle[data-seat-code='1B']", 0
       assert_select "circle.unknown", 3
       assert_select "circle.empty[data-seat-code='2C']", 1
@@ -488,7 +489,7 @@ class PagesTest < ActionDispatch::IntegrationTest
   test "figure filters handle all figures, no matches, and invalid selections explicitly" do
     get figures_path, params: { carousel_id: "", figure_type_id: "" }
     assert_response :success
-    assert_select "table tbody tr", 206
+    assert_select "table tbody tr", 260
 
     get figures_path, params: {
       carousel_id: Carousel.find_by!(slug: "salems-riverfront-carousel").id,
