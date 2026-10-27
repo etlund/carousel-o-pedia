@@ -5,6 +5,7 @@ class CarouselsController < ApplicationController
   before_action :set_carousel, only: %i[ show edit update ]
 
   def index
+    @total_carousels = Carousel.count
     @regions = Carousel.where.not(region: [ nil, "" ]).distinct.order(:region).pluck(:region)
     @query = params.expect(:q).strip.presence if params[:q].present?
     @selected_region = params.expect(:region).strip.presence if params[:region].present?

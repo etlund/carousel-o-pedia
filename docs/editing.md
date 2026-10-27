@@ -9,6 +9,9 @@ state/region filter. Choose **Filter** to apply either or both. Filters and sort
 order stay in the URL for sharing; **Clear filters** restores the full directory
 and default **Most complete** sort.
 
+Below the filter button, a count shows the total number of carousels listed.
+When filtering, it shows the matching count alongside the directory total.
+
 - **Most complete** measures seating documentation, not article completeness:
   most confirmed seats first, then most best-reading seats. Ties favor a known
   row or section count over neither dimension, then sort by name and record ID.

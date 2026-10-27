@@ -20,6 +20,9 @@
   </div>
   <div class="actions"><%= form.submit "Filter" %> <%= link_to "Clear filters", carousels_path %></div>
 <% end %>
+<p class="muted carousel-count">
+  <% if @query || @selected_region %><%= number_with_delimiter(@carousels.length) %> of <% end %><%= number_with_delimiter(@total_carousels) %> <%= "carousel".pluralize(@total_carousels) %> listed
+</p>
 <% if @carousels.empty? %>
   <p>No carousels match these filters.</p>
 <% else %>
