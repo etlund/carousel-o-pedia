@@ -15,9 +15,10 @@ class Invitation < ApplicationRecord
 
   def self.find_pending!(token) = pending.find_by!(token:)
 
-  def accept!(name:, password:, password_confirmation:)
+  def accept!(name:, password:, password_confirmation:, contribution_terms: nil, contribution_terms_version: nil)
     transaction do
-      user = User.create!(email_address:, name:, password:, password_confirmation:)
+      user = User.new(email_address:, name:, password:, password_confirmation:)
+      user.accept_contribution_terms!(agreement: contribution_terms, version: contribution_terms_version)
       update!(accepted_at: Time.current)
       user
     end

@@ -3,8 +3,14 @@
 <p><%= @invitation.invited_by.name %> invited <strong><%= @invitation.email_address %></strong> to help edit.</p>
 <%= form_with model: @user, url: invitation_acceptance_path(@invitation.token), method: :patch, scope: :user, class: "form narrow" do |form| %>
   <%= render "shared/errors", record: @user %>
-  <div class="field"><%= form.label :name, "Your name" %><%= form.text_field :name, required: true, autofocus: true, autocomplete: "name" %></div>
+  <div class="field">
+    <%= form.label :name, "Public display name" %>
+    <%= form.text_field :name, required: true, autofocus: true, autocomplete: "nickname", aria: { describedby: "display-name-hint" } %>
+    <p class="hint" id="display-name-hint">This name appears with your edits in public history. It does not need to be your legal name.</p>
+  </div>
   <div class="field"><%= form.label :password %><%= form.password_field :password, required: true, autocomplete: "new-password", maxlength: 72 %></div>
   <div class="field"><%= form.label :password_confirmation, "Password again" %><%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", maxlength: 72 %></div>
+  <p>Start with the <%= link_to "editor guide", editor_guide_path %>. Editors can edit records across the site.</p>
+  <%= render "shared/contribution_agreement_fields", form: form %>
   <div class="actions"><%= form.submit "Create my account" %></div>
 <% end %>

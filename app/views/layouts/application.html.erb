@@ -38,6 +38,9 @@
         <% if authenticated? %>
           <% if current_user.admin? %><%= link_to "Invitations", invitations_path %><% end %>
           <span class="muted"><%= current_user.name %></span>
+          <% unless current_user.contribution_terms_accepted? %>
+            <%= link_to "Review contribution terms", edit_contribution_agreement_path %>
+          <% end %>
           <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>
         <% else %>
           <%= link_to "Sign in", new_session_path %>
@@ -50,5 +53,12 @@
       <% end %>
       <%= yield %>
     </main>
+    <footer class="site-footer">
+      <nav aria-label="About and contributing">
+        <%= link_to "About / Contribute", about_path %>
+        <%= link_to "Editor guide", editor_guide_path %>
+        <%= link_to "Contribution terms & privacy", contribution_terms_path %>
+      </nav>
+    </footer>
   </body>
 </html>

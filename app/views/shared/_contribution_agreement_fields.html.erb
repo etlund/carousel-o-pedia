@@ -1,0 +1,10 @@
+<%= form.hidden_field :contribution_terms_version, value: User::CONTRIBUTION_TERMS_VERSION %>
+<div class="agreement">
+  <%= form.check_box :contribution_terms, { required: true }, "1", "0" %>
+  <%= form.label :contribution_terms do %>
+    I agree to the <%= link_to "contribution terms", contribution_terms_path %>
+    (version <%= User::CONTRIBUTION_TERMS_VERSION %>), including licensing my new original text under
+    <%= link_to "CC BY-SA 4.0", "https://creativecommons.org/licenses/by-sa/4.0/" %>.
+    I understand my display name and edits will be public.
+  <% end %>
+</div>
