@@ -13,7 +13,12 @@ class InvitationAcceptancesController < ApplicationController
       name password password_confirmation contribution_terms contribution_terms_version
     ]).to_h.symbolize_keys)
     return unless start_new_session_for(user)
-    redirect_to root_path, notice: "Welcome, #{user.name}. You can edit any page now."
+    destination = if user.carousel_restricted?
+      user.editable_carousel || new_carousel_path
+    else
+      root_path
+    end
+    redirect_to destination, notice: "Welcome, #{user.name}. #{user.access_description}."
   rescue ActiveRecord::RecordInvalid => error
     @user = error.record
     render :edit, status: :unprocessable_entity

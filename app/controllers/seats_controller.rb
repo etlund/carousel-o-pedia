@@ -4,6 +4,7 @@ class SeatsController < ApplicationController
   EMPTY = "empty"
 
   before_action :set_seat
+  before_action -> { authorize_edit!(@seat) }, only: %i[ edit update ]
 
   def show
     if (figure = @seat.figure)
@@ -18,9 +19,11 @@ class SeatsController < ApplicationController
 
   def update
     choice = params.dig(:seat, :figure_id)
+    figure = Figure.find(choice) if choice.present? && choice != EMPTY
+    authorize_edit!(figure) if figure
     Seat.transaction do
       @seat.update!(seat_params)
-      SeatAssignment.new(@seat, Figure.find_by(id: choice), empty: choice == EMPTY).save!
+      SeatAssignment.new(@seat, figure, empty: choice == EMPTY).save!
     end
     redirect_to @seat.figure || carousel_seat_path(@carousel, @seat), notice: "Saved."
   rescue ActiveRecord::RecordInvalid

@@ -5,17 +5,27 @@
 <%= form_with model: @invitation, class: "form inline-form" do |form| %>
   <%= render "shared/errors", record: @invitation %>
   <div class="field"><%= form.label :email_address, "Invite by email" %><%= form.email_field :email_address, required: true, placeholder: "name@example.com" %></div>
+  <div class="field">
+    <%= form.label :access_scope, "Editing access" %>
+    <%= form.select :access_scope, [ [ "Site-wide editing", "site_wide" ], [ "One carousel only", "carousel" ] ] %>
+  </div>
+  <div class="field">
+    <%= form.label :editable_carousel_id, "Carousel (for one-carousel access)" %>
+    <%= form.collection_select :editable_carousel_id, Carousel.order(:name), :id, :name, include_blank: "Allow creation of one new carousel" %>
+    <p class="hint">Choose an existing carousel, or leave blank to let the invitee create one. Leave blank for site-wide access.</p>
+  </div>
   <%= form.submit "Send invitation" %>
 <% end %>
 
 <h2>Waiting to be accepted</h2>
 <% if @invitations.any? %>
   <table>
-    <thead><tr><th>Email</th><th>Invited by</th><th>Link</th><th></th></tr></thead>
+    <thead><tr><th>Email</th><th>Access</th><th>Invited by</th><th>Link</th><th></th></tr></thead>
     <tbody>
       <% @invitations.each do |invitation| %>
         <tr>
           <td><%= invitation.email_address %></td>
+          <td><%= invitation.access_description %></td>
           <td><%= invitation.invited_by.name %>, <%= time_ago_in_words(invitation.created_at) %> ago</td>
           <td><input type="text" readonly value="<%= edit_invitation_acceptance_url(invitation.token) %>" aria-label="Invitation link for <%= invitation.email_address %>" class="copy-field"></td>
           <td><%= button_to "Withdraw", invitation, method: :delete, class: "link-button" %></td>
@@ -36,6 +46,7 @@
   <% @users.each do |user| %>
     <li>
       <%= user.name %> <span class="muted">· <%= user.email_address %><%= " · admin" if user.admin? %></span>
+      <span class="muted">· <%= user.access_description %></span>
       <% if user.suspended? %><strong>Suspended</strong><% end %>
       <span class="muted">· <%= user.contribution_terms_accepted? ? "Current terms agreed" : "Terms agreement needed" %></span>
       <% unless user.admin? %>

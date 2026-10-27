@@ -6,8 +6,8 @@
   </div>
   <div class="field">
     <%= form.label :carousel_id, "Carousel" %>
-    <%= form.collection_select :carousel_id, Carousel.order(:name), :id, :name, { prompt: "Choose a carousel" }, required: true, disabled: figure.seat.present? %>
-    <p class="hint">Unseated figures still belong to a carousel. To transfer a seated figure, remove it from its seat first, then change its carousel here.</p>
+    <%= form.collection_select :carousel_id, current_user.editable_carousels.order(:name), :id, :name, { prompt: "Choose a carousel" }, required: true, disabled: figure.seat.present? %>
+    <p class="hint">Unseated figures still belong to a carousel. Only site-wide editors can transfer figures between carousels; remove a seated figure from its seat first.</p>
   </div>
   <div class="field-row">
     <div class="field"><%= form.label :figure_type_id, "Type" %><%= form.collection_select :figure_type_id, FigureType.order(:name), :id, :name, { prompt: "Choose a type" }, required: true %></div>

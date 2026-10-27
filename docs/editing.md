@@ -43,6 +43,17 @@ Anyone can read; editing is invite-only. Admins invite editors from the
 Invitations page. Invitation links work for 14 days. Outbound email is not yet
 configured, so copy and send invitation links manually.
 
+Invitations offer **Site-wide editing** or **One carousel only**. For one-carousel
+access, choose an existing carousel or leave the carousel blank to allow creation
+of exactly one new carousel. The first successful creation assigns that carousel
+to the editor; failed submissions do not consume the permission. A name is enough
+to create the initial blank record; layout and inventory can be added later.
+The editor can edit that carousel and create/edit its figures and seats, but
+cannot edit shared makers or figure types, transfer figures to/from another
+carousel, or create a second carousel. Reading other records and history remains
+available. Existing accounts and the default invitation retain site-wide access.
+Permissions are enforced server-side without an authorization gem.
+
 Create the first administrator with:
 
 ```sh
@@ -85,7 +96,7 @@ the terms, preserve a copy of the previous policy, update the public text and
 Do not backfill acceptance on behalf of contributors.
 
 Display names appear publicly with edits and do not have to be legal names.
-Editors can work on records across the site. Saved changes are public
+Editors can work within the scope of their invitation. Saved changes are public
 immediately, not held for approval. Admin reverts restore individual updated
 records, not new records or an entire multi-record move.
 

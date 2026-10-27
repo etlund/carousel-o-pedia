@@ -2,7 +2,7 @@
 <header class="page-header">
   <h1><%= @maker.name %></h1>
   <p class="muted"><%= [ @maker.kind&.capitalize, @maker.years_active ].compact_blank.join(" · ") %></p>
-  <%= render "shared/page_actions", edit: edit_maker_path(@maker), history: history_maker_path(@maker) %>
+  <%= render "shared/page_actions", record: @maker, edit: edit_maker_path(@maker), history: history_maker_path(@maker) %>
 </header>
 <div class="prose"><%= wiki_body(@maker.body) %></div>
 <% if @maker.carousels.any? %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_27_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_27_233000) do
   create_table "carousels", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -80,8 +80,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_200000) do
     t.datetime "accepted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "access_scope", default: "site_wide", null: false
+    t.integer "editable_carousel_id"
+    t.index ["editable_carousel_id"], name: "index_invitations_on_editable_carousel_id"
     t.index ["invited_by_id"], name: "index_invitations_on_invited_by_id"
     t.index ["token"], name: "index_invitations_on_token", unique: true
+    t.check_constraint "access_scope = 'carousel' OR editable_carousel_id IS NULL", name: "invitations_editable_carousel_scope"
+    t.check_constraint "access_scope IN ('site_wide', 'carousel')", name: "invitations_access_scope"
   end
 
   create_table "makers", force: :cascade do |t|
@@ -138,7 +143,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_200000) do
     t.datetime "suspended_at"
     t.string "contribution_terms_version"
     t.datetime "contribution_terms_accepted_at"
+    t.string "access_scope", default: "site_wide", null: false
+    t.integer "editable_carousel_id"
+    t.index ["editable_carousel_id"], name: "index_users_on_editable_carousel_id"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
+    t.check_constraint "access_scope = 'carousel' OR editable_carousel_id IS NULL", name: "users_editable_carousel_scope"
+    t.check_constraint "access_scope IN ('site_wide', 'carousel')", name: "users_access_scope"
   end
 
   create_table "versions", force: :cascade do |t|
@@ -156,9 +166,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_200000) do
   add_foreign_key "figures", "carousels"
   add_foreign_key "figures", "figure_types"
   add_foreign_key "figures", "makers", column: "carver_id"
+  add_foreign_key "invitations", "carousels", column: "editable_carousel_id"
   add_foreign_key "invitations", "users", column: "invited_by_id"
   add_foreign_key "placements", "figures"
   add_foreign_key "placements", "seats"
   add_foreign_key "seats", "carousels"
   add_foreign_key "sessions", "users"
+  add_foreign_key "users", "carousels", column: "editable_carousel_id"
 end

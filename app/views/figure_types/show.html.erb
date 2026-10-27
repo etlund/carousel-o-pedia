@@ -2,7 +2,7 @@
 <header class="page-header">
   <h1><%= @figure_type.name %></h1>
   <p class="muted"><%= category_label(@figure_type.category) %> · <%= pluralize(@figures.size, "figure") %></p>
-  <%= render "shared/page_actions", edit: edit_figure_type_path(@figure_type), history: history_figure_type_path(@figure_type) %>
+  <%= render "shared/page_actions", record: @figure_type, edit: edit_figure_type_path(@figure_type), history: history_figure_type_path(@figure_type) %>
 </header>
 <div class="prose"><%= wiki_body(@figure_type.body) %></div>
 <ul>

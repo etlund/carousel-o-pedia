@@ -1,7 +1,7 @@
 <% content_for :title, "Carousels" %>
 <header class="page-header">
   <h1>Carousels</h1>
-  <% if authenticated? %><p class="page-actions"><%= link_to "Add a carousel", new_carousel_path, class: "button" %></p><% end %>
+  <% if current_user&.can_create_carousel? %><p class="page-actions"><%= link_to "Add a carousel", new_carousel_path, class: "button" %></p><% end %>
 </header>
 <%= form_with url: carousels_path, method: :get, class: "form" do |form| %>
   <div class="field-row">

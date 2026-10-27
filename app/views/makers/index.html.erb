@@ -1,7 +1,7 @@
 <% content_for :title, "Makers" %>
 <header class="page-header">
   <h1>Makers</h1>
-  <% if authenticated? %><p class="page-actions"><%= link_to "Add a maker", new_maker_path, class: "button" %></p><% end %>
+  <% if current_user&.site_wide_access? %><p class="page-actions"><%= link_to "Add a maker", new_maker_path, class: "button" %></p><% end %>
 </header>
 <p class="muted">Carvers and companies who built carousels and their figures.</p>
 <% if @makers.any? %>

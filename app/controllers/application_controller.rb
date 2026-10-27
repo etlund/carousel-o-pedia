@@ -8,7 +8,11 @@ class ApplicationController < ActionController::Base
 
   before_action :set_paper_trail_whodunnit
 
-  helper_method :current_user
+  helper_method :current_user, :can_edit?
+
+  rescue_from User::AccessDenied do
+    redirect_to root_path, alert: "You do not have permission to make that change."
+  end
 
   private
     def current_user
@@ -21,5 +25,15 @@ class ApplicationController < ActionController::Base
 
     def require_admin
       redirect_to root_path, alert: "Only admins can do that." unless current_user&.admin?
+    end
+
+    def can_edit?(record) = current_user&.can_edit?(record)
+
+    def authorize_edit!(record)
+      raise User::AccessDenied unless can_edit?(record)
+    end
+
+    def require_site_wide_access
+      raise User::AccessDenied unless current_user&.site_wide_access?
     end
 end

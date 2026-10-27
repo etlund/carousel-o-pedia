@@ -14,7 +14,7 @@
       <dt>Confidence</dt><dd><%= seat.confirmed? ? "Confirmed" : "Best reading, not yet confirmed" %></dd>
       <% unless occupied %><dt>Status</dt><dd><%= seat.state.capitalize %></dd><% end %>
     </dl>
-    <%= render "shared/page_actions", edit: edit_carousel_seat_path(seat.carousel, seat), history: history_carousel_seat_path(seat.carousel, seat),
+    <%= render "shared/page_actions", record: seat, edit: edit_carousel_seat_path(seat.carousel, seat), history: history_carousel_seat_path(seat.carousel, seat),
           edit_label: "Edit placement", history_label: "Seat history" %>
   </section>
   <% if previous_placements.any? %>

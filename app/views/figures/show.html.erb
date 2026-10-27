@@ -3,7 +3,7 @@
   <p class="muted"><%= link_to @figure.carousel.name, @figure.carousel %></p>
   <h1 id="figure-heading"><%= @figure.name %></h1>
   <p class="muted"><%= link_to @figure.figure_type.name, @figure.figure_type %><% unless @seat %> · Not currently seated<% end %></p>
-  <%= render "shared/page_actions", edit: edit_figure_path(@figure), history: history_figure_path(@figure),
+  <%= render "shared/page_actions", record: @figure, edit: edit_figure_path(@figure), history: history_figure_path(@figure),
         edit_label: "Edit figure", history_label: "Figure history" %>
 </header>
 <div class="<%= "seat-layout" if @seat %>">
