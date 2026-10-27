@@ -3,6 +3,8 @@ class CarouselsController < ApplicationController
   allow_unauthenticated_access only: :index
 
   before_action :set_carousel, only: %i[ show edit update ]
+  before_action -> { authorize_edit!(@carousel) }, only: %i[ edit update ]
+  before_action -> { raise User::AccessDenied unless current_user.can_create_carousel? }, only: %i[ new create ]
 
   def index
     @total_carousels = Carousel.count
@@ -40,8 +42,8 @@ class CarouselsController < ApplicationController
   end
 
   def create
-    @carousel = Carousel.new(carousel_params)
-    if @carousel.save
+    @carousel = current_user.create_carousel(carousel_params)
+    if @carousel.persisted?
       notice = if @carousel.layout_known?
         "Carousel added. Every seat starts as unknown; click one on the chart to fill it in."
       else

@@ -1,7 +1,7 @@
 <% content_for :title, "Figures" %>
 <header class="page-header">
   <h1>Figures</h1>
-  <% if authenticated? %><p class="page-actions"><%= link_to "Add a figure", new_figure_path, class: "button" %></p><% end %>
+  <% if current_user&.editable_carousels&.exists? %><p class="page-actions"><%= link_to "Add a figure", new_figure_path, class: "button" %></p><% end %>
 </header>
 <%= form_with url: figures_path, method: :get, class: "form" do |form| %>
   <div class="field-row">

@@ -3,6 +3,7 @@ class FiguresController < ApplicationController
   allow_unauthenticated_access only: :index
 
   before_action :set_figure, only: %i[ show edit update ]
+  before_action -> { authorize_edit!(@figure) }, only: %i[ edit update ]
 
   def index
     @carousels = Carousel.order(:name)
@@ -23,10 +24,15 @@ class FiguresController < ApplicationController
   def new
     @figure = Figure.new
     @figure.carousel = Carousel.find(params.expect(:carousel_id)) if params[:carousel_id].present?
+    unless current_user.site_wide_access?
+      @figure.carousel ||= current_user.editable_carousel
+      authorize_edit!(@figure)
+    end
   end
 
   def create
     @figure = Figure.new(figure_params)
+    authorize_edit!(@figure)
     if @figure.save
       redirect_to @figure, notice: "Figure added. Assign a seat from the carousel's seat edit page."
     else
@@ -38,7 +44,9 @@ class FiguresController < ApplicationController
   end
 
   def update
-    if @figure.update(figure_params)
+    @figure.assign_attributes(figure_params)
+    authorize_edit!(@figure)
+    if @figure.save
       redirect_to @figure, notice: "Saved."
     else
       render :edit, status: :unprocessable_entity

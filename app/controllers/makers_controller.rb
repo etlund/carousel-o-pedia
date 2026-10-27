@@ -3,6 +3,7 @@ class MakersController < ApplicationController
   allow_unauthenticated_access only: :index
 
   before_action :set_maker, only: %i[ show edit update ]
+  before_action :require_site_wide_access, only: %i[ new create edit update ]
 
   def index
     @makers = Maker.order(:name)

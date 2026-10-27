@@ -48,6 +48,10 @@ bin/rails db:migrate
 
 Admins invite editors from the Invitations page. Links expire after 14 days;
 if email is not configured, copy and send the link manually.
+Choose site-wide editing or one-carousel access. For one-carousel access, select
+an existing carousel or leave it blank so the invitee can create exactly one new
+carousel, then edit its details, figures, and seats. Shared makers and figure
+types remain read-only for these editors. Existing editors keep site-wide access.
 Invitations also provides reversible editor suspension with session revocation.
 New and existing editors must explicitly agree to the contribution terms before
 editing. New original text submitted after agreement is licensed under

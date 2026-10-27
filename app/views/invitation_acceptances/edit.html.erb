@@ -10,7 +10,7 @@
   </div>
   <div class="field"><%= form.label :password %><%= form.password_field :password, required: true, autocomplete: "new-password", maxlength: 72 %></div>
   <div class="field"><%= form.label :password_confirmation, "Password again" %><%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", maxlength: 72 %></div>
-  <p>Start with the <%= link_to "editor guide", editor_guide_path %>. Editors can edit records across the site.</p>
+  <p>Start with the <%= link_to "editor guide", editor_guide_path %>. Your access: <%= @invitation.access_description %>.</p>
   <%= render "shared/contribution_agreement_fields", form: form %>
   <div class="actions"><%= form.submit "Create my account" %></div>
 <% end %>

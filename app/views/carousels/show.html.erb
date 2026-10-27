@@ -4,7 +4,7 @@
   <h1><%= @carousel.name %></h1>
   <p class="muted address"><%= @carousel.address %></p>
   <p><%= link_to "View all figures", figures_path(carousel_id: @carousel.id) %></p>
-  <%= render "shared/page_actions", edit: edit_carousel_path(@carousel), history: history_carousel_path(@carousel) %>
+  <%= render "shared/page_actions", record: @carousel, edit: edit_carousel_path(@carousel), history: history_carousel_path(@carousel) %>
 </header>
 
 <div class="grid">

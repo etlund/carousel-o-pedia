@@ -3,6 +3,7 @@ class FigureTypesController < ApplicationController
   allow_unauthenticated_access only: :index
 
   before_action :set_figure_type, only: %i[ show edit update ]
+  before_action :require_site_wide_access, only: %i[ new create edit update ]
 
   def index
     @figure_types = FigureType.left_joins(:figures).group(:id).select("figure_types.*, COUNT(figures.id) AS figures_count").order(:category, :name)

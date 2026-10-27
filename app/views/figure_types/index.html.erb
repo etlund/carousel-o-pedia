@@ -1,7 +1,7 @@
 <% content_for :title, "Figure types" %>
 <header class="page-header">
   <h1>Figure types</h1>
-  <% if authenticated? %><p class="page-actions"><%= link_to "Add a type", new_figure_type_path, class: "button" %></p><% end %>
+  <% if current_user&.site_wide_access? %><p class="page-actions"><%= link_to "Add a type", new_figure_type_path, class: "button" %></p><% end %>
 </header>
 <% @figure_types.group_by(&:category).each do |category, types| %>
   <h2><%= category_label(category) %></h2>
