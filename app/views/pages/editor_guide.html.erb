@@ -1,0 +1,52 @@
+<% content_for :title, "Editor guide" %>
+<article class="prose">
+  <h1>Editor guide</h1>
+  <p class="lede">Start small, cite what you know, and leave uncertainty visible.</p>
+  <p>Editors can edit records across the site. Your chosen display name and saved edits appear in public history.
+    Before contributing, read and agree to the <%= link_to "contribution terms", contribution_terms_path %>.</p>
+
+  <h2>Your first edit</h2>
+  <ol>
+    <li>Pick one carousel you know. Read its source notes and history before changing it.</li>
+    <li>Choose a small task: add a source link, improve a description in your own words, or document one figure.</li>
+    <li>Sign in, choose <strong>Edit</strong>, make your change, and save. Saved changes are public immediately; there is no approval queue.</li>
+    <li>Check the page and its <strong>History</strong>. <%= link_to "Recent changes", recent_changes_path %> lists activity across the site.</li>
+  </ol>
+
+  <h2>Sources and uncertainty</h2>
+  <ul>
+    <li>Cite the operator, an archive, a publication, or another identifiable source. Include a link and the source date when available.
+      For your own observations, say when you visited and what you observed.</li>
+    <li>Use Markdown links such as <code>[Operator inventory](https://example.com/)</code> in the relevant notes or source field.
+      Write descriptions in your own words; a citation does not give permission to copy someone else's prose or photos.</li>
+    <li>Unknown is not zero. Leave unknown counts blank; enter zero only when verified.</li>
+    <li>Use <strong>confirmed</strong> for an established seat position and <strong>best reading</strong> for a tentative interpretation.
+      Explain the evidence and uncertainty in notes.</li>
+    <li>Distinguish current arrangements from historical ones. If sources disagree, record the dates and disagreement instead of guessing.</li>
+  </ul>
+
+  <h2>Figures, seats, and layouts</h2>
+  <p>A <strong>figure</strong> is a carved object. A <strong>seat</strong> is a platform position.
+    A placement connects them over time. Figures can belong to a carousel without currently occupying a seat.</p>
+  <p>A seat code such as <strong>5A</strong> means section 5 at the outer rail. Rows run from A inward;
+    sections follow the order figures pass someone standing at the rail. A chariot or tub spanning rows is one seat,
+    not several duplicate figures.</p>
+  <p>Record only known geometry. Section and row counts can be recorded independently, and rotation can remain unknown.
+    Once both dimensions are recorded, platform size is fixed in the editor.
+    Ask the administrator before establishing an uncertain layout or making substantial structural changes.</p>
+  <p>Assigning an already-seated figure to another seat moves it and leaves its old seat empty.
+    Check for an existing figure before creating one. To transfer a figure between carousels,
+    remove it from its seat, edit its carousel, and then assign a seat at the destination.</p>
+  <p><strong>Published totals</strong> describe what a source reports and require source notes.
+    Charts show mapped inventory; the two can differ. Published totals and independent ring research
+    do not create figures, seats, or placements. Never invent individual figures just to match a total.</p>
+
+  <h2>Mistakes, disagreements, and help</h2>
+  <p>For a simple typo, make a corrective edit. For a misplaced figure, duplicate record, layout problem, or uncertain correction,
+    pause and ask the administrator rather than repeatedly changing records.
+    Admin reverts restore individual updated records; they are not a universal Undo for new records or multi-step moves.</p>
+  <p>Be courteous and discuss evidence rather than people. Do not overwrite another editor's work repeatedly during a disagreement;
+    the administrator makes the final moderation decision and can suspend access.</p>
+  <p>Use your existing conversation with your inviter for help for now.
+    See <%= link_to "About / Contribute", about_path(anchor: "contact") %> for the current contact arrangements.</p>
+</article>

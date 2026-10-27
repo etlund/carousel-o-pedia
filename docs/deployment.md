@@ -86,6 +86,13 @@ Outbound email is not configured: send invitation links manually and do not
 rely on password-reset email until SMTP and a verified sender are ready.
 Other registered domains are not yet aliases or redirects.
 
+The editor-access migration adds nullable suspension and contribution-agreement
+fields without changing existing accounts' access or asserting consent.
+After deploying it, existing editors and admins must explicitly agree to the
+published terms before protected editing/admin actions. Public browsing and
+sign-out remain available. Confirm that the prospective CC BY-SA 4.0 policy
+is ready to publish before deploying; the public contact route remains deferred.
+
 ## Database backups to DigitalOcean Spaces
 
 `DatabaseBackupJob` runs daily at 03:00 in the application's time zone (UTC by

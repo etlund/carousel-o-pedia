@@ -1,0 +1,15 @@
+<% content_for :title, "Contribution agreement" %>
+<div class="prose">
+  <h1>Before you edit</h1>
+  <p>All editors, including administrators, must agree to the current contribution terms before editing.
+    You can continue browsing without agreeing, or sign out at any time.</p>
+  <p>The terms apply to new contributions after you agree. They do not automatically relicense your earlier
+    writing or third-party material. Your display name appears in public history; it does not need to be your legal name.</p>
+  <p>Read the <%= link_to "contribution terms", contribution_terms_path %> and
+    <%= link_to "editor guide", editor_guide_path %> before continuing.</p>
+</div>
+<%= form_with model: @user, url: contribution_agreement_path, method: :patch, class: "form" do |form| %>
+  <%= render "shared/errors", record: @user %>
+  <%= render "shared/contribution_agreement_fields", form: form %>
+  <div class="actions"><%= form.submit "Agree and continue" %></div>
+<% end %>

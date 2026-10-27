@@ -21,11 +21,23 @@ class InvitationsTest < ActionDispatch::IntegrationTest
 
     get edit_invitation_acceptance_path(invitation.token)
     assert_response :success
+    assert_select "label[for='user_name']", text: "Public display name"
+    assert_select "input[name='user[contribution_terms]'][type=checkbox][required]:not([checked])", 1
+    assert_select "a[href=?]", contribution_terms_path
+    assert_select "#display-name-hint", /public history/
 
-    patch invitation_acceptance_path(invitation.token), params: { user: { name: "Friend", password: "secret123", password_confirmation: "secret123" } }
+    patch invitation_acceptance_path(invitation.token), params: { user: {
+      name: "Friend", password: "secret123", password_confirmation: "secret123",
+      contribution_terms: "1", contribution_terms_version: User::CONTRIBUTION_TERMS_VERSION,
+      role: "admin", suspended_at: Time.current
+    } }
     assert_redirected_to root_path
     user = User.find_by!(email_address: "friend@example.com")
     assert_equal "editor", user.role
+    assert_not user.suspended?
+    assert user.contribution_terms_accepted?
+    assert_equal User::CONTRIBUTION_TERMS_VERSION, user.contribution_terms_version
+    assert_in_delta Time.current.to_f, user.contribution_terms_accepted_at.to_f, 5
     assert cookies[:session_id].present?
 
     get edit_invitation_acceptance_path(invitation.token)
@@ -34,7 +46,10 @@ class InvitationsTest < ActionDispatch::IntegrationTest
 
   test "mismatched passwords show the form again" do
     invitation = users(:admin).invitations.create!(email_address: "friend@example.com")
-    patch invitation_acceptance_path(invitation.token), params: { user: { name: "Friend", password: "secret123", password_confirmation: "nope" } }
+    patch invitation_acceptance_path(invitation.token), params: { user: {
+      name: "Friend", password: "secret123", password_confirmation: "nope",
+      contribution_terms: "1", contribution_terms_version: User::CONTRIBUTION_TERMS_VERSION
+    } }
     assert_response :unprocessable_entity
     assert_nil invitation.reload.accepted_at
     assert_not User.exists?(email_address: "friend@example.com")
@@ -51,5 +66,23 @@ class InvitationsTest < ActionDispatch::IntegrationTest
   test "an existing user can't be invited again" do
     invitation = users(:admin).invitations.build(email_address: users(:editor).email_address)
     assert_not invitation.valid?
+  end
+
+  test "an invitation cannot be accepted without explicit agreement to the current terms" do
+    invitation = users(:admin).invitations.create!(email_address: "friend@example.com")
+    [
+      {},
+      { contribution_terms: "0", contribution_terms_version: User::CONTRIBUTION_TERMS_VERSION },
+      { contribution_terms: "1", contribution_terms_version: "older-terms" }
+    ].each do |agreement|
+      assert_no_difference [ "User.count", "Session.count" ] do
+        patch invitation_acceptance_path(invitation.token), params: {
+          user: { name: "Friend", password: "secret123", password_confirmation: "secret123" }.merge(agreement)
+        }
+      end
+      assert_response :unprocessable_entity
+      assert_select ".flash", /Contribution terms/
+      assert_nil invitation.reload.accepted_at
+    end
   end
 end

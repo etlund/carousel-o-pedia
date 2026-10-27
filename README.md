@@ -48,6 +48,13 @@ bin/rails db:migrate
 
 Admins invite editors from the Invitations page. Links expire after 14 days;
 if email is not configured, copy and send the link manually.
+Invitations also provides reversible editor suspension with session revocation.
+New and existing editors must explicitly agree to the contribution terms before
+editing. New original text submitted after agreement is licensed under
+CC BY-SA 4.0; earlier and third-party material is not automatically relicensed.
+
+Public About / Contribute, Editor guide, and Contribution terms & privacy pages
+are linked in the footer. The public contact route is still pending.
 
 To create the first administrator:
 

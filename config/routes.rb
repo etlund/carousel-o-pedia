@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
   root "carousels#index"
+  get "about", to: "pages#about", as: :about
+  get "editor-guide", to: "pages#editor_guide", as: :editor_guide
+  get "contribution-terms", to: "pages#contribution_terms", as: :contribution_terms
+  resource :contribution_agreement, only: %i[ edit update ]
 
   concern :historical do
     get :history, on: :member
@@ -22,6 +26,9 @@ Rails.application.routes.draw do
   post "versions/:id/revert", to: "versions#revert", as: :revert_version
 
   resources :invitations, only: %i[ index create destroy ]
+  resources :editors, only: [] do
+    resource :suspension, only: %i[ create destroy ], controller: "editor_suspensions"
+  end
   resources :invitation_acceptances, path: "invitations/accept", param: :token, only: %i[ edit update ]
   resource :session
   resources :passwords, param: :token

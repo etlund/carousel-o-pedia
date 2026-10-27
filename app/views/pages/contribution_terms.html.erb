@@ -1,0 +1,46 @@
+<% content_for :title, "Contribution terms & privacy" %>
+<article class="prose">
+  <h1>Contribution terms &amp; privacy</h1>
+  <p>Version <strong><%= User::CONTRIBUTION_TERMS_VERSION %></strong>. These terms apply to contributions submitted after you agree.
+    All editors, including administrators and existing account holders, must agree before further editing.</p>
+
+  <h2 id="license">License for new contributions</h2>
+  <p>By agreeing, you license the new original text you contribute to carousel-o-pedia under
+    <%= link_to "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)", "https://creativecommons.org/licenses/by-sa/4.0/" %>.
+    You retain your copyright and permit others to share and adapt that text, including commercially,
+    subject to the license's attribution and ShareAlike requirements.
+    Read the <%= link_to "full legal terms", "https://creativecommons.org/licenses/by-sa/4.0/legalcode.en" %> for the governing license.</p>
+  <p>Your agreement does not automatically relicense earlier contributions or material owned by someone else.
+    It covers your new original writing, not rights you do not own. Citations, external links, quotations,
+    and pre-existing material are not blanket-licensed by this policy. Facts themselves may not be protected by copyright.</p>
+  <p>Credit contributors using the page URL and its public history, identify the license, and indicate changes as required by CC BY-SA.
+    Check the history and source notes before reusing material: this is not a claim that every existing page or passage is CC BY-SA.
+    A later account suspension or end to your participation does not revoke a license already granted for your contributions.</p>
+
+  <h2 id="conduct">Contribution ground rules</h2>
+  <ul>
+    <li>Submit your own writing and only material you have the right to contribute under these terms.
+      Do not paste copyrighted descriptions from other sites. Citing a source is not permission to copy it.</li>
+    <li>Cite factual changes, distinguish observations from inferences, and leave unknown values unknown.
+      Follow the <%= link_to "editor guide", editor_guide_path %>.</li>
+    <li>Do not post private personal information, harassment, spam, or misleading material.</li>
+    <li>Edits are public immediately and may be corrected or reverted. Discuss disagreements respectfully;
+      the administrator makes final moderation decisions and may suspend or restore editor access.</li>
+  </ul>
+
+  <h2 id="privacy">Accounts and privacy</h2>
+  <p>Your chosen display name, contributions, and edit history are public. Use a display name you are comfortable publishing;
+    it does not have to be your legal name. Do not put private information in edits: earlier versions can remain in public history.</p>
+  <p>The site stores your email address, display name, role, password hash, and the version and time of your contribution agreement.
+    Email addresses are visible to administrators, not shown as public edit attribution.
+    Sign-in sessions store an IP address, browser user agent, and timestamps.
+    Cookies maintain sign-in and session state. Operational logs and private backups may also contain account or request data.</p>
+  <p>The site loads fonts from Google Fonts, which receives browser requests.
+    Following external source links takes you to sites with their own privacy practices.</p>
+  <p>Suspension prevents sign-in and editing and revokes existing sessions; it does not delete your account or remove attribution.
+    Account information and history are retained for administration, attribution, and recovery.
+    Avoid sharing passwords or invitation links.
+    For account questions, content concerns, or privacy requests, see the
+    <%= link_to "current contact arrangements", about_path(anchor: "contact") %>.
+    There is no public contact address yet.</p>
+</article>

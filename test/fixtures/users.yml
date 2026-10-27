@@ -5,9 +5,13 @@ admin:
   email_address: admin@example.com
   password_digest: <%= password_digest %>
   role: admin
+  contribution_terms_version: "2026-10-27"
+  contribution_terms_accepted_at: 2026-10-27 20:00:00
 
 editor:
   name: Ed Editor
   email_address: editor@example.com
   password_digest: <%= password_digest %>
   role: editor
+  contribution_terms_version: "2026-10-27"
+  contribution_terms_accepted_at: 2026-10-27 20:00:00

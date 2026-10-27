@@ -57,6 +57,51 @@ revoke that user's sessions. For a prepared production database, explicitly set
 Records keep edit history through PaperTrail. History pages show earlier
 versions, Recent changes lists edits, and admins can revert edits.
 
+### Contributor guidance and agreement
+
+The public **About / Contribute** page (`/about`) explains the pilot and how to
+contribute. The **Editor guide** (`/editor-guide`) covers first edits, sourcing,
+uncertainty, seating conventions, and corrections. **Contribution terms &
+privacy** (`/contribution-terms`) describes conduct, public attribution, account
+data, and the prospective CC BY-SA 4.0 license for new original contributed text.
+These pages are linked in every page's footer.
+
+Invited editors must explicitly agree when accepting an invitation. Existing
+editors and administrators must agree before opening editing forms or submitting
+protected changes. Browsing, reading the terms, and signing out remain available
+without agreement. Acceptance records the submitted terms version and
+server-side timestamp; a stale version cannot be accepted. Earlier contributions
+and third-party material are not automatically relicensed.
+
+No existing accounts are marked as having agreed by the migration. When changing
+the terms, preserve a copy of the previous policy, update the public text and
+`User::CONTRIBUTION_TERMS_VERSION` together, and require renewed agreement.
+Do not backfill acceptance on behalf of contributors.
+
+Display names appear publicly with edits and do not have to be legal names.
+Editors can work on records across the site. Saved changes are public
+immediately, not held for approval. Admin reverts restore individual updated
+records, not new records or an entire multi-record move.
+
+A public contact address is deliberately not configured yet. The About page
+directs existing contacts to their conversation with the inviter/site sharer and
+asks other visitors to check back. Replace that interim guidance with the real
+contact route in the About page, editor guide, and contribution terms when ready.
+
+### Suspending and restoring editors
+
+Admins manage access in the **Editors** section of **Invitations**:
+
+- **Suspend** disables sign-in and editing and revokes all of the editor's
+  sessions. The account, contributions, and public attribution remain intact.
+- **Restore access** allows a fresh sign-in; old sessions remain invalid.
+  Resetting a password does not lift suspension.
+- Administrators cannot be suspended through these controls. No account-deletion
+  action is provided; do not delete accounts to revoke editing access.
+
+Pending invitations can still be withdrawn separately. Withdrawing an invitation
+does not suspend an accepted account.
+
 ## Core records
 
 - **Carousel**: location, operating status, website links, sourced published

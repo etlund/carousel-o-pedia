@@ -29,8 +29,23 @@
 <% end %>
 
 <h2>Editors</h2>
+<p>Suspending an editor prevents sign-in and editing and revokes all their sessions.
+  Their account and public edit attribution are preserved. Restoring access lets them sign in again.
+  Administrators cannot be suspended here.</p>
 <ul>
   <% @users.each do |user| %>
-    <li><%= user.name %> <span class="muted">· <%= user.email_address %><%= " · admin" if user.admin? %></span></li>
+    <li>
+      <%= user.name %> <span class="muted">· <%= user.email_address %><%= " · admin" if user.admin? %></span>
+      <% if user.suspended? %><strong>Suspended</strong><% end %>
+      <span class="muted">· <%= user.contribution_terms_accepted? ? "Current terms agreed" : "Terms agreement needed" %></span>
+      <% unless user.admin? %>
+        <% if user.suspended? %>
+          <%= button_to "Restore access for #{user.name}", editor_suspension_path(user), method: :delete, class: "link-button" %>
+        <% else %>
+          <%= button_to "Suspend #{user.name}", editor_suspension_path(user), class: "link-button",
+            form: { data: { turbo_confirm: "Suspend #{user.name}? They will be signed out on all devices and cannot sign in until access is restored." } } %>
+        <% end %>
+      <% end %>
+    </li>
   <% end %>
 </ul>

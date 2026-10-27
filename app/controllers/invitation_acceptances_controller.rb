@@ -9,8 +9,10 @@ class InvitationAcceptancesController < ApplicationController
   end
 
   def update
-    user = @invitation.accept!(**params.expect(user: %i[ name password password_confirmation ]).to_h.symbolize_keys)
-    start_new_session_for user
+    user = @invitation.accept!(**params.expect(user: %i[
+      name password password_confirmation contribution_terms contribution_terms_version
+    ]).to_h.symbolize_keys)
+    return unless start_new_session_for(user)
     redirect_to root_path, notice: "Welcome, #{user.name}. You can edit any page now."
   rescue ActiveRecord::RecordInvalid => error
     @user = error.record
