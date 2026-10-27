@@ -443,6 +443,44 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_no_selector ".seat-context dt", text: "Seat", exact_text: true
   end
 
+  test "all seat badge wedges have gray outlines regardless of category or state" do
+    carousel = Carousel.find_by!(slug: "great-northern-carousel")
+    categories = %w[ horse menagerie chariot ]
+    visit figures_path(carousel_id: carousel.id)
+    categories.each { |category| assert_selector "svg.seat-badge.small.#{category}" }
+    assert_equal [ "rgb(128, 128, 128)" ], page.evaluate_script(<<~JS)
+      Array.from(new Set(Array.from(document.querySelectorAll(".seat-badge .band"),
+        band => getComputedStyle(band).stroke)))
+    JS
+
+    unassigned = build_carousel(rows: 3)
+    unassigned.seat("1A").update!(state: "empty")
+    paths = categories.map do |category|
+      figure = carousel.seats.find { |seat| seat.category == category }.figure
+      [ figure_path(figure), category ]
+    end
+    paths += [ [ carousel_seat_path(unassigned, unassigned.seat("1A")), "empty" ],
+      [ carousel_seat_path(unassigned, unassigned.seat("1B")), "unknown" ] ]
+
+    paths.each do |path, kind|
+      visit path
+      badge = find("svg.seat-badge.large.#{kind}")
+      strokes = badge.evaluate_script(<<~JS)
+        Array.from(this.querySelectorAll(".band"), band => {
+          const style = getComputedStyle(band);
+          return { color: style.stroke, width: style.strokeWidth, dash: style.strokeDasharray,
+            active: band.classList.contains("on") };
+        })
+      JS
+      assert_equal [ "rgb(128, 128, 128)" ], strokes.map { |stroke| stroke.fetch("color") }.uniq
+      assert_equal [ "0.75px" ], strokes.map { |stroke| stroke.fetch("width") }.uniq
+      strokes.each do |stroke|
+        dashed = %w[ empty unknown ].include?(kind) && stroke.fetch("active")
+        assert_equal dashed ? "2px, 1.5px" : "none", stroke.fetch("dash")
+      end
+    end
+  end
+
   test "seat numbers fit to the left of the wedge in large and small badges" do
     carousel = build_carousel(sections: 120, rows: 1)
     seat = carousel.seat("120A")

@@ -16,7 +16,7 @@ Carousels default to **With data first**: entries with figure inventory (includi
 
 Every seat has a code of section number plus row letter. Seat badges put the red section number outside the wide left edge of the row-letter wedge. Row A is on the left at the outer rail; subsequent rows run inward toward the narrow right edge, with upright letters. Rows are lettered from the outside in, so `5A` is section 5, outer row. Sections are numbered in the order figures pass someone standing at the rail.
 
-On figure and seat detail pages, each row letter in the large seat badge links to the current figure in that section, or to the seat details if the position is empty or unknown. Rows covered by a spanning figure all link to that figure.
+On figure and seat detail pages, each row letter in the large seat badge links to the current figure in that section, or to the seat details if the position is empty or unknown. Rows covered by a spanning figure all link to that figure. All wedges in both badge sizes have the same medium-gray outline, including highlighted rows; empty and unknown highlights retain their dashed outlines.
 
 Mount types use shared monochrome SVG symbols: a vertical double arrow for jumper, a horizontal line for stander, a circular arrow for spinning, and a solid square for fixed. They appear beside seat codes in the full-size chart, beside figure names in the sections table and figures list, and alongside the mount text in figure details. The chart legend explains the symbols; chart hover text and standalone icons provide the mount name. Unknown mounts have no icon. Miniature charts, seat-position badges, and ring research remain unchanged.
 
