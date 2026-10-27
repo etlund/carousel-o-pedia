@@ -9,7 +9,7 @@ class CarouselsController < ApplicationController
     @query = params.expect(:q).strip.presence if params[:q].present?
     @selected_region = params.expect(:region).strip.presence if params[:region].present?
     @sort = params[:sort].present? ? params.expect(:sort).strip.presence : nil
-    @sort ||= "updated"
+    @sort ||= "completeness"
     @sort = "completeness" if @sort == "confirmed_seats"
     raise ActionController::BadRequest, "Unknown carousel sort order" unless %w[ name updated completeness ].include?(@sort)
 

@@ -134,15 +134,20 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_equal [ "1", "0", "1" ], css_select(".figure-count").map(&:text)
   end
 
-  test "carousels default to last updated and support a retained alphabetical sort" do
+  test "carousels default to most complete and retain explicit recency and alphabetical sorts" do
     travel_to 1.day.from_now do
       @carousel.update!(body: "Recently researched carousel")
     end
     get carousels_path
     assert_response :success
+    assert_equal Carousel.most_complete.order(:name, :id).pluck(:name), css_select(".cards h2 a").map(&:text)
+    assert_select "select[name=sort] option[selected][value=completeness]"
+    assert_equal %w[ name updated completeness ], css_select("select[name=sort] option").map { _1["value"] }
+
+    get carousels_path, params: { sort: "updated" }
+    assert_response :success
     assert_equal @carousel.name, css_select(".cards h2 a").first.text
     assert_select "select[name=sort] option[selected][value=updated]"
-    assert_equal %w[ name updated completeness ], css_select("select[name=sort] option").map { _1["value"] }
 
     get carousels_path, params: { sort: "name" }
     assert_response :success
@@ -224,9 +229,12 @@ class PagesTest < ActionDispatch::IntegrationTest
   end
 
   test "carousel sort defaults on blank input and rejects invalid selections" do
-    get carousels_path, params: { sort: " " }
-    assert_response :success
-    assert_select "select[name=sort] option[selected][value=updated]"
+    [ "", " " ].each do |sort|
+      get carousels_path, params: { sort: }
+      assert_response :success
+      assert_select "select[name=sort] option[selected][value=completeness]"
+      assert_equal Carousel.most_complete.order(:name, :id).pluck(:name), css_select(".cards h2 a").map(&:text)
+    end
 
     [ "unknown", "data_first", "name DESC", [ "name" ], { order: "name" } ].each do |sort|
       get carousels_path, params: { sort: }

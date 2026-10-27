@@ -372,12 +372,21 @@ class SeatChartTest < ApplicationSystemTestCase
     page.current_window.resize_to(1400, 1400)
   end
 
-  test "carousel sorting defaults to last updated and works with filters" do
+  test "carousel sorting defaults to most complete and works with filters" do
     latest = Carousel.find_by!(slug: "great-northern-carousel")
     travel_to 1.day.from_now do
       latest.update!(body: "Latest research")
     end
+    expected = Carousel.includes(:seats).sort_by do |carousel|
+      [ -carousel.seats.count(&:confirmed?), -carousel.seats.count { !_1.confirmed? },
+        carousel.rows_count || carousel.sections_count ? 0 : 1, carousel.name, carousel.id ]
+    end.map(&:name)
     visit carousels_path
+    assert_selector :select, "Sort", selected: "Most complete"
+    assert_equal expected, all(".cards h2 a").map(&:text)
+
+    select "Last updated", from: "Sort"
+    click_on "Filter"
     assert_selector :select, "Sort", selected: "Last updated"
     assert_equal latest.name, all(".cards h2 a").first.text
 
@@ -390,10 +399,6 @@ class SeatChartTest < ApplicationSystemTestCase
     click_on "Filter"
     assert_selector :select, "Sort", selected: "Most complete"
     assert_selector ".seating-completeness", count: Carousel.count
-    expected = Carousel.includes(:seats).sort_by do |carousel|
-      [ -carousel.seats.count(&:confirmed?), -carousel.seats.count { !_1.confirmed? },
-        carousel.rows_count || carousel.sections_count ? 0 : 1, carousel.name, carousel.id ]
-    end.map(&:name)
     assert_equal expected, all(".cards h2 a").map(&:text)
 
     fill_in "Name", with: "looff"
@@ -417,8 +422,8 @@ class SeatChartTest < ApplicationSystemTestCase
 
     click_on "Clear filters"
     assert_selector ".cards > li.card", count: 54
-    assert_selector :select, "Sort", selected: "Last updated"
-    assert_equal latest.name, all(".cards h2 a").first.text
+    assert_selector :select, "Sort", selected: "Most complete"
+    assert_equal expected, all(".cards h2 a").map(&:text)
   end
 
   test "carousel name and state filters combine retain selections and clear" do
