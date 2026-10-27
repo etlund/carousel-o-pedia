@@ -9,15 +9,17 @@ class CarouselsController < ApplicationController
     @query = params.expect(:q).strip.presence if params[:q].present?
     @selected_region = params.expect(:region).strip.presence if params[:region].present?
     @sort = params[:sort].present? ? params.expect(:sort).strip.presence : nil
-    @sort ||= "data_first"
-    raise ActionController::BadRequest, "Unknown carousel sort order" unless %w[ data_first name ].include?(@sort)
+    @sort ||= "updated"
+    @sort = "completeness" if @sort == "confirmed_seats"
+    raise ActionController::BadRequest, "Unknown carousel sort order" unless %w[ name updated completeness ].include?(@sort)
 
     if @selected_region && !@regions.include?(@selected_region)
       raise ActiveRecord::RecordNotFound, "Unknown state or region"
     end
 
     @carousels = Carousel.includes(:maker, seats: { current_placement: { figure: :figure_type } })
-    @carousels = @carousels.with_data_first if @sort == "data_first"
+    @carousels = @carousels.recently_updated if @sort == "updated"
+    @carousels = @carousels.most_complete if @sort == "completeness"
     @carousels = @carousels.order(:name, :id)
     if @query
       @carousels = @carousels.where("LOWER(name) LIKE ? ESCAPE '!'", "%#{Carousel.sanitize_sql_like(@query.downcase, "!")}%")

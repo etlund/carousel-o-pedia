@@ -334,16 +334,67 @@ class SeatChartTest < ApplicationSystemTestCase
     end
   end
 
-  test "carousel sorting puts researched entries first and works with filters" do
+  test "carousel card charts sit left of facts without overflow at desktop and mobile widths" do
     visit carousels_path
-    assert_selector :select, "Sort", selected: "With data first"
-    assert_equal [ "A Carousel for Missoula", "Bushnell Park Carousel", "Cafesjian's Carousel", "Dorothea Laub Balboa Park Carousel" ],
-      all(".cards h2 a").first(4).map(&:text)
+    [ 1400, 940, 390, 320 ].each do |width|
+      page.current_window.resize_to(width, 1000)
+      measurements = page.evaluate_script(<<~JS)
+        Array.from(document.querySelectorAll(".card-seating"), seating => {
+          const chart = seating.querySelector(".mini-seat-chart-link").getBoundingClientRect();
+          const facts = seating.querySelector(".facts").getBoundingClientRect();
+          const bounds = seating.getBoundingClientRect();
+          return {
+            chartWidth: chart.width,
+            chartLeft: chart.left,
+            chartRight: chart.right,
+            factsLeft: facts.left,
+            factsRight: facts.right,
+            left: bounds.left,
+            right: bounds.right,
+            factsFit: Array.from(seating.querySelectorAll("dt, dd")).every(fact => {
+              const rect = fact.getBoundingClientRect();
+              return rect.left >= facts.left && rect.right <= facts.right && fact.scrollWidth <= fact.clientWidth + 1;
+            })
+          };
+        })
+      JS
+      assert_equal Carousel.count, measurements.size
+      measurements.each do |measurement|
+        assert_in_delta 112, measurement.fetch("chartWidth"), 0.1
+        assert_operator measurement.fetch("chartRight"), :<, measurement.fetch("factsLeft")
+        assert_operator measurement.fetch("chartLeft"), :>=, measurement.fetch("left")
+        assert_operator measurement.fetch("factsRight"), :<=, measurement.fetch("right") + 0.1
+        assert measurement.fetch("factsFit"), "Facts overflow at #{width}px"
+      end
+      assert_not page.evaluate_script("document.documentElement.scrollWidth > document.documentElement.clientWidth")
+    end
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
+  test "carousel sorting defaults to last updated and works with filters" do
+    latest = Carousel.find_by!(slug: "great-northern-carousel")
+    travel_to 1.day.from_now do
+      latest.update!(body: "Latest research")
+    end
+    visit carousels_path
+    assert_selector :select, "Sort", selected: "Last updated"
+    assert_equal latest.name, all(".cards h2 a").first.text
 
     select "Name (A-Z)", from: "Sort"
     click_on "Filter"
     assert_selector :select, "Sort", selected: "Name (A-Z)"
     assert_equal Carousel.order(:name, :id).pluck(:name), all(".cards h2 a").map(&:text)
+
+    select "Most complete", from: "Sort"
+    click_on "Filter"
+    assert_selector :select, "Sort", selected: "Most complete"
+    assert_selector ".seating-completeness", count: Carousel.count
+    expected = Carousel.includes(:seats).sort_by do |carousel|
+      [ -carousel.seats.count(&:confirmed?), -carousel.seats.count { !_1.confirmed? },
+        carousel.rows_count || carousel.sections_count ? 0 : 1, carousel.name, carousel.id ]
+    end.map(&:name)
+    assert_equal expected, all(".cards h2 a").map(&:text)
 
     fill_in "Name", with: "looff"
     select "California", from: "State"
@@ -351,13 +402,23 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_selector ".cards > li.card", count: 1
     assert_field "Name", with: "looff"
     assert_selector :select, "State", selected: "California"
-    assert_selector :select, "Sort", selected: "Name (A-Z)"
+    assert_selector :select, "Sort", selected: "Most complete"
+    assert_equal "completeness", Rack::Utils.parse_query(URI.parse(page.current_url).query).fetch("sort")
+
+    select "Last updated", from: "Sort"
+    click_on "Filter"
+    assert_selector ".cards > li.card", count: 1
+    assert_field "Name", with: "looff"
+    assert_selector :select, "State", selected: "California"
+    assert_selector :select, "Sort", selected: "Last updated"
+    assert_current_path carousels_path, ignore_query: true
+    assert_equal({ "q" => "looff", "region" => "California", "sort" => "updated", "commit" => "Filter" },
+      Rack::Utils.parse_query(URI.parse(page.current_url).query))
 
     click_on "Clear filters"
     assert_selector ".cards > li.card", count: 54
-    assert_selector :select, "Sort", selected: "With data first"
-    assert_equal [ "A Carousel for Missoula", "Bushnell Park Carousel", "Cafesjian's Carousel", "Dorothea Laub Balboa Park Carousel" ],
-      all(".cards h2 a").first(4).map(&:text)
+    assert_selector :select, "Sort", selected: "Last updated"
+    assert_equal latest.name, all(".cards h2 a").first.text
   end
 
   test "carousel name and state filters combine retain selections and clear" do

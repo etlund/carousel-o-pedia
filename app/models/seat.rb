@@ -1,11 +1,11 @@
 class Seat < ApplicationRecord
-  has_paper_trail
+  has_paper_trail on: %i[ create update destroy ]
 
   STATES = %w[ filled empty unknown ].freeze
   CONFIDENCES = %w[ confirmed best_reading ].freeze
   CODE_FORMAT = /\A(\d+)([A-Z])\z/
 
-  belongs_to :carousel
+  belongs_to :carousel, touch: true
   has_many :placements, -> { order(started_on: :desc) }, dependent: :destroy
   has_one :current_placement, -> { where(ended_on: nil) }, class_name: "Placement", inverse_of: :seat
 

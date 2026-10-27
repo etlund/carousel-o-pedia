@@ -18,6 +18,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     get carousels_path
     assert_response :success
     assert_select "svg.mini-seat-chart", Carousel.count
+    assert_select ".card-seating > a.mini-seat-chart-link + dl.facts", Carousel.count
     {
       "great-northern-carousel" => [ 18, 19, 2 ],
       "a-carousel-for-missoula" => [ 37, 1, 2 ],
@@ -133,12 +134,15 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_equal [ "1", "0", "1" ], css_select(".figure-count").map(&:text)
   end
 
-  test "carousels default to data first and support a retained alphabetical sort" do
+  test "carousels default to last updated and support a retained alphabetical sort" do
+    travel_to 1.day.from_now do
+      @carousel.update!(body: "Recently researched carousel")
+    end
     get carousels_path
     assert_response :success
-    assert_equal [ "A Carousel for Missoula", "Bushnell Park Carousel", "Cafesjian's Carousel", "Dorothea Laub Balboa Park Carousel" ],
-      css_select(".cards h2 a").first(4).map(&:text)
-    assert_select "select[name=sort] option[selected][value=data_first]"
+    assert_equal @carousel.name, css_select(".cards h2 a").first.text
+    assert_select "select[name=sort] option[selected][value=updated]"
+    assert_equal %w[ name updated completeness ], css_select("select[name=sort] option").map { _1["value"] }
 
     get carousels_path, params: { sort: "name" }
     assert_response :success
@@ -146,13 +150,15 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "select[name=sort] option[selected][value=name]"
   end
 
-  test "data first and alphabetical sorts work with combined filters and unseated inventory" do
+  test "last updated and alphabetical sorts work with combined filters and unseated inventory" do
     directory = Carousel.create!(name: "Sort check A Directory", region: "Montana")
     inventory = Carousel.create!(name: "Sort check Z Inventory", region: "Montana")
-    create_figure("Unseated reserve", carousel: inventory)
+    travel_to 1.day.from_now do
+      create_figure("Unseated reserve", carousel: inventory)
+    end
     Carousel.create!(name: "Sort check Another state", region: "California")
 
-    [ [ "data_first", [ inventory.name, directory.name ] ], [ "name", [ directory.name, inventory.name ] ] ].each do |sort, expected|
+    [ [ "updated", [ inventory.name, directory.name ] ], [ "name", [ directory.name, inventory.name ] ] ].each do |sort, expected|
       get carousels_path, params: { q: "Sort check", region: "Montana", sort: }
       assert_response :success
       assert_equal expected, css_select(".cards h2 a").map(&:text)
@@ -161,25 +167,75 @@ class PagesTest < ActionDispatch::IntegrationTest
       assert_select "select[name=sort] option[selected][value=?]", sort
     end
 
-    get carousels_path, params: { q: "No matching carousel", sort: "name" }
+    %w[ name updated completeness ].each do |sort|
+      get carousels_path, params: { q: "No matching carousel", sort: }
+      assert_response :success
+      assert_select "main p", "No carousels match these filters."
+      assert_select "select[name=sort] option[selected][value=?]", sort
+    end
+  end
+
+  test "completeness sort retains filters and cards describe each level of seating knowledge" do
+    leader = build_carousel
+    leader.update!(name: "Confirmed sort A Leader", region: "Montana")
+    leader.seat("1A").update!(confidence: "confirmed")
+    leader.seat("1B").update!(confidence: "confirmed", state: "empty")
+    runner_up = build_carousel(sections: 5)
+    runner_up.update!(name: "Confirmed sort ZZ Runner up", region: "Montana")
+    runner_up.seat("1A").update!(confidence: "confirmed")
+    estimated = build_carousel
+    estimated.update!(name: "Confirmed sort Z Estimated", region: "Montana")
+    partial = Carousel.create!(name: "Confirmed sort ZZ Partial", rows_count: 3, region: "Montana")
+    directory = Carousel.create!(name: "Confirmed sort 0 Directory", region: "Montana")
+    excluded = build_carousel
+    excluded.update!(name: "Confirmed sort Another state", region: "California")
+    excluded.seats.each { _1.update!(confidence: "confirmed") }
+
+    get carousels_path, params: { q: "Confirmed sort", region: "Montana", sort: "completeness" }
     assert_response :success
-    assert_select "main p", "No carousels match these filters."
-    assert_select "select[name=sort] option[selected][value=name]"
+    assert_equal [ leader.name, runner_up.name, estimated.name, partial.name, directory.name ], css_select(".cards h2 a").map(&:text)
+    assert_select "input[name=q][value='Confirmed sort']"
+    assert_select "select[name=region] option[selected][value=Montana]"
+    assert_select "select[name=sort] option[selected][value=completeness]", text: "Most complete"
+    {
+      leader => "2 confirmed \u00b7 6 best reading",
+      runner_up => "1 confirmed \u00b7 9 best reading",
+      estimated => "0 confirmed \u00b7 8 best reading",
+      partial => "3 rows recorded \u00b7 sections unknown",
+      directory => "Layout unknown"
+    }.each do |carousel, summary|
+      assert_select "li.card:has(h2 a[href='#{carousel_path(carousel)}']) .seating-completeness",
+        text: "Seating completeness: #{summary}"
+    end
+
+    leader.seat("1B").update!(confidence: "best_reading")
+    get carousels_path, params: { q: "Confirmed sort", region: "Montana", sort: "completeness" }
+    assert_response :success
+    assert_equal [ runner_up.name, leader.name, estimated.name, partial.name, directory.name ], css_select(".cards h2 a").map(&:text)
+    assert_select "li.card:has(h2 a[href='#{carousel_path(leader)}']) .seating-completeness",
+      text: "Seating completeness: 1 confirmed \u00b7 7 best reading"
+  end
+
+  test "previous confirmed seat sort URLs select the renamed completeness sort" do
+    get carousels_path, params: { sort: "confirmed_seats" }
+    assert_response :success
+    assert_select "select[name=sort] option[selected][value=completeness]", text: "Most complete"
+    assert_select "select[name=sort] option[value=confirmed_seats]", 0
   end
 
   test "carousel sort defaults on blank input and rejects invalid selections" do
     get carousels_path, params: { sort: " " }
     assert_response :success
-    assert_select "select[name=sort] option[selected][value=data_first]"
+    assert_select "select[name=sort] option[selected][value=updated]"
 
-    [ "unknown", "name DESC", [ "name" ], { order: "name" } ].each do |sort|
+    [ "unknown", "data_first", "name DESC", [ "name" ], { order: "name" } ].each do |sort|
       get carousels_path, params: { sort: }
       assert_response :bad_request
     end
   end
 
   test "carousel name search is case insensitive partial and retains its value" do
-    get carousels_path, params: { q: "  lOoFf  " }
+    get carousels_path, params: { q: "  lOoFf  ", sort: "name" }
     assert_response :success
     assert_equal [ "Looff Carrousel", "Santa Cruz Beach Boardwalk Looff Carousel" ], css_select(".cards h2 a").map(&:text)
     assert_select "input[type=search][name=q][value=?]", "lOoFf"
@@ -192,7 +248,7 @@ class PagesTest < ActionDispatch::IntegrationTest
   end
 
   test "carousel state filter combines with name and retains all state options" do
-    get carousels_path, params: { region: "Montana" }
+    get carousels_path, params: { region: "Montana", sort: "name" }
     assert_response :success
     assert_equal [ "A Carousel for Missoula", "Great Northern Carousel" ], css_select(".cards h2 a").map(&:text)
     assert_select "select[name=region] option[selected][value=Montana]"
@@ -201,9 +257,9 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "select[name=region] option[value='']", text: "All states"
     assert_equal [ 18, 19, 2 ].map(&:to_s), css_select("li.card:has(h2 a[href='#{carousel_path(@carousel)}']) .facts dd").map(&:text)
 
-    get carousels_path, params: { q: "carousel", region: "New York" }
+    get carousels_path, params: { q: "carousel", region: "New York", sort: "name" }
     assert_response :success
-    expected = [ "Jane's Carousel", "Eldridge Park Carousel", "Greenport Carousel", "Seabreeze Carousel" ]
+    expected = [ "Eldridge Park Carousel", "Greenport Carousel", "Jane's Carousel", "Seabreeze Carousel" ]
     assert_equal expected, css_select(".cards h2 a").map(&:text)
     assert_select "input[name=q][value=carousel]"
     assert_select "select[name=region] option[selected][value='New York']"

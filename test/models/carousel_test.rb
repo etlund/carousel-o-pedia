@@ -28,22 +28,73 @@ class CarouselTest < ActiveSupport::TestCase
     end
   end
 
-  test "data first includes unseated inventory or known layouts without duplicating carousels" do
+  test "last updated includes existing child timestamps and orders ties by name and id" do
     directory = Carousel.create!(name: "AAA Directory")
-    notes_only = Carousel.create!(name: "BBB Notes", body: "Some history", official_url: "https://example.com/")
-    inventory = Carousel.create!(name: "ZZZ Inventory")
+    duplicate = Carousel.create!(name: "AAA Directory")
+    notes = Carousel.create!(name: "BBB Notes")
+    inventory = Carousel.create!(name: "Inventory")
     reserve = create_figure("Unseated reserve", carousel: inventory)
-    layout = Carousel.create!(name: "YYY Layout", sections_count: 2, rows_count: 2)
-    both = Carousel.create!(name: "MMM Both", sections_count: 2, rows_count: 2)
-    2.times { |number| create_figure("Figure #{number}", carousel: both) }
-    ids = [ directory, notes_only, inventory, layout, both ].map(&:id)
+    layout = build_carousel
+    placed = build_carousel
+    figure = create_figure("Placed figure", carousel: placed)
+    placement = Placement.create!(seat: placed.seat("1A"), figure:)
+    carousels = [ directory, duplicate, notes, inventory, layout, placed ]
+    baseline = Time.zone.local(2026, 1, 1)
 
-    ordered = Carousel.where(id: ids).with_data_first.order(:name, :id)
-    assert_equal [ both.id, layout.id, inventory.id, directory.id, notes_only.id ], ordered.ids
+    carousels.each { _1.update_columns(updated_at: baseline) }
+    Seat.where(carousel: [ layout, placed ]).update_all(updated_at: baseline)
+    figure.update_columns(updated_at: baseline)
+    notes.update_columns(updated_at: baseline + 1.hour)
+    reserve.update_columns(updated_at: baseline + 2.hours)
+    layout.seat("1A").update_columns(updated_at: baseline + 3.hours)
+    placement.update_columns(updated_at: baseline + 4.hours)
+
+    ordered = Carousel.where(id: carousels).recently_updated.order(:name, :id)
+    assert_equal [ placed.id, layout.id, inventory.id, notes.id, directory.id, duplicate.id ], ordered.ids
     assert_nil reserve.seat
+  end
 
-    reserve.destroy!
-    assert_equal [ both.id, layout.id, directory.id, notes_only.id, inventory.id ], ordered.ids
+  test "seating completeness uses confidence counts and partial layouts before alphabetical and id ties" do
+    directory = Carousel.create!(name: "Zero A Directory")
+    unconfirmed = build_carousel
+    unconfirmed.update!(name: "Zero Z Layout")
+    rows_only = Carousel.create!(name: "Zero ZZ Rows", rows_count: 3)
+    sections_only = Carousel.create!(name: "Zero ZZZ Sections", sections_count: 12)
+    spanning = build_carousel(rows: 3)
+    estimated = build_carousel(sections: 5)
+    estimated.update!(name: "Z Estimated")
+    estimated.seat("1A").update!(confidence: "confirmed")
+    estimated.seat("1B").update!(confidence: "confirmed")
+    twins = 3.times.map do |index|
+      carousel = build_carousel
+      carousel.update!(name: index.zero? ? "Alphabetical" : "Twin")
+      carousel.seat("1A").update!(confidence: "confirmed", state: "empty")
+      carousel.seat("1B").update!(confidence: "confirmed", state: "unknown")
+      carousel
+    end
+    seat = spanning.seat("1A")
+    seat.update!(rows_spanned: 3, confidence: "confirmed")
+    2.times do |index|
+      SeatAssignment.new(seat, create_figure("Vehicle #{index}", category: "chariot", carousel: spanning)).save!
+    end
+    carousels = [ directory, unconfirmed, rows_only, sections_only, spanning, estimated, *twins ]
+
+    ordered = Carousel.where(id: carousels).most_complete.order(:name, :id)
+    assert_equal [ estimated.id, *twins.map(&:id), spanning.id, unconfirmed.id, rows_only.id, sections_only.id, directory.id ], ordered.ids
+    assert_equal 2, seat.placements.count
+    assert_equal 3, seat.rows_spanned
+    assert_equal Carousel::SeatingCompleteness.new(confirmed_seats: 1, best_reading_seats: 9,
+      rows_count: 3, sections_count: 4), spanning.reload.seating_completeness
+    assert_equal Carousel::SeatingCompleteness.new(confirmed_seats: 0, best_reading_seats: 0,
+      rows_count: 3, sections_count: nil), rows_only.seating_completeness
+    assert_equal Carousel::SeatingCompleteness.new(confirmed_seats: 0, best_reading_seats: 0,
+      rows_count: nil, sections_count: nil), directory.seating_completeness
+
+    twins.first.seat("1B").update!(confidence: "best_reading")
+    assert_equal [ estimated.id, *twins.drop(1).map(&:id), spanning.id, twins.first.id, unconfirmed.id,
+      rows_only.id, sections_only.id, directory.id ], ordered.ids
+    assert_equal 1, twins.first.reload.seating_completeness.confirmed_seats
+    assert_equal 7, twins.first.seating_completeness.best_reading_seats
   end
 
   test "directory records have unknown layouts and create no seats" do
@@ -120,12 +171,92 @@ class CarouselTest < ActiveSupport::TestCase
     assert carousel.valid?
   end
 
-  test "data first includes published zeros and partial layout research" do
-    directory = Carousel.create!(name: "AAA Directory")
-    published = Carousel.create!(name: "ZZZ Published", published_other_animals_count: 0, summary_sources: "Confirmed none")
-    partial = Carousel.create!(name: "YYY Partial", rows_count: 3)
-    assert_equal [ partial.id, published.id, directory.id ],
-      Carousel.where(id: [ directory, published, partial ]).with_data_first.order(:name).ids
+  test "figure activity touches both carousels on transfer without timestamp-only history" do
+    freeze_time do
+      carousel = Carousel.create!(name: "Figure activity")
+      other = Carousel.create!(name: "Destination")
+      assert_no_difference "carousel.versions.count + other.versions.count" do
+        travel 1.hour
+        figure = create_figure("Reserve figure", carousel:)
+        assert_equal Time.current, carousel.reload.updated_at
+
+        travel 1.hour
+        figure.update!(description: "New research")
+        assert_equal Time.current, carousel.reload.updated_at
+        last_updated = carousel.updated_at
+
+        travel 1.hour
+        figure.save!
+        assert_equal last_updated, carousel.reload.updated_at
+        assert_not figure.update(name: "")
+        assert_equal last_updated, carousel.reload.updated_at
+        figure.reload
+
+        travel 1.hour
+        figure.update!(carousel: other)
+        assert_equal Time.current, carousel.reload.updated_at
+        assert_equal Time.current, other.reload.updated_at
+
+        travel 1.hour
+        figure.destroy!
+        assert_equal Time.current, other.reload.updated_at
+      end
+    end
+  end
+
+  test "seat and placement activity updates the carousel without timestamp-only history" do
+    freeze_time do
+      carousel = build_carousel
+      seat = carousel.seat("1A")
+      figure = create_figure("Seated figure", carousel:)
+      assert_no_difference "carousel.versions.count" do
+        travel 1.hour
+        seat.update!(confidence: "confirmed")
+        assert_equal Time.current, carousel.reload.updated_at
+        assert_includes seat.versions.last.changeset, "confidence"
+
+        assert_no_difference "seat.versions.count" do
+          travel 1.hour
+          placement = Placement.create!(seat:, figure:)
+          assert_equal Time.current, carousel.reload.updated_at
+
+          travel 1.hour
+          placement.update!(started_on: Date.yesterday)
+          assert_equal Time.current, carousel.reload.updated_at
+
+          travel 1.hour
+          placement.destroy!
+          assert_equal Time.current, carousel.reload.updated_at
+        end
+
+        travel 1.hour
+        seat.destroy!
+        assert_equal Time.current, carousel.reload.updated_at
+
+        travel 1.hour
+        carousel.fill_missing_seats
+        assert_equal Time.current, carousel.reload.updated_at
+      end
+    end
+  end
+
+  test "rolled back activity does not change the carousel update time" do
+    freeze_time do
+      carousel = build_carousel
+      figure = create_figure("Unchanged figure", carousel:)
+      last_updated = carousel.reload.updated_at
+      travel 1.hour
+
+      Carousel.transaction do
+        figure.update!(description: "Rolled back")
+        carousel.seat("1A").update!(confidence: "confirmed")
+        raise ActiveRecord::Rollback
+      end
+
+      assert_equal last_updated, carousel.reload.updated_at
+      assert_nil figure.reload.description
+      assert_equal "best_reading", carousel.seat("1A").confidence
+    end
   end
 
   test "a layout cannot be cleared while seats exist" do
