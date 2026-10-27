@@ -24,6 +24,7 @@ class EditorAccessTest < ApplicationSystemTestCase
     fill_in "Password", with: "a-unique-editor-password", exact: true
     fill_in "Password again", with: "a-unique-editor-password"
     check "user_contribution_terms"
+    assert_checked_field "user_contribution_terms"
     click_button "Create my account"
     assert_text "Welcome, Carousel Researcher."
     assert User.find_by!(email_address: "new-editor@example.com").contribution_terms_accepted?
@@ -41,6 +42,7 @@ class EditorAccessTest < ApplicationSystemTestCase
     assert find("form[action='#{contribution_agreement_path}']").evaluate_script("this.checkValidity()")
     click_button "Agree and continue"
     assert_text "You can edit now."
+    assert users(:editor).reload.contribution_terms_accepted?
     visit edit_carousel_path(carousel)
     assert_selector "form input[name='carousel[name]']"
 
