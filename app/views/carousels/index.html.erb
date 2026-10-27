@@ -11,7 +11,7 @@
     </div>
     <div class="field">
       <%= form.label :region, "State" %>
-      <%= form.select :region, @regions, include_blank: "All states", selected: @selected_region %>
+      <%= form.select :region, @region_counts.map { |region, count| [ "#{region} (#{number_with_delimiter(count)})", region ] }, include_blank: "All states", selected: @selected_region %>
     </div>
     <div class="field">
       <%= form.label :sort, "Sort" %>

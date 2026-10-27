@@ -426,12 +426,13 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_carousel_order expected
 
     fill_in "Name", with: "looff"
-    select "California", from: "State"
+    california_option = "California (#{Carousel.where(region: 'California').count})"
+    select california_option, from: "State"
     click_on "Filter"
     assert_carousel_filters q: "looff", region: "California", sort: "completeness"
     assert_selector ".cards > li.card", count: 1
     assert_field "Name", with: "looff"
-    assert_selector :select, "State", selected: "California"
+    assert_selector :select, "State", selected: california_option
     assert_selector :select, "Sort", selected: "Most complete"
 
     select "Last updated", from: "Sort"
@@ -439,7 +440,7 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_carousel_filters q: "looff", region: "California", sort: "updated"
     assert_selector ".cards > li.card", count: 1
     assert_field "Name", with: "looff"
-    assert_selector :select, "State", selected: "California"
+    assert_selector :select, "State", selected: california_option
     assert_selector :select, "Sort", selected: "Last updated"
 
     click_on "Clear filters"
@@ -458,19 +459,20 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_field "Name", with: "lOoFf"
     assert_selector :select, "State", selected: "All states"
 
-    select "California", from: "State"
+    california_option = "California (#{Carousel.where(region: 'California').count})"
+    select california_option, from: "State"
     click_on "Filter"
     assert_selector ".cards > li.card", count: 1
     assert_selector ".cards h2", text: "Santa Cruz Beach Boardwalk Looff Carousel"
     assert_field "Name", with: "lOoFf"
-    assert_selector :select, "State", selected: "California"
+    assert_selector :select, "State", selected: california_option
 
-    select "Montana", from: "State"
+    select "Montana (2)", from: "State"
     click_on "Filter"
     assert_text "No carousels match these filters."
     assert_no_selector ".cards > li.card"
     assert_field "Name", with: "lOoFf"
-    assert_selector :select, "State", selected: "Montana"
+    assert_selector :select, "State", selected: "Montana (2)"
 
     click_on "Clear filters"
     assert_selector ".cards > li.card", count: 54

@@ -6,7 +6,7 @@ class CarouselsController < ApplicationController
 
   def index
     @total_carousels = Carousel.count
-    @regions = Carousel.where.not(region: [ nil, "" ]).distinct.order(:region).pluck(:region)
+    @region_counts = Carousel.where.not(region: [ nil, "" ]).group(:region).order(:region).count
     @query = params.expect(:q).strip.presence if params[:q].present?
     @selected_region = params.expect(:region).strip.presence if params[:region].present?
     @sort = params[:sort].present? ? params.expect(:sort).strip.presence : nil
@@ -14,7 +14,7 @@ class CarouselsController < ApplicationController
     @sort = "completeness" if @sort == "confirmed_seats"
     raise ActionController::BadRequest, "Unknown carousel sort order" unless %w[ name updated completeness ].include?(@sort)
 
-    if @selected_region && !@regions.include?(@selected_region)
+    if @selected_region && !@region_counts.key?(@selected_region)
       raise ActiveRecord::RecordNotFound, "Unknown state or region"
     end
 

@@ -9,6 +9,9 @@ state/region filter. Choose **Filter** to apply either or both. Filters and sort
 order stay in the URL for sharing; **Clear filters** restores the full directory
 and default **Most complete** sort.
 
+State options include directory-wide carousel counts, such as **Montana (2)**.
+These counts stay the same when name or state filters are applied.
+
 Below the filter button, a count shows the total number of carousels listed.
 When filtering, it shows the matching count alongside the directory total.
 

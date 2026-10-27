@@ -261,7 +261,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_equal [ "A Carousel for Missoula", "Great Northern Carousel" ], css_select(".cards h2 a").map(&:text)
     assert_select "select[name=region] option[selected][value=Montana]"
     assert_select "select[name=region] option[value=Montana]", 1
-    assert_select "select[name=region] option[value='New York']", text: "New York"
+    assert_select "select[name=region] option[value='New York']", text: "New York (#{Carousel.where(region: 'New York').count})"
     assert_select "select[name=region] option[value='']", text: "All states"
     assert_equal [ 18, 19, 2 ].map(&:to_s), css_select("li.card:has(h2 a[href='#{carousel_path(@carousel)}']) .facts dd").map(&:text)
 
