@@ -404,47 +404,49 @@ class SeatChartTest < ApplicationSystemTestCase
     end.map(&:name)
     visit carousels_path
     assert_selector :select, "Sort", selected: "Most complete"
-    assert_equal expected, all(".cards h2 a").map(&:text)
+    assert_carousel_order expected
 
     select "Last updated", from: "Sort"
     click_on "Filter"
+    assert_carousel_filters sort: "updated"
     assert_selector :select, "Sort", selected: "Last updated"
-    assert_equal latest.name, all(".cards h2 a").first.text
+    assert_selector ".cards > li:first-child h2 a", exact_text: latest.name
 
     select "Name (A-Z)", from: "Sort"
     click_on "Filter"
+    assert_carousel_filters sort: "name"
     assert_selector :select, "Sort", selected: "Name (A-Z)"
-    assert_equal Carousel.order(:name, :id).pluck(:name), all(".cards h2 a").map(&:text)
+    assert_carousel_order Carousel.order(:name, :id).pluck(:name)
 
     select "Most complete", from: "Sort"
     click_on "Filter"
+    assert_carousel_filters sort: "completeness"
     assert_selector :select, "Sort", selected: "Most complete"
     assert_selector ".seating-completeness", count: Carousel.count
-    assert_equal expected, all(".cards h2 a").map(&:text)
+    assert_carousel_order expected
 
     fill_in "Name", with: "looff"
     select "California", from: "State"
     click_on "Filter"
+    assert_carousel_filters q: "looff", region: "California", sort: "completeness"
     assert_selector ".cards > li.card", count: 1
     assert_field "Name", with: "looff"
     assert_selector :select, "State", selected: "California"
     assert_selector :select, "Sort", selected: "Most complete"
-    assert_equal "completeness", Rack::Utils.parse_query(URI.parse(page.current_url).query).fetch("sort")
 
     select "Last updated", from: "Sort"
     click_on "Filter"
+    assert_carousel_filters q: "looff", region: "California", sort: "updated"
     assert_selector ".cards > li.card", count: 1
     assert_field "Name", with: "looff"
     assert_selector :select, "State", selected: "California"
     assert_selector :select, "Sort", selected: "Last updated"
-    assert_current_path carousels_path, ignore_query: true
-    assert_equal({ "q" => "looff", "region" => "California", "sort" => "updated", "commit" => "Filter" },
-      Rack::Utils.parse_query(URI.parse(page.current_url).query))
 
     click_on "Clear filters"
+    assert_current_path carousels_path
     assert_selector ".cards > li.card", count: 54
     assert_selector :select, "Sort", selected: "Most complete"
-    assert_equal expected, all(".cards h2 a").map(&:text)
+    assert_carousel_order expected
   end
 
   test "carousel name and state filters combine retain selections and clear" do
@@ -694,5 +696,20 @@ class SeatChartTest < ApplicationSystemTestCase
 
     click_on "Clear filters"
     assert_selector "table tbody tr", count: Figure.count
+  end
+
+  private
+
+  def assert_carousel_filters(sort:, q: "", region: "")
+    assert_current_path carousels_path, ignore_query: true do |uri|
+      Rack::Utils.parse_query(uri.query) == { "q" => q, "region" => region, "sort" => sort, "commit" => "Filter" }
+    end
+  end
+
+  def assert_carousel_order(names)
+    # Retry the whole comparison if Turbo replaces the list while it is being read.
+    assert_selector ".cards" do |cards|
+      cards.all("h2 a").map(&:text) == names
+    end
   end
 end
