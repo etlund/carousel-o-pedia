@@ -1,5 +1,7 @@
 <% preview_description = if carousel.layout_known?
   "Blue: horses; orange: other animals; red: chariots and tubs. Base category fills: confirmed placements; faded fills: best-reading placements; unfilled wedges: unknown or empty seats. All wedges have gray outlines."
+elsif carousel.ring_details.present?
+  "Independent ring research; unknown position counts stay unsegmented. Equal spacing is schematic, not verified seating."
 else
   carousel.rows_count ? "#{pluralize(carousel.rows_count, "row")} shown as concentric rings; sections and seat positions unknown." : "Layout unknown; inner and outer platform outlines only."
 end %>
@@ -8,6 +10,8 @@ end %>
        aria-label="Seat chart preview of <%= carousel.name %>. <%= preview_description %>">
     <% if carousel.layout_known? %>
       <%= render "seat_wedges", carousel:, seats: carousel.seats %>
+    <% elsif carousel.ring_details.present? %>
+      <%= render "ring_bands", carousel: %>
     <% else %>
       <path class="mini-seat-platform"
             d="<%= wedge_path(SeatChart::HUB_RADIUS, SeatChart::PLATFORM_RADIUS, half_angle: Math::PI, center_x: SeatChart::CENTER, center_y: SeatChart::CENTER) %>"/>

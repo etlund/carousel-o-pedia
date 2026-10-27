@@ -1,0 +1,14 @@
+<% RingChart.new(carousel).bands.each do |band| %>
+  <g class="research-ring" data-ring="<%= band.letter %>">
+    <path class="mini-seat-platform" d="<%= wedge_path(band.inner_radius, band.outer_radius, half_angle: Math::PI, center_x: SeatChart::CENTER, center_y: SeatChart::CENTER) %>">
+      <title>Row <%= band.letter %>: <%= band.positions_count.nil? ? "position count unknown" : pluralize(band.positions_count, "position") %>; <%= band.horses_count.nil? ? "horse count unknown" : pluralize(band.horses_count, "horse") %><%= "; #{band.mount} horses" if band.mount %>. Angular alignment and individual placements unverified.</title>
+    </path>
+    <% if band.positions_count && band.positions_count > 0 %>
+      <% band.positions_count.times do |index| %>
+        <path class="mini-seat-wedge research-position"
+              d="<%= wedge_path(band.inner_radius, band.outer_radius, half_angle: Math::PI / band.positions_count, center_x: 0, center_y: 0) %>"
+              transform="translate(<%= SeatChart::CENTER %> <%= SeatChart::CENTER %>) rotate(<%= -90 + index * 360.0 / band.positions_count %>)"/>
+      <% end %>
+    <% end %>
+  </g>
+<% end %>

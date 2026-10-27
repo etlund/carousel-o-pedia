@@ -11,8 +11,13 @@
   <div class="card">
     <% if @carousel.layout_known? %>
       <%= render "seat_chart", carousel: @carousel %>
+    <% elsif @carousel.ring_details.present? %>
+      <%= render "ring_chart", carousel: @carousel %>
     <% else %>
       <p class="layout-unknown">No seating layout has been recorded yet.</p>
+    <% end %>
+    <% if @carousel.layout_known? && @carousel.ring_details.present? %>
+      <%= render "ring_chart", carousel: @carousel %>
     <% end %>
   </div>
   <div class="stack">

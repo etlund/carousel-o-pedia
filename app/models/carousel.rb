@@ -7,6 +7,8 @@ class Carousel < ApplicationRecord
   STATUSES = %w[ operating stored lost ].freeze
   ROTATIONS = %w[ clockwise counterclockwise ].freeze
   MAX_ROWS = 6
+  RING_FIELDS = %w[ positions_count horses_count mount ].freeze
+  RING_MOUNTS = %w[ stander jumper ].freeze
 
   belongs_to :maker, optional: true
   has_many :seats, -> { order(:section, :row) }, dependent: :destroy
@@ -33,6 +35,25 @@ class Carousel < ApplicationRecord
     numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   validates :summary_sources, presence: true, if: :published_counts?
   validate :layout_dimensions_are_consistent
+  validate :ring_details_are_consistent
+  validates :summary_sources, presence: true, if: -> { ring_details.present? }
+
+  normalizes :ring_details, with: ->(value) {
+    if value.is_a?(Hash)
+      value.transform_values do |details|
+        if details.is_a?(Hash)
+          details.transform_values do |detail|
+            detail = detail.strip if detail.is_a?(String)
+            detail.presence
+          end.compact.transform_values { |detail| detail.is_a?(String) && detail.match?(/\A\d+\z/) ? detail.to_i : detail }
+        else
+          details
+        end
+      end.reject { |_, details| details == {} }
+    else
+      value
+    end
+  }
 
   blank_as_nil :city, :region, :country, :venue, :body, :other_links, :rotation, :summary_sources, :address_sources
   normalizes :street_address, :postal_code, with: ->(value) { value.strip.presence }
@@ -122,6 +143,40 @@ class Carousel < ApplicationRecord
     def layout_dimensions_are_consistent
       if !layout_known? && seats.exists?
         errors.add(:base, "The layout cannot be cleared while seats exist")
+      end
+
+      def ring_details_are_consistent
+        unless ring_details.is_a?(Hash)
+          errors.add(:ring_details, "must describe rows from the outside in")
+          return
+        end
+        return if ring_details.empty?
+
+        unless rows_count.is_a?(Integer) && rows_count.between?(1, MAX_ROWS)
+          errors.add(:ring_details, "require a verified row count")
+          return
+        end
+
+        letters = ("A"..).first(rows_count)
+        ring_details.each do |letter, details|
+          unless letters.include?(letter) && details.is_a?(Hash) && (details.keys - RING_FIELDS).empty?
+            errors.add(:ring_details, "contain an invalid row or field")
+            next
+          end
+          %w[ positions_count horses_count ].each do |field|
+            value = details[field]
+            if value && !(value.is_a?(Integer) && value >= 0)
+              errors.add(:ring_details, "#{letter} #{field.humanize.downcase} must be a nonnegative integer")
+            end
+          end
+          if details["mount"] && !RING_MOUNTS.include?(details["mount"])
+            errors.add(:ring_details, "#{letter} horse motion must be stander or jumper")
+          end
+          positions, horses = details.values_at("positions_count", "horses_count")
+          if positions.is_a?(Integer) && horses.is_a?(Integer) && horses > positions
+            errors.add(:ring_details, "#{letter} cannot have more horses than positions")
+          end
+        end
       end
     end
 

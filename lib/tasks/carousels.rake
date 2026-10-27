@@ -12,6 +12,7 @@ namespace :carousels do
     puts "Published totals: #{carousel.published_horses_count} horses, " \
       "#{carousel.published_other_animals_count} other animals, #{carousel.published_chariots_count} chariots."
     puts "Inventory: #{carousel.figures.count} figures (#{carousel.figures.count - before} added); existing figures and placements preserved."
+    puts "Independent ring research: #{carousel.ring_details.keys.sort.join(', ').presence || 'none'}; see Summary sources for evidence and uncertainty."
     puts "Existing values take precedence. No seating positions inferred."
   end
 end

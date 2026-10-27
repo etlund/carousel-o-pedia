@@ -15,6 +15,11 @@ class ElitchGardensSeedsTest < ActiveSupport::TestCase
       "rows_count", "sections_count", "rotation"
     )
     assert_empty carousel.seats
+    assert_equal({ "horses_count" => 18, "mount" => "stander" }, carousel.ring_details["A"])
+    assert_equal %w[ jumper jumper jumper ], %w[ B C D ].map { carousel.ring_details.dig(_1, "mount") }
+    assert carousel.ring_details.values.all? { _1["positions_count"].nil? }
+    assert_includes carousel.summary_sources, "https://www.youtube.com/watch?v=i7DB_NySglU"
+    assert_includes carousel.summary_sources, "Full playback was unavailable"
     assert_equal [ "Angel and Cherubs chariot", "Miss Liberty and Bald Eagle chariot" ],
       carousel.figures.order(:name).pluck(:name)
     carousel.figures.each do |figure|
@@ -61,6 +66,18 @@ class ElitchGardensSeedsTest < ActiveSupport::TestCase
     load_research
     assert_equal before, snapshot
     assert_empty carousel.figures.reload
+  end
+
+  test "video research preserves edited ring facts and conflicting row counts" do
+    carousel = Carousel.find_by!(slug: "elitch-gardens-carousel-denver")
+    carousel.update!(ring_details: { "A" => { "horses_count" => 19, "mount" => "jumper" } })
+    load_research
+    assert_equal({ "horses_count" => 19, "mount" => "jumper" }, carousel.reload.ring_details["A"])
+    assert_equal "jumper", carousel.ring_details.dig("B", "mount")
+    carousel.update!(ring_details: {}, rows_count: 3)
+    load_research
+    assert_empty carousel.reload.ring_details
+    assert_equal 3, carousel.rows_count
   end
 
   private

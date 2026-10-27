@@ -3,6 +3,31 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "Elitch ring research stays separate from mapped seats and supports unequal ring counts" do
+    carousel = Carousel.find_by!(slug: "elitch-gardens-carousel-denver")
+    visit carousel_path(carousel)
+    assert_selector "svg.ring-chart"
+    within(".ring-details tr[data-ring=A]") do
+      assert_text "18"
+      assert_text "Stander"
+      assert_text "Unknown"
+    end
+    assert_no_selector "a.seat, table.sections, .research-position"
+    assert_text "not verified angular alignment"
+
+    carousel.update!(ring_details: { "A" => { "positions_count" => 18 }, "B" => { "positions_count" => 16 } })
+    visit carousels_path(q: carousel.name)
+    within("li.card") do
+      assert_selector ".research-ring[data-ring=A] .research-position", count: 18
+      assert_selector ".research-ring[data-ring=B] .research-position", count: 16
+      assert_no_selector ".research-ring[data-ring=C] .research-position"
+      find("a.mini-seat-chart-link").click
+    end
+    assert_selector "h1", text: carousel.name
+    assert_selector "svg.ring-chart .research-position", count: 34
+    assert_empty carousel.seats
+  end
+
   test "carousel favicons follow Turbo navigation and reset to the site icon" do
     icon_selector = "head link[rel='icon'][type='image/svg+xml']"
     visit carousels_path

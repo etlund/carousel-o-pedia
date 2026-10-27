@@ -53,6 +53,25 @@
     <div class="field"><%= form.label :rotation, "Turns" %><%= form.select :rotation, Carousel::ROTATIONS.map { [ _1.capitalize, _1 ] }, include_blank: "Unknown" %></div>
   </fieldset>
   <fieldset>
+    <legend>Independent ring research</legend>
+    <p class="hint">Optional counts per ring, even when rings have unequal numbers of positions or no mapped seats. A is the outer ring. Set the verified platform row count; leave unknown values blank. Total positions include vehicles; horses alone do not establish that total. Horse motion describes the horses in that ring, not chariots. Cite the source and uncertainty in Summary sources. This schematic does not create seats or change an existing seat map.</p>
+    <%= form.fields_for :ring_details do |rings| %>
+      <% ("A"..).first(Carousel::MAX_ROWS).each do |letter| %>
+        <% details = carousel.ring_details.is_a?(Hash) && carousel.ring_details[letter].is_a?(Hash) ? carousel.ring_details[letter] : {} %>
+        <fieldset>
+          <legend>Row <%= letter %><%= " (outer)" if letter == "A" %></legend>
+          <%= rings.fields_for letter do |ring| %>
+            <div class="field-row">
+              <div class="field"><%= ring.label :positions_count, "Total positions" %><%= ring.number_field :positions_count, value: details["positions_count"], min: 0 %></div>
+              <div class="field"><%= ring.label :horses_count, "Horses" %><%= ring.number_field :horses_count, value: details["horses_count"], min: 0 %></div>
+              <div class="field"><%= ring.label :mount, "Horse motion" %><%= ring.select :mount, Carousel::RING_MOUNTS.map { [ _1.capitalize, _1 ] }, selected: details["mount"], include_blank: "Unknown" %></div>
+            </div>
+          <% end %>
+        </fieldset>
+      <% end %>
+    <% end %>
+  </fieldset>
+  <fieldset>
     <legend>Published totals</legend>
     <p class="hint">Source-reported riding figures, separate from our mapped seats. Count vehicles, not passengers. Leave unverified counts blank; zero means the source confirms none.</p>
     <div class="field-row">

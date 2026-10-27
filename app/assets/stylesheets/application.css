@@ -85,6 +85,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
 .seat-chart .hub-note { fill: #fff; font-size: 11px; text-anchor: middle; }
 .seat-chart .section-number { fill: var(--red); font-family: var(--display); font-size: 15px; text-anchor: middle; }
 .seat-chart text { pointer-events: none; }
+.ring-chart .ring-label { fill: var(--fg); font-size: 16px; font-weight: 600; text-anchor: middle; }
 .seat rect, .seat circle { stroke: var(--panel); stroke-width: 1; }
 .seat .seat-label { font-size: 10.5px; font-weight: 600; text-anchor: middle; }
 .seat .seat-code { font-size: 8.5px; font-weight: 500; opacity: .8; text-anchor: middle; }

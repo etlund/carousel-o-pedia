@@ -1,0 +1,26 @@
+<section class="ring-research" aria-label="Partial ring research">
+  <h2>Ring research</h2>
+  <svg class="seat-chart ring-chart" viewBox="0 0 <%= SeatChart::SIZE %> <%= SeatChart::SIZE %>" role="img"
+       aria-label="Ring research diagram of <%= carousel.name %>: <%= pluralize(carousel.rows_count, "row") %>, independently recorded counts; not a mapped seating layout">
+    <%= render "ring_bands", carousel: %>
+    <% RingChart.new(carousel).bands.each do |band| %>
+      <text class="ring-label" x="<%= SeatChart::CENTER %>" y="<%= SeatChart::CENTER - (band.inner_radius + band.outer_radius) / 2 + 5 %>"><%= band.letter %><%= ": #{band.mount.pluralize}" if band.mount %></text>
+    <% end %>
+  </svg>
+  <p class="muted">Rows run from the outside in. Counts are independent for each ring; equal spacing is schematic, not verified angular alignment. Unknown counts stay unsegmented. Horse counts exclude chariots and do not establish total positions.</p>
+  <div class="table-scroll">
+    <table class="ring-details">
+      <thead><tr><th>Row</th><th>Total positions</th><th>Horses</th><th>Horse motion</th></tr></thead>
+      <tbody>
+        <% RingChart.new(carousel).bands.each do |band| %>
+          <tr data-ring="<%= band.letter %>">
+            <th scope="row"><%= band.letter %><%= " (outer)" if band.letter == "A" %></th>
+            <td><%= band.positions_count.nil? ? "Unknown" : band.positions_count %></td>
+            <td><%= band.horses_count.nil? ? "Unknown" : band.horses_count %></td>
+            <td><%= band.mount&.capitalize || "Unknown" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
