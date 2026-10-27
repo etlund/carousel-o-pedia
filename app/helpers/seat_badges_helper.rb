@@ -8,9 +8,14 @@ module SeatBadgesHelper
   BADGE_ROW_DEPTH = 14.0
   BADGE_HALF_ANGLE = 7 * Math::PI / 180
 
-  def seat_badge(seat, size: :small)
+  def seat_badge(seat, size: :small, linked: false)
     letters = seat.carousel.row_letters
     covered = seat.rows_covered
+    if linked
+      seats_by_row = seat.carousel.seats.where(section: seat.section).includes(current_placement: :figure).each_with_object({}) do |section_seat, rows|
+        section_seat.rows_covered.each { |row| rows[row] = section_seat }
+      end
+    end
     outer = BADGE_INNER_RADIUS + letters.size * BADGE_ROW_DEPTH
     # Room for the carousel's widest section number, so badges line up in lists.
     number_width = 10 * seat.carousel.sections_count.to_s.size
@@ -23,14 +28,21 @@ module SeatBadgesHelper
     bands = letters.each_with_index.map do |letter, index|
       inner = outer - (index + 1) * BADGE_ROW_DEPTH
       on = covered.include?(letter)
-      safe_join([
+      band = safe_join([
         tag.path(d: wedge_path(inner, inner + BADGE_ROW_DEPTH), transform: "translate(#{reflection} 0) scale(-1 1)", class: [ "band", ("on" if on) ]),
         tag.text(on ? letter : letter.downcase, x: (reflection - BADGE_CENTER_X - inner - BADGE_ROW_DEPTH / 2).round(1), y: 15.5, class: [ "row", ("on" if on) ])
       ])
+      if linked
+        destination = seats_by_row.fetch(letter)
+        tag.a(band, href: seat_destination_path(destination),
+              "aria-label": "#{seat.section}#{letter}: #{destination.figure&.name || destination.state.capitalize}")
+      else
+        band
+      end
     end
 
     tag.svg(class: [ "seat-badge", size, kind ], viewBox: "0 0 #{width} 24", width: width * (size == :large ? 2 : 1), height: 24 * (size == :large ? 2 : 1),
-            role: "img", "aria-label": "Seat #{seat.code}") do
+            role: linked ? "group" : "img", "aria-label": "Seat #{seat.code}") do
       safe_join([
         tag.title("Seat #{seat.code}: section #{seat.section}, #{seat.rows_spanned > 1 ? "rows #{covered.first} to #{covered.last}" : "row #{seat.row}"}"),
         tag.text(seat.section, x: wedge_offset, y: 16.5, class: "section", "text-anchor": "end"),

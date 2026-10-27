@@ -1,7 +1,7 @@
 <% content_for :title, "#{@carousel.name} seat #{@seat.code}" %>
 <header class="page-header">
   <p class="muted"><%= link_to @carousel.name, @carousel %></p>
-  <div class="title-row"><h1>Seat <%= @seat.code %></h1><%= seat_badge(@seat, size: :large) %></div>
+  <div class="title-row"><h1>Seat <%= @seat.code %></h1><%= seat_badge(@seat, size: :large, linked: true) %></div>
   <p class="lede"><%= @seat.state == "empty" ? "This seat is recorded as empty." : "The figure in this seat has not been identified." %></p>
 </header>
 <div class="seat-unassigned">

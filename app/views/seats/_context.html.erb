@@ -3,7 +3,7 @@
   <section class="card" aria-labelledby="seat-heading">
     <div class="title-row">
       <h2 id="seat-heading"><%= occupied ? "Current seat" : "Seat details" %></h2>
-      <%= seat_badge(seat, size: :large) if occupied %>
+      <%= seat_badge(seat, size: :large, linked: true) if occupied %>
     </div>
     <dl class="facts">
       <% if occupied %>

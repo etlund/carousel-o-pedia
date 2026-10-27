@@ -548,6 +548,24 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select ".figure-details a.seat-link[href=?]", carousel_seat_path(carousel, seat)
   end
 
+  test "figure and unoccupied seat pages offer row links in their large badges" do
+    get figure_path(@carousel.seat("1C").figure)
+    assert_response :success
+    @carousel.row_letters.each do |row|
+      assert_select ".seat-context svg.seat-badge a[href=?] text.row",
+        figure_path(@carousel.seat("1#{row}").figure), text: row == "C" ? row : row.downcase
+    end
+
+    carousel = build_carousel(rows: 3)
+    figure = create_figure("Badge neighbour", carousel:)
+    SeatAssignment.new(carousel.seat("1A"), figure).save!
+    get carousel_seat_path(carousel, carousel.seat("1B"))
+    assert_response :success
+    assert_select ".page-header svg.seat-badge a[href=?] text.row", figure_path(figure), text: "a"
+    assert_select ".page-header svg.seat-badge a[href=?] text.row",
+      carousel_seat_path(carousel, carousel.seat("1C")), text: "c"
+  end
+
   test "a figure's seats over time remain separate from its current seat's earlier occupants" do
     carousel = build_carousel(sections: 2, rows: 1)
     original_seat = carousel.seat("1A")

@@ -16,6 +16,8 @@ Carousels default to **With data first**: entries with figure inventory (includi
 
 Every seat has a code of section number plus row letter. Seat badges put the red section number outside the wide left edge of the row-letter wedge. Row A is on the left at the outer rail; subsequent rows run inward toward the narrow right edge, with upright letters. Rows are lettered from the outside in, so `5A` is section 5, outer row. Sections are numbered in the order figures pass someone standing at the rail.
 
+On figure and seat detail pages, each row letter in the large seat badge links to the current figure in that section, or to the seat details if the position is empty or unknown. Rows covered by a spanning figure all link to that figure.
+
 Carousel summary cards and detail pages list horses, other animals, and chariots and tubs **once**. Each category prefers its published total; when that value is blank, it falls back to the mapped-seat count if the layout is known, or **Unknown** otherwise. Published zero is a verified count and is never replaced by a mapped value.
 
 Published totals describe source-reported riding figures and remain stored separately from placements; they never create placeholder figures or seats. Mapped counts exclude unplaced inventory and ended placements and count figures spanning multiple rows once. The seating chart and section table always use mapped data, which may differ from the displayed published totals. Editors must supply Markdown source notes for published totals. Source dates, historical configurations, and disagreements remain available in **Summary sources**.
