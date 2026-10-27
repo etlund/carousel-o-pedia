@@ -2,6 +2,35 @@
 
 [Back to the README](../README.md)
 
+## Browsing and sorting
+
+The carousel directory supports case-insensitive partial name searches and a
+state/region filter. Choose **Filter** to apply either or both. Filters and sort
+order stay in the URL for sharing; **Clear filters** restores the full directory
+and default **Most complete** sort.
+
+- **Most complete** measures seating documentation, not article completeness:
+  most confirmed seats first, then most best-reading seats. Ties favor a known
+  row or section count over neither dimension, then sort by name and record ID.
+  Each current seat counts once, including empty or unidentified positions and
+  seats spanning multiple rows. Earlier placements do not increase the count;
+  carousels without seats count as zero.
+- **Last updated** sorts newest first, including activity on figures (even
+  unseated inventory), seats, and placements. Creating, removing, or transferring
+  those records updates the affected carousels. Existing record timestamps count
+  even if they predate activity tracking; timestamp-only activity does not add
+  carousel or seat history entries. Ties sort by name and record ID.
+- **Name (A-Z)** sorts alphabetically.
+
+Cards show seating completeness as recorded counts or known dimensions, not an
+invented percentage. Older `sort=confirmed_seats` links still select Most
+complete; new links use `sort=completeness`.
+
+Each card places a 112-pixel chart preview to the left of the figure-count
+facts, keeping them side by side on narrow screens with wrapping labels.
+Incomplete layouts show only known geometry, without inventing sections or
+positions. The preview links to the carousel page.
+
 ## Access and history
 
 Anyone can read; editing is invite-only. Admins invite editors from the

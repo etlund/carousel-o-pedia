@@ -3,7 +3,7 @@ class Placement < ApplicationRecord
   has_paper_trail
 
   belongs_to :figure
-  belongs_to :seat
+  belongs_to :seat, touch: true
 
   scope :current, -> { where(ended_on: nil) }
 

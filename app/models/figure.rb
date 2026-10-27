@@ -5,7 +5,7 @@ class Figure < ApplicationRecord
   MOUNTS = %w[ jumper stander spinning fixed ].freeze
 
   belongs_to :figure_type
-  belongs_to :carousel
+  belongs_to :carousel, touch: true
   belongs_to :carver, class_name: "Maker", optional: true
   has_many :placements, -> { order(started_on: :desc) }, dependent: :destroy
   has_one :current_placement, -> { where(ended_on: nil) }, class_name: "Placement", inverse_of: :figure

@@ -2,27 +2,44 @@ require "uri"
 
 class Carousel < ApplicationRecord
   include Sluggable
-  has_paper_trail
+  has_paper_trail on: %i[ create update destroy ]
 
   STATUSES = %w[ operating stored lost ].freeze
   ROTATIONS = %w[ clockwise counterclockwise ].freeze
   MAX_ROWS = 6
   RING_FIELDS = %w[ positions_count horses_count mount ].freeze
   RING_MOUNTS = %w[ stander jumper ].freeze
+  SeatingCompleteness = Data.define(:confirmed_seats, :best_reading_seats, :rows_count, :sections_count)
 
   belongs_to :maker, optional: true
   has_many :seats, -> { order(:section, :row) }, dependent: :destroy
   has_many :placements, through: :seats
   has_many :figures, dependent: :restrict_with_error
 
-  scope :with_data_first, -> {
+  # Include child timestamps recorded before association changes started touching the carousel.
+  scope :recently_updated, -> {
     order(Arel.sql(<<~SQL))
-      CASE WHEN carousels.sections_count IS NOT NULL OR carousels.rows_count IS NOT NULL
-        OR carousels.published_horses_count IS NOT NULL
-        OR carousels.published_other_animals_count IS NOT NULL
-        OR carousels.published_chariots_count IS NOT NULL
-        OR EXISTS (SELECT 1 FROM figures WHERE figures.carousel_id = carousels.id)
-      THEN 0 ELSE 1 END
+      MAX(
+        carousels.updated_at,
+        COALESCE((SELECT MAX(figures.updated_at) FROM figures
+          WHERE figures.carousel_id = carousels.id), carousels.updated_at),
+        COALESCE((SELECT MAX(seats.updated_at) FROM seats
+          WHERE seats.carousel_id = carousels.id), carousels.updated_at),
+        COALESCE((SELECT MAX(placements.updated_at) FROM placements
+          INNER JOIN seats ON seats.id = placements.seat_id
+          WHERE seats.carousel_id = carousels.id), carousels.updated_at)
+      ) DESC
+    SQL
+  }
+
+  scope :most_complete, -> {
+    order(Arel.sql(<<~SQL))
+      (SELECT COUNT(*) FROM seats
+        WHERE seats.carousel_id = carousels.id AND seats.confidence = 'confirmed') DESC,
+      (SELECT COUNT(*) FROM seats
+        WHERE seats.carousel_id = carousels.id AND seats.confidence = 'best_reading') DESC,
+      CASE WHEN carousels.rows_count IS NOT NULL OR carousels.sections_count IS NOT NULL
+        THEN 0 ELSE 1 END
     SQL
   }
 
@@ -63,6 +80,12 @@ class Carousel < ApplicationRecord
   after_save :fill_missing_seats, if: :layout_added?
 
   def layout_known? = sections_count.present? && rows_count.present?
+
+  def seating_completeness
+    counts = seats.map(&:confidence).tally
+    SeatingCompleteness.new(confirmed_seats: counts.fetch("confirmed", 0),
+      best_reading_seats: counts.fetch("best_reading", 0), rows_count:, sections_count:)
+  end
 
   def published_category_totals
     { "horse" => published_horses_count, "menagerie" => published_other_animals_count, "chariot" => published_chariots_count }

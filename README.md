@@ -68,7 +68,8 @@ bin/rubocop
 
 ## Documentation
 
-- [Editing and data model](docs/editing.md): figures, seats, sources, and history.
+- [Editing and data model](docs/editing.md): browsing, sorting, figures, seats,
+  sources, and history.
 - [Seed data and imports](docs/seed-data.md): seed behavior and preserving edits.
 - [Deployment and backups](docs/deployment.md): Kamal setup, launch precautions,
   and backup verification.

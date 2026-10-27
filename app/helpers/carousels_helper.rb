@@ -22,4 +22,19 @@ module CarouselsHelper
       carousel.rows_count ? pluralize(carousel.rows_count, "row") : "Rows unknown"
     ].join(", ")
   end
+
+  def carousel_seating_completeness_label(carousel)
+    completeness = carousel.seating_completeness
+    if completeness.confirmed_seats + completeness.best_reading_seats > 0
+      return "#{completeness.confirmed_seats} confirmed \u00b7 #{completeness.best_reading_seats} best reading"
+    end
+    return "Layout unknown" unless completeness.rows_count || completeness.sections_count
+
+    details = []
+    details << "#{pluralize(completeness.rows_count, 'row')} recorded" if completeness.rows_count
+    details << "#{pluralize(completeness.sections_count, 'section')} recorded" if completeness.sections_count
+    details << "rows unknown" unless completeness.rows_count
+    details << "sections unknown" unless completeness.sections_count
+    details.join(" \u00b7 ")
+  end
 end

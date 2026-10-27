@@ -15,7 +15,7 @@
     </div>
     <div class="field">
       <%= form.label :sort, "Sort" %>
-      <%= form.select :sort, [ [ "With data first", "data_first" ], [ "Name (A-Z)", "name" ] ], selected: @sort %>
+      <%= form.select :sort, [ [ "Name (A-Z)", "name" ], [ "Last updated", "updated" ], [ "Most complete", "completeness" ] ], selected: @sort %>
     </div>
   </div>
   <div class="actions"><%= form.submit "Filter" %> <%= link_to "Clear filters", carousels_path %></div>
@@ -30,13 +30,16 @@
       <p class="muted"><%= carousel.location %></p>
       <% if carousel.official_url.present? %><p class="website"><%= link_to carousel.official_url, carousel.official_url, class: "website-link" %></p><% end %>
       <p><%= carousel_platform_label(carousel) || "Layout unknown" %>, <%= carousel.status %></p>
-      <dl class="facts">
-        <% FigureType::CATEGORIES.each do |category| %>
-          <dt><%= category_label(category) %></dt>
-          <dd class="figure-count"><%= carousel_figure_count(carousel, category, @category_counts.fetch([carousel.id, category], 0)) || "Unknown" %></dd>
-        <% end %>
-      </dl>
-      <%= render "mini_seat_chart", carousel: %>
+      <div class="card-seating">
+        <%= render "mini_seat_chart", carousel: %>
+        <dl class="facts">
+          <% FigureType::CATEGORIES.each do |category| %>
+            <dt><%= category_label(category) %></dt>
+            <dd class="figure-count"><%= carousel_figure_count(carousel, category, @category_counts.fetch([carousel.id, category], 0)) || "Unknown" %></dd>
+          <% end %>
+        </dl>
+      </div>
+      <p class="hint seating-completeness">Seating completeness: <%= carousel_seating_completeness_label(carousel) %></p>
       <% if carousel.summary_sources.present? %>
         <p><%= link_to "Summary sources", carousel_path(carousel, anchor: "summary-sources") %></p>
       <% end %>
