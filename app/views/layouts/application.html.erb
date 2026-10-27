@@ -17,6 +17,10 @@
 
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <% if (token = Rails.configuration.x.cloudflare_web_analytics_token).present? %>
+      <%= tag.script src: "https://static.cloudflareinsights.com/beacon.min.js", defer: true,
+        data: { cf_beacon: { token: token, spa: true }.to_json, turbo_eval: false } %>
+    <% end %>
   </head>
 
   <body>

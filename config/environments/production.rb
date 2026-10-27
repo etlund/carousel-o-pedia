@@ -9,6 +9,8 @@ Rails.application.configure do
   # Eager load code on boot for better performance and memory savings (ignored by Rake tasks).
   config.eager_load = true
 
+  config.x.cloudflare_web_analytics_token = ENV["CLOUDFLARE_WEB_ANALYTICS_TOKEN"].presence
+
   # Full error reports are disabled.
   config.consider_all_requests_local = false
 

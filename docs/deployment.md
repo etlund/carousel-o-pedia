@@ -93,6 +93,34 @@ published terms before protected editing/admin actions. Public browsing and
 sign-out remain available. Confirm that the prospective CC BY-SA 4.0 policy
 is ready to publish before deploying; the public contact route remains deferred.
 
+## Web traffic statistics
+
+Cloudflare Web Analytics provides a free dashboard for visits, page views,
+referrers, and page performance. No DNS or proxy change is required.
+
+The public site token for `carouselopedia.org` is configured as
+`CLOUDFLARE_WEB_ANALYTICS_TOKEN` in Kamal's `env.clear`. This is a browser-visible
+site identifier, not a Cloudflare API credential. Production loads the beacon
+only when this variable is present; development and test do not enable it.
+Remove the variable or set it to an empty string and redeploy to disable it.
+
+In Cloudflare's **Web Analytics**, add or open `carouselopedia.org` and use
+**Manage site → Enable with JS Snippet installation** for manual installation.
+Do not also enable automatic script injection: the app supplies the script.
+If replacing the site, copy the new snippet's `token` value into Kamal's config.
+
+The beacon lives in the document head so Turbo loads it once, with SPA tracking
+enabled for history-based navigation. No custom events or analytics cookies
+are added. The public privacy page describes this service.
+
+After deploying, visit the production site without an ad blocker. In browser
+developer tools, confirm `beacon.min.js` loads once, browse between a few pages
+using Turbo, then switch tabs to flush the last measurement. Confirm successful
+beacon requests to `cloudflareinsights.com` and check Cloudflare's Web Analytics
+dashboard after a few minutes. Ad blockers can prevent collection, so the counts
+are approximate. See Cloudflare's [setup guide](https://developers.cloudflare.com/web-analytics/get-started/)
+and [SPA measurement notes](https://developers.cloudflare.com/web-analytics/faq/).
+
 ## Database backups to DigitalOcean Spaces
 
 `DatabaseBackupJob` runs daily at 03:00 in the application's time zone (UTC by

@@ -43,6 +43,7 @@ env:
     - BACKUP_ACCESS_KEY_ID
     - BACKUP_SECRET_ACCESS_KEY
   clear:
+    CLOUDFLARE_WEB_ANALYTICS_TOKEN: a3f4d689b1434a2791ee2d54d53568e4
     BACKUP_BUCKET: carouselopedia-backups
     BACKUP_ENDPOINT: https://mkc1.digitaloceanspaces.com
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
