@@ -31,7 +31,7 @@ h2 { font-size: 1.35rem; margin: 28px 0 8px; }
 .site-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px; max-width: 1180px; margin: 0 auto; padding: 14px 16px 0; }
 .brand { display: inline-flex; align-items: center; gap: 0; font-family: var(--display); font-size: 1.4rem; color: var(--red); text-decoration: none; }
 .brand img { flex: none; }
-.site-header nav { display: flex; gap: 16px; }
+.site-header nav { display: flex; flex-wrap: wrap; gap: 16px; }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 48px; }
 .page-header { display: grid; gap: 4px; margin-bottom: 20px; }
 .page-header p { margin: 0; }

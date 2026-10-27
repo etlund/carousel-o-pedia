@@ -338,6 +338,10 @@ class SeatChartTest < ApplicationSystemTestCase
     visit carousels_path
     [ 1400, 940, 390, 320 ].each do |width|
       page.current_window.resize_to(width, 1000)
+      # Chrome can clamp window resizing to 500px; enforce the actual viewport.
+      page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride",
+        width:, height: 1000, deviceScaleFactor: 1, mobile: false)
+      assert_equal width, page.evaluate_script("innerWidth")
       measurements = page.evaluate_script(<<~JS)
         Array.from(document.querySelectorAll(".card-seating"), seating => {
           const chart = seating.querySelector(".mini-seat-chart-link").getBoundingClientRect();
@@ -366,9 +370,26 @@ class SeatChartTest < ApplicationSystemTestCase
         assert_operator measurement.fetch("factsRight"), :<=, measurement.fetch("right") + 0.1
         assert measurement.fetch("factsFit"), "Facts overflow at #{width}px"
       end
-      assert_not page.evaluate_script("document.documentElement.scrollWidth > document.documentElement.clientWidth")
+      assert_not page.evaluate_script("document.documentElement.scrollWidth > document.documentElement.clientWidth"),
+        "Page overflows at #{width}px"
     end
   ensure
+    page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride")
+    page.current_window.resize_to(1400, 1400)
+  end
+
+  test "carousel directory does not overflow a mobile viewport with fallback fonts" do
+    page.current_window.resize_to(320, 1000)
+    page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride",
+      width: 320, height: 1000, deviceScaleFactor: 1, mobile: false)
+    visit carousels_path
+    assert_equal 320, page.evaluate_script("innerWidth")
+    page.execute_script("document.documentElement.style.setProperty('--body', 'system-ui')")
+
+    assert_not page.evaluate_script("document.documentElement.scrollWidth > document.documentElement.clientWidth"),
+      "Page overflows at 320px with fallback fonts"
+  ensure
+    page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride")
     page.current_window.resize_to(1400, 1400)
   end
 
