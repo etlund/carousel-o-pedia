@@ -74,6 +74,7 @@
               <% skip = seat.rows_spanned - 1 %>
               <td colspan="<%= seat.rows_spanned %>" class="<%= seat.category || seat.state %>">
                 <%= link_to seat.figure&.name || seat.state.capitalize, seat_destination_path(seat) %>
+                <%= mount_icon(seat.figure&.mount) %>
                 <% unless seat.confirmed? %><span class="badge">check</span><% end %>
               </td>
             <% else %>

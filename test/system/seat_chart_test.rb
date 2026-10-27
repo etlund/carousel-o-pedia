@@ -3,6 +3,84 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "browser-width chart preserves the chart and supports closing and seat navigation" do
+    carousel = Carousel.find_by!(slug: "spokane-looff-carrousel")
+    visit carousel_path(carousel)
+    original_width = find("svg.seat-chart").evaluate_script("this.getBoundingClientRect().width")
+    click_button "Expand chart"
+    assert_selector "dialog[open]"
+    assert_button "Close expanded view", exact: true
+    assert_selector "button[aria-expanded=true]"
+    assert_text "Press Escape to close"
+    assert_selector "dialog .legend", text: "Jumper"
+    assert_selector "dialog a.seat", count: 58
+    assert_operator find("svg.seat-chart").evaluate_script("this.getBoundingClientRect().width"), :>, original_width
+    assert_in_delta page.evaluate_script("innerWidth"), find("dialog").evaluate_script("this.getBoundingClientRect().width"), 1
+    assert_nil page.evaluate_script("document.fullscreenElement")
+    page.send_keys [ :shift, :tab ]
+    assert page.evaluate_script("document.activeElement.closest('dialog') !== null")
+    page.send_keys :tab
+    assert_equal "Close expanded view", page.evaluate_script("document.activeElement.textContent.trim()")
+
+    click_button "Close expanded view"
+    assert_no_selector "dialog[open]"
+    assert_button "Expand chart", exact: true
+    assert_equal "Expand chart", page.evaluate_script("document.activeElement.textContent.trim()")
+    assert_in_delta original_width, find("svg.seat-chart").evaluate_script("this.getBoundingClientRect().width"), 1
+
+    click_button "Expand chart"
+    page.send_keys :escape
+    assert_no_selector "dialog[open]"
+    assert_button "Expand chart", exact: true
+
+    click_button "Expand chart"
+    figure = carousel.seat("1A").figure
+    find("dialog a.seat[href='#{figure_path(figure)}']").click
+    assert_selector "h1", text: figure.name
+    assert_no_selector "dialog[open]"
+    page.go_back
+    assert_button "Expand chart", exact: true
+    assert_no_selector "dialog[open]"
+  end
+
+  test "expand control follows the two-column breakpoint and expanded charts remain closable after resizing" do
+    page.current_window.resize_to(861, 844)
+    visit carousel_path("spokane-looff-carrousel")
+    assert_equal 861, page.evaluate_script("innerWidth")
+    assert_equal 2, find(".grid").evaluate_script("getComputedStyle(this).gridTemplateColumns.split(' ').length")
+    assert_button "Expand chart", exact: true
+
+    page.current_window.resize_to(860, 844)
+    assert_equal 860, page.evaluate_script("innerWidth")
+    assert_equal 1, find(".grid").evaluate_script("getComputedStyle(this).gridTemplateColumns.split(' ').length")
+    assert_no_button "Expand chart"
+    assert_selector "svg.seat-chart a.seat", count: 58
+
+    page.current_window.resize_to(390, 844)
+    assert_no_button "Expand chart"
+    page.current_window.resize_to(861, 844)
+    click_button "Expand chart"
+    page.current_window.resize_to(390, 844)
+    assert_selector "dialog[open]"
+    assert_button "Close expanded view", exact: true
+    assert_in_delta page.evaluate_script("innerWidth"), find("dialog").evaluate_script("this.getBoundingClientRect().width"), 1
+    assert_operator find("svg.seat-chart").evaluate_script("this.getBoundingClientRect().right"), :<=, page.evaluate_script("innerWidth")
+    click_button "Close expanded view"
+    assert_no_selector "dialog[open]"
+    assert_no_button "Expand chart"
+
+    page.current_window.resize_to(1100, 650)
+    click_button "Expand chart"
+    assert find("dialog").evaluate_script("this.scrollHeight > this.clientHeight")
+    page.execute_script("document.querySelector('dialog').scrollTop = 10000")
+    close_button = find_button("Close expanded view")
+    assert_operator close_button.evaluate_script("this.getBoundingClientRect().top"), :>=, 0
+    close_button.click
+    assert_no_selector "dialog[open]"
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
   test "Elitch ring research stays separate from mapped seats and supports unequal ring counts" do
     carousel = Carousel.find_by!(slug: "elitch-gardens-carousel-denver")
     visit carousel_path(carousel)

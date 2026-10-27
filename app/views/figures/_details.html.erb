@@ -1,7 +1,7 @@
 <% if figure.description.present? %><p class="lede"><%= figure.description %></p><% end %>
 <dl class="facts card">
   <dt>Category</dt><dd><%= category_label(figure.category) %></dd>
-  <% if figure.mount %><dt>Mount</dt><dd><%= figure.mount.capitalize %></dd><% end %>
+  <% if figure.mount %><dt>Mount</dt><dd><%= mount_icon(figure.mount, decorative: true) %> <%= figure.mount.capitalize %></dd><% end %>
   <% if figure.carver %><dt>Carver</dt><dd><%= link_to figure.carver.name, figure.carver %></dd><% end %>
   <% if figure.year_carved %><dt>Carved</dt><dd><%= figure.year_carved %></dd><% end %>
   <% if figure.sponsor.present? %><dt>Sponsor</dt><dd><%= figure.sponsor %></dd><% end %>

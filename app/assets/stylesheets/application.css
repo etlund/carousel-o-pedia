@@ -74,8 +74,16 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
 .sections td.none, .sections td.unknown a { color: var(--muted); }
 .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 999px; background: var(--line); color: var(--fg); margin-left: 4px; }
 .type-list { columns: 3 12em; }
+.mount-icon { display: inline-block; vertical-align: -.15em; flex-shrink: 0; }
 
 /* Round seat chart */
+.chart-tools { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 8px; }
+.chart-tools[hidden], .expanded-chart-hint { display: none; }
+@media (max-width: 860px) { .chart-inline .chart-tools { display: none; } }
+.chart-dialog { width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 16px; border: 0; background: var(--bg); color: var(--fg); overflow: auto; }
+.chart-dialog .chart-tools { position: sticky; top: 0; z-index: 1; padding: 8px 0; background: var(--bg); }
+.chart-dialog .expanded-chart-hint { display: inline; }
+body:has(.chart-dialog[open]) { overflow: hidden; }
 .seat-chart { width: 100%; height: auto; display: block; }
 .seat-chart .platform { fill: none; stroke: var(--green); stroke-width: 5; }
 .seat-chart .row-divider { fill: none; stroke: var(--line); stroke-dasharray: 3 5; }
@@ -92,6 +100,9 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
 .seat.horse rect, .seat.horse circle { fill: var(--horse); } .seat.horse text { fill: var(--horse-fg); }
 .seat.menagerie rect, .seat.menagerie circle { fill: var(--other); } .seat.menagerie text { fill: var(--other-fg); }
 .seat.chariot rect, .seat.chariot circle { fill: var(--special); } .seat.chariot text { fill: var(--special-fg); }
+.seat.horse .mount-icon { color: var(--horse-fg); }
+.seat.menagerie .mount-icon { color: var(--other-fg); }
+.seat.chariot .mount-icon { color: var(--special-fg); }
 .seat.unknown rect, .seat.empty rect { fill: transparent; stroke: var(--muted); stroke-dasharray: 4 3; } .seat.unknown text, .seat.empty text { fill: var(--muted); }
 .seat.unsure rect, .seat.unsure circle { stroke: var(--fg); stroke-dasharray: 4 3; stroke-width: 1.25; }
 .seat:hover rect, .seat:hover circle, .seat:focus-visible rect, .seat:focus-visible circle { stroke: var(--hi); stroke-width: 3; stroke-dasharray: none; }

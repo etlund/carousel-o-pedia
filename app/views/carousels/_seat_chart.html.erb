@@ -1,5 +1,15 @@
 <% chart = SeatChart.new(carousel) %>
 <% c = SeatChart::CENTER %>
+<div data-controller="chart-viewer" data-action="turbo:before-cache@document->chart-viewer#close pagehide@window->chart-viewer#close">
+<div class="chart-inline" data-chart-viewer-target="inline">
+<div class="seat-chart-panel" data-chart-viewer-target="chart">
+<div class="chart-tools" data-chart-viewer-target="controls" hidden>
+  <span class="expanded-chart-hint hint">Press Escape to close</span>
+  <button type="button" class="button" aria-controls="<%= dom_id(carousel, :expanded_chart) %>" aria-expanded="false"
+          data-chart-viewer-target="button" data-action="chart-viewer#toggle">
+    <span data-chart-viewer-target="label">Expand chart</span>
+  </button>
+</div>
 <svg class="seat-chart" viewBox="0 0 <%= SeatChart::SIZE %> <%= SeatChart::SIZE %>" role="img"
      aria-label="Round seat chart of <%= carousel.name %>: <%= carousel.sections_count %> sections, <%= carousel.rows_count %> rows">
   <circle cx="<%= c %>" cy="<%= c %>" r="<%= SeatChart::PLATFORM_RADIUS %>" class="platform"/>
@@ -17,16 +27,19 @@
   <% end %>
   <% chart.seat_shapes(carousel.seats.includes(current_placement: { figure: :figure_type })).each do |shape| %>
     <% seat = shape.seat %>
+    <% mount = seat.figure&.mount %>
     <% label = seat.figure&.chart_label || (seat.state == "unknown" ? "?" : "empty") %>
     <a href="<%= seat_destination_path(seat) %>" class="seat <%= seat.category || seat.state %> <%= "unsure" unless seat.confirmed? %>">
-      <title><%= seat.code %>: <%= seat.figure&.name || seat.state.capitalize %></title>
+      <title><%= seat.code %>: <%= seat.figure&.name || seat.state.capitalize %><%= " (#{mount.capitalize})" if mount %></title>
       <% if shape.round %>
         <circle cx="<%= shape.center.x %>" cy="<%= shape.center.y %>" r="<%= shape.width / 2 %>"/>
       <% else %>
         <rect x="<%= shape.center.x - shape.width / 2 %>" y="<%= shape.center.y - shape.height / 2 %>" width="<%= shape.width %>" height="<%= shape.height %>" rx="8"/>
       <% end %>
       <text x="<%= shape.center.x %>" y="<%= shape.center.y + 1 %>" class="seat-label"><%= label %></text>
-      <text x="<%= shape.center.x %>" y="<%= shape.center.y + 13 %>" class="seat-code"><%= seat.code %></text>
+      <text x="<%= shape.center.x - (mount ? 6.5 : 0) %>" y="<%= shape.center.y + 13 %>" class="seat-code"><%= seat.code %></text>
+      <%= mount_icon(mount, decorative: true, size: 10,
+            x: shape.center.x + seat.code.length * 2.6 - 3.5, y: shape.center.y + 5) %>
     </a>
   <% end %>
 </svg>
@@ -35,4 +48,12 @@
   <li><span class="swatch menagerie"></span><%= FigureType::CATEGORY_LABELS["menagerie"] %></li>
   <li><span class="swatch chariot"></span><%= FigureType::CATEGORY_LABELS["chariot"] %></li>
   <li><span class="swatch unsure"></span>Dashed outline: best reading, not yet confirmed</li>
+  <% Figure::MOUNTS.each do |mount| %>
+    <li><%= mount_icon(mount, decorative: true) %> <%= mount.capitalize %></li>
+  <% end %>
 </ul>
+</div>
+</div>
+<dialog id="<%= dom_id(carousel, :expanded_chart) %>" class="chart-dialog" aria-label="Seating chart for <%= carousel.name %>"
+        data-chart-viewer-target="dialog" data-action="close->chart-viewer#restore"></dialog>
+</div>
