@@ -7,12 +7,14 @@ class SeatChartTest < ApplicationSystemTestCase
     carousel = Carousel.find_by!(slug: "spokane-looff-carrousel")
     visit carousel_path(carousel)
     original_width = find("svg.seat-chart").evaluate_script("this.getBoundingClientRect().width")
+    assert find(".chart-inline .mount-legend").evaluate_script("this.getBoundingClientRect().top >= this.previousElementSibling.getBoundingClientRect().bottom")
     click_button "Expand chart"
     assert_selector "dialog[open]"
     assert_button "Close expanded view", exact: true
     assert_selector "button[aria-expanded=true]"
     assert_text "Press Escape to close"
     assert_selector "dialog .legend", text: "Jumper"
+    assert find("dialog .mount-legend").evaluate_script("this.getBoundingClientRect().top >= this.previousElementSibling.getBoundingClientRect().bottom")
     assert_selector "dialog a.seat", count: 58
     assert_operator find("svg.seat-chart").evaluate_script("this.getBoundingClientRect().width"), :>, original_width
     assert_in_delta page.evaluate_script("innerWidth"), find("dialog").evaluate_script("this.getBoundingClientRect().width"), 1

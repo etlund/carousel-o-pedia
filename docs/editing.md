@@ -173,7 +173,8 @@ or placements and does not change an existing chart.
 Charts use blue for horses, orange for other animals, and red for chariots/tubs.
 Best-reading placements have uncertainty styling; unknown and empty positions
 remain distinct. Mount symbols identify jumper, stander, spinning, and fixed
-figures. The full chart includes a legend and clickable seats; wide layouts
+figures. The mount key sits on a separate row below the category legend in both
+regular and expanded views. The full chart includes clickable seats; wide layouts
 offer an expanded dialog, closed with its close control or Escape.
 
 ## Text, addresses, and links

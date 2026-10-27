@@ -21,7 +21,10 @@ class MountIconsTest < ActionDispatch::IntegrationTest
       assert_select ".chart-tools[hidden] button[aria-expanded=false]", text: "Expand chart"
       assert_select "dialog.chart-dialog:not([open])[aria-label=?]", "Seating chart for #{@carousel.name}"
       assert_select ".seat-chart-panel > svg.seat-chart", 1
-      assert_select ".seat-chart-panel > .legend", 1
+      assert_select ".seat-chart-panel > svg.seat-chart + ul.legend:not(.mount-legend)", 1
+      assert_select ".seat-chart-panel > ul.legend + ul.mount-legend", 1
+      assert_select ".legend:not(.mount-legend) .mount-icon", 0
+      assert_select ".mount-legend li", Figure::MOUNTS.length
     end
     assert_select "svg.seat-chart a.seat", 8
     assert_select "svg.seat-chart a.seat svg.mount-icon", 4
@@ -33,7 +36,7 @@ class MountIconsTest < ActionDispatch::IntegrationTest
         assert_select "svg.mount-icon[aria-hidden=true][width='10']", 1
       end
       assert_select "table.sections td:has(a[href='#{figure_path(figure)}']) svg.mount-icon[aria-label=?]", figure.mount.capitalize
-      assert_select ".legend li:has(svg.mount-icon)", text: /#{figure.mount.capitalize}/
+      assert_select ".mount-legend li:has(svg.mount-icon)", text: /#{figure.mount.capitalize}/
     end
     assert_select "svg.seat-chart a.seat[href=?] svg.mount-icon", figure_path(@unknown), count: 0
     assert_select "svg.seat-chart a.seat.unknown svg.mount-icon, svg.seat-chart a.seat.empty svg.mount-icon", 0

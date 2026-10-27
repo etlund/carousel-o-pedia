@@ -48,6 +48,8 @@
   <li><span class="swatch menagerie"></span><%= FigureType::CATEGORY_LABELS["menagerie"] %></li>
   <li><span class="swatch chariot"></span><%= FigureType::CATEGORY_LABELS["chariot"] %></li>
   <li><span class="swatch unsure"></span>Dashed outline: best reading, not yet confirmed</li>
+</ul>
+<ul class="legend mount-legend">
   <% Figure::MOUNTS.each do |mount| %>
     <li><%= mount_icon(mount, decorative: true) %> <%= mount.capitalize %></li>
   <% end %>
