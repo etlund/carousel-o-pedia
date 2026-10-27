@@ -136,6 +136,8 @@ Street addresses and postal codes are optional. Postal codes are text to retain
 leading zeros. Use **address sources and notes** to distinguish a visitor
 entrance or venue address from the exact carousel location; mailing offices and
 PO boxes are not ride addresses. An address is not a verified map point.
+Address sources appear below the Sections table, or below the main carousel
+details when no seating layout is recorded.
 
 Official website and Wikipedia URLs must use HTTP or HTTPS without login
 credentials. Other named links use sanitized Markdown, one per line, such as

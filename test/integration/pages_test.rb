@@ -435,8 +435,24 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select ".page-header script", 0
     assert_select "#address-sources a[href=?]", "https://example.com/directions", text: "Visitor directions"
     assert_select "#address-sources script", 0
+    assert_select ".table-scroll + #address-sources", 1
+    assert_select ".grid #address-sources", 0
     get carousel_path(build_carousel)
     assert_select "#address-sources", 0
+  end
+
+  test "address sources remain visible without a seating layout" do
+    carousel = build_carousel(sections: nil, rows: nil)
+    carousel.update!(address_sources: "Visitor entrance address.")
+
+    get carousel_path(carousel)
+
+    assert_response :success
+    assert_select "table.sections", 0
+    assert_select ".grid + #address-sources" do
+      assert_select "h2", text: "Address sources"
+      assert_select "p", text: "Visitor entrance address."
+    end
   end
 
   test "carousel summary counts exclude ended and unplaced figures and count spanning figures once" do

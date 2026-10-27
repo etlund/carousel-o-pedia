@@ -35,12 +35,6 @@
       <% if @carousel.wikipedia_url %><dt>Wikipedia</dt><dd><%= link_to "Wikipedia", @carousel.wikipedia_url %></dd><% end %>
       <% if @carousel.other_links %><dt>Other links</dt><dd class="prose"><%= wiki_body(@carousel.other_links) %></dd><% end %>
     </dl>
-    <% if @carousel.address_sources.present? %>
-      <section id="address-sources" class="prose">
-        <h2>Address sources</h2>
-        <%= wiki_body(@carousel.address_sources) %>
-      </section>
-    <% end %>
     <% if @carousel.summary_sources.present? %>
       <section id="summary-sources" class="prose">
         <h2>Summary sources</h2>
@@ -86,4 +80,11 @@
     </tbody>
   </table>
 </div>
+<% end %>
+
+<% if @carousel.address_sources.present? %>
+  <section id="address-sources" class="prose">
+    <h2>Address sources</h2>
+    <%= wiki_body(@carousel.address_sources) %>
+  </section>
 <% end %>
