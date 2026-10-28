@@ -5,6 +5,13 @@
     <%= form.label :other_names %><%= form.text_area :other_names, rows: 3 %>
     <p class="hint">Optional alternate or historical names for this same carousel, one per line. These names are searchable; keep the primary name above.</p>
   </div>
+  <div class="field"><%= form.label :status %><%= form.select :status, Carousel::STATUSES.map { [ _1.capitalize, _1 ] } %></div>
+  <div class="field"><%= form.label :maker_id, "Maker" %><%= form.collection_select :maker_id, Maker.order(:name), :id, :name, include_blank: "Unknown" %></div>
+  <div class="field-row">
+    <div class="field"><%= form.label :year_built %><%= form.number_field :year_built %></div>
+    <div class="field"><%= form.label :year_opened %><%= form.number_field :year_opened %></div>
+  </div>
+  <div class="field"><%= form.label :venue %><%= form.text_field :venue %></div>
   <div class="field">
     <%= form.label :street_address %><%= form.text_field :street_address, autocomplete: "street-address" %>
     <p class="hint">Use the public ride location or visitor entrance, not a mailing office or PO box. Note when this is a park or venue address rather than the carousel's own door.</p>
@@ -19,7 +26,7 @@
     <%= form.label :address_sources, "Address sources and notes" %><%= form.text_area :address_sources, rows: 3 %>
     <p class="hint">Use Markdown links, a review date, and any entrance or address-precision caveats. An address does not establish the carousel's exact map coordinates.</p>
   </div>
-  <div class="field"><%= form.label :venue %><%= form.text_field :venue %></div>
+  <%= render "shared/body_field", form: %>
   <fieldset>
     <legend>Website links</legend>
     <div class="field"><%= form.label :official_url, "Official website URL" %><%= form.url_field :official_url, placeholder: "https://example.com" %></div>
@@ -30,12 +37,6 @@
       <p class="hint">Optional named links, one per line. Use Markdown, for example [NCA gallery](https://carousels.org/). The official website URL appears as a separate link on carousel summary cards.</p>
     </div>
   </fieldset>
-  <div class="field-row">
-    <div class="field"><%= form.label :status %><%= form.select :status, Carousel::STATUSES.map { [ _1.capitalize, _1 ] } %></div>
-    <div class="field"><%= form.label :year_built %><%= form.number_field :year_built %></div>
-    <div class="field"><%= form.label :year_opened %><%= form.number_field :year_opened %></div>
-  </div>
-  <div class="field"><%= form.label :maker_id, "Maker" %><%= form.collection_select :maker_id, Maker.order(:name), :id, :name, include_blank: "Unknown" %></div>
   <fieldset>
     <legend>Platform</legend>
     <% if carousel.new_record? || carousel.sections_count_in_database.nil? || carousel.rows_count_in_database.nil? %>
@@ -57,6 +58,20 @@
     <div class="field"><%= form.label :rotation, "Turns" %><%= form.select :rotation, Carousel::ROTATIONS.map { [ _1.capitalize, _1 ] }, include_blank: "Unknown" %></div>
   </fieldset>
   <fieldset>
+    <legend>Published totals</legend>
+    <p class="hint">Source-reported riding figures, separate from our mapped seats. Count vehicles, not passengers. Leave unverified counts blank; zero means the source confirms none.</p>
+    <div class="field-row">
+      <div class="field"><%= form.label :published_horses_count, "Published horses" %><%= form.number_field :published_horses_count, min: 0 %></div>
+      <div class="field"><%= form.label :published_other_animals_count, "Published other animals" %><%= form.number_field :published_other_animals_count, min: 0 %></div>
+      <div class="field"><%= form.label :published_chariots_count, "Published chariots and tubs" %><%= form.number_field :published_chariots_count, min: 0 %></div>
+    </div>
+    <div class="field">
+      <%= form.label :summary_sources, "Summary sources and notes" %>
+      <%= form.text_area :summary_sources, rows: 5 %>
+      <p class="hint">Required for published totals. Use Markdown links, source dates, and any caveats; also cite partial layout facts here.</p>
+    </div>
+  </fieldset>
+  <fieldset>
     <legend>Independent ring research</legend>
     <p class="hint">Optional counts per ring, even when rings have unequal numbers of positions or no mapped seats. A is the outer ring. Set the verified platform row count; leave unknown values blank. Total positions include vehicles; horses alone do not establish that total. Horse motion describes the horses in that ring, not chariots. Cite the source and uncertainty in Summary sources. This schematic does not create seats or change an existing seat map.</p>
     <%= form.fields_for :ring_details do |rings| %>
@@ -75,20 +90,5 @@
       <% end %>
     <% end %>
   </fieldset>
-  <fieldset>
-    <legend>Published totals</legend>
-    <p class="hint">Source-reported riding figures, separate from our mapped seats. Count vehicles, not passengers. Leave unverified counts blank; zero means the source confirms none.</p>
-    <div class="field-row">
-      <div class="field"><%= form.label :published_horses_count, "Published horses" %><%= form.number_field :published_horses_count, min: 0 %></div>
-      <div class="field"><%= form.label :published_other_animals_count, "Published other animals" %><%= form.number_field :published_other_animals_count, min: 0 %></div>
-      <div class="field"><%= form.label :published_chariots_count, "Published chariots and tubs" %><%= form.number_field :published_chariots_count, min: 0 %></div>
-    </div>
-    <div class="field">
-      <%= form.label :summary_sources, "Summary sources and notes" %>
-      <%= form.text_area :summary_sources, rows: 5 %>
-      <p class="hint">Required for published totals. Use Markdown links, source dates, and any caveats; also cite partial layout facts here.</p>
-    </div>
-  </fieldset>
-  <%= render "shared/body_field", form: %>
   <div class="actions"><%= form.submit %> <%= link_to "Cancel", carousel.persisted? ? carousel : carousels_path %></div>
 <% end %>

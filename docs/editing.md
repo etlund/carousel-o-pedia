@@ -132,6 +132,10 @@ does not suspend an accepted account.
 
 ## Core records
 
+The new and edit carousel forms put everyday details first: names, status,
+maker and years, venue and address, then page text and website links. Platform
+details, published totals and sources, and detailed ring research follow.
+
 - **Other names**: on the carousel form, enter alternate or historical names for
   the same carousel, one per line. Blank lines and exact duplicates are removed.
   These optional names appear on its page and directory card and are searchable.
