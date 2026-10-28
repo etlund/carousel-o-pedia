@@ -15,7 +15,7 @@ class VideoAnalysesController < ApplicationController
     @analysis = @carousel.video_analyses.build(analysis_params.merge(user: current_user))
     if @analysis.save
       VideoAnalysisJob.perform_later(@analysis)
-      redirect_to carousel_video_analysis_path(@carousel, @analysis), notice: "Video uploaded. The analysis usually takes a few minutes."
+      redirect_to carousel_video_analysis_path(@carousel, @analysis), notice: "Video queued. The analysis usually takes a few minutes."
     else
       render :new, status: :unprocessable_entity
     end
@@ -35,12 +35,12 @@ class VideoAnalysesController < ApplicationController
   end
 
   def retry
-    if @analysis.failed? && @analysis.attached_passes.any?
+    if @analysis.retryable?
       @analysis.update!(status: "queued", error_message: nil, started_at: nil, finished_at: nil)
       VideoAnalysisJob.perform_later(@analysis)
       redirect_to carousel_video_analysis_path(@carousel, @analysis), notice: "Trying the analysis again."
     else
-      redirect_to carousel_video_analysis_path(@carousel, @analysis), alert: "Only a failed analysis with its video still attached can be retried."
+      redirect_to carousel_video_analysis_path(@carousel, @analysis), alert: "Only a failed analysis with uploaded clips or a YouTube link can be retried."
     end
   end
 
@@ -63,7 +63,7 @@ class VideoAnalysesController < ApplicationController
     end
 
     def analysis_params
-      params.fetch(:video_analysis, {}).permit(*VideoAnalysis::PASSES.keys)
+      params.fetch(:video_analysis, {}).permit(*VideoAnalysis::PASSES.keys, :youtube_url, :youtube_start_seconds, :youtube_duration_seconds)
     end
 
     def seat_params

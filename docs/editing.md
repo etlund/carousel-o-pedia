@@ -240,6 +240,20 @@ an oncoming pass angled toward approaching figures, and an inner pass from the
 platform. At least one clip should be filmed while the ride runs, so jumpers can
 be told from standers. The upload page explains the filming recipe.
 
+Alternatively, paste a YouTube link and choose a **Start time (seconds)** and
+**Clip length (seconds)**. The default length is 60 seconds and the maximum is
+300 seconds (five minutes). Choose a segment that fits inside the video and
+shows at least one full revolution. Start time comes from the form, not a `t=`
+parameter in the link. Use either a link or uploads in one analysis, not both.
+Only use videos you have permission to analyze. Live, private, age-restricted,
+or otherwise unavailable videos cannot be retrieved; upload an authorized clip
+instead. The tool does not sign in or bypass download restrictions.
+
+YouTube analyses keep the source link and selected interval after successful
+clips are deleted. Frame evidence uses timestamps in the original video.
+Failed retrievals show the reason and can be retried even when no clip was
+downloaded; a successfully retrieved clip is reused if analysis later fails.
+
 The analysis produces a draft, not carousel data: section and row counts,
 rotation, and for each seat the figure type, kind, motion, and a description,
 each with a confidence. The reviewer corrects the draft and ticks the seats to

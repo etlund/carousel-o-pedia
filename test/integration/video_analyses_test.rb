@@ -89,6 +89,56 @@ class VideoAnalysesTest < ActionDispatch::IntegrationTest
     assert_select ".flash.alert", /at least one video clip/
   end
 
+  test "a YouTube link queues a selected segment and retains its source on the review and list" do
+      sign_in_as users(:admin)
+      get new_carousel_video_analysis_path(@carousel)
+      assert_select "input[name='video_analysis[youtube_duration_seconds]'][value='60'][max='300']"
+      assert_select "input[name='video_analysis[youtube_start_seconds]'][value='0']"
+
+      post carousel_video_analyses_path(@carousel), params: { video_analysis: {
+        youtube_url: "https://youtu.be/Usok6GXGavc?t=10", youtube_start_seconds: "12", youtube_duration_seconds: "10"
+      } }
+      analysis = @carousel.video_analyses.sole
+      assert_redirected_to carousel_video_analysis_path(@carousel, analysis)
+      assert_enqueued_with(job: VideoAnalysisJob, args: [ analysis ])
+      assert_empty analysis.attached_passes
+      assert_equal [ 12, 10 ], [ analysis.youtube_start_seconds, analysis.youtube_duration_seconds ]
+      follow_redirect!
+      assert_select "a[href=?]", "https://www.youtube.com/watch?v=Usok6GXGavc&t=12", text: "YouTube: 12s–22s"
+
+      analysis.update!(status: "complete", draft: sample_draft)
+      get carousel_video_analysis_path(@carousel, analysis)
+      assert_select "a[href=?]", analysis.youtube_playback_url
+      get carousel_video_analyses_path(@carousel)
+      assert_select "a[href=?]", analysis.youtube_playback_url
+  end
+
+  test "invalid YouTube links and lengths cannot enqueue an analysis" do
+      sign_in_as users(:admin)
+      [ { youtube_url: "https://example.com/a.mp4" },
+        { youtube_url: "https://youtu.be/Usok6GXGavc", youtube_duration_seconds: 301 } ].each do |attributes|
+        assert_no_enqueued_jobs(only: VideoAnalysisJob) do
+          assert_no_difference "VideoAnalysis.count" do
+            post carousel_video_analyses_path(@carousel), params: { video_analysis: attributes }
+          end
+        end
+        assert_response :unprocessable_entity
+        assert_select ".flash.alert"
+      end
+  end
+
+  test "a failed YouTube retrieval can be retried before any clip was attached" do
+      sign_in_as users(:admin)
+      analysis = VideoAnalysis.create!(carousel: @carousel, user: users(:admin),
+        youtube_url: "https://youtu.be/Usok6GXGavc", status: "failed", error_message: "Video unavailable")
+      get carousel_video_analysis_path(@carousel, analysis)
+      assert_select "button", text: "Try again"
+      post retry_carousel_video_analysis_path(@carousel, analysis)
+      assert analysis.reload.queued?
+      assert_nil analysis.error_message
+      assert_enqueued_with(job: VideoAnalysisJob, args: [ analysis ])
+  end
+
   test "a failed analysis shows why and can be retried" do
     sign_in_as users(:admin)
     analysis = create_analysis(@carousel, status: "failed", error_message: "Video analysis isn't set up yet")

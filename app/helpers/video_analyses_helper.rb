@@ -1,4 +1,11 @@
 module VideoAnalysesHelper
+  def video_analysis_source(analysis)
+    return "Uploaded clips" unless analysis.youtube?
+
+    link_to "YouTube: #{analysis.youtube_start_seconds}s–#{analysis.youtube_start_seconds + analysis.youtube_duration_seconds}s",
+      analysis.youtube_playback_url
+  end
+
   def video_analysis_timestamp(analysis)
     tag.time analysis.created_at.strftime("%B %-d, %Y at %-l:%M:%S %p %Z"), datetime: analysis.created_at.iso8601
   end

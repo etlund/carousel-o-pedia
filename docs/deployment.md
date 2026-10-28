@@ -123,7 +123,7 @@ and [SPA measurement notes](https://developers.cloudflare.com/web-analytics/faq/
 
 ## Carousel video analysis
 
-Trusted users can upload carousel video for a draft seating layout (see
+Trusted users can upload carousel video or select a YouTube segment for a draft seating layout (see
 `docs/editing.md`). The job pulls still frames with `ffmpeg`, which the
 Dockerfile installs, and sends them to Claude through the `ruby_llm` gem's
 Anthropic provider. Set `ANTHROPIC_API_KEY`
@@ -142,6 +142,29 @@ apart, so jumpers can be told from standers), so three clips are about 216
 images. Expect roughly $1 to $1.50 per three-clip analysis, less for one clip. Uploaded clips sit in Active Storage on the
 `storage` volume until the analysis succeeds, then they are deleted; a failed
 analysis keeps its clips so it can be retried.
+
+YouTube retrieval runs in the background using the pinned `yt-dlp[default]`
+dependency in `requirements-video.txt` (including its compatible EJS scripts),
+Python 3.11+, Node 22+, and ffmpeg. The final Docker image includes these tools;
+rebuild it when updating the downloader. No cookies, account credentials, or
+remotely downloaded EJS components are configured. Availability still depends
+on YouTube allowing access from the deployment's IP.
+
+For local development with Node 22+ and ffmpeg on `PATH`:
+
+```sh
+python3 -m venv .venv-video
+.venv-video/bin/pip install -r requirements-video.txt
+```
+
+The app uses `.venv-video/bin/yt-dlp` when present, otherwise `yt-dlp` on `PATH`.
+Keep yt-dlp and its EJS dependency updated together in the manifest when
+YouTube changes. Retrieval is limited to a selected 1–300 second segment,
+1080p MP4, 1 GB per output file, and three minutes per downloader command.
+Timeouts terminate the downloader process group (including ffmpeg). Temporary
+downloads are cleaned up on success or failure. Successful clips use the same
+Active Storage lifecycle as uploads; the public source URL and original-video
+timing remain on the analysis record for provenance and retries.
 
 ## Database backups to DigitalOcean Spaces
 

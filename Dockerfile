@@ -16,9 +16,15 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl ffmpeg libjemalloc2 libvips sqlite3 && \
+    apt-get install --no-install-recommends -y curl ffmpeg libjemalloc2 libstdc++6 libvips python3-venv sqlite3 && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+COPY --from=node:24-bookworm-slim /usr/local/bin/node /usr/local/bin/node
+COPY requirements-video.txt /tmp/requirements-video.txt
+RUN python3 -m venv /opt/video-tools && \
+    /opt/video-tools/bin/pip install --no-cache-dir -r /tmp/requirements-video.txt && \
+    ln -s /opt/video-tools/bin/yt-dlp /usr/local/bin/yt-dlp
 
 # Set production environment variables and enable jemalloc for reduced memory usage and latency.
 ENV RAILS_ENV="production" \

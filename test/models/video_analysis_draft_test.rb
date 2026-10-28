@@ -31,6 +31,16 @@ class VideoAnalysisDraftTest < ActiveSupport::TestCase
     assert_equal "empty", carousel.seat("2B").state
   end
 
+  test "figures accepted from YouTube retain the video source and selected interval" do
+    carousel = build_carousel(sections: 2, rows: 2)
+    analysis = complete_analysis(carousel)
+    analysis.update!(youtube_url: "https://youtu.be/Usok6GXGavc", youtube_start_seconds: 2, youtube_duration_seconds: 20)
+    VideoAnalysisDraft.new(analysis, seats: form_seats(analysis), apply_layout: false).apply!
+    body = carousel.seat("1A").figure.body
+    assert_includes body, "https://www.youtube.com/watch?v=Usok6GXGavc&t=2"
+    assert_includes body, "2s to 22s"
+  end
+
   test "applies the reviewer's corrections, unticked seats stay unknown, and new types are created once" do
     carousel = build_carousel(sections: 2, rows: 2)
     analysis = complete_analysis(carousel)

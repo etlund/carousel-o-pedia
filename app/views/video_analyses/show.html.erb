@@ -4,14 +4,15 @@
 <% end %>
 <p class="muted"><%= link_to @carousel.name, @carousel %> · <%= link_to "All video analyses", carousel_video_analyses_path(@carousel) %></p>
 <h1>Video analysis</h1>
-<p class="muted">Uploaded by <%= @analysis.user.name %> on <%= video_analysis_timestamp(@analysis) %> · <%= video_analysis_status(@analysis) %></p>
+<p class="muted">Submitted by <%= @analysis.user.name %> on <%= video_analysis_timestamp(@analysis) %> · <%= video_analysis_status(@analysis) %></p>
+<p class="muted">Source: <%= video_analysis_source(@analysis) %></p>
 <%= video_analysis_delete_button(@analysis) %>
 
 <% if @analysis.queued? || @analysis.processing? %>
-  <p class="card">The tool is reading frames from <%= pluralize(@analysis.attached_passes.size, "clip") %>. This page refreshes on its own; it usually takes a few minutes.</p>
+  <p class="card"><%= @analysis.youtube? ? "The tool will retrieve the selected YouTube segment and read its frames." : "The tool is reading frames from #{pluralize(@analysis.attached_passes.size, "clip")}." %> This page refreshes on its own; it usually takes a few minutes.</p>
 <% elsif @analysis.failed? %>
   <div class="flash alert" role="alert"><p>The analysis failed: <%= @analysis.error_message %></p></div>
-  <% if @analysis.attached_passes.any? %><%= button_to "Try again", retry_carousel_video_analysis_path(@carousel, @analysis) %><% end %>
+  <% if @analysis.retryable? %><%= button_to "Try again", retry_carousel_video_analysis_path(@carousel, @analysis) %><% end %>
 <% else %>
   <% layout = @analysis.proposed_layout %>
   <% seats_by_code = @carousel.seats.includes(current_placement: :figure).index_by(&:code) %>

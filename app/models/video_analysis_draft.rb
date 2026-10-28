@@ -56,8 +56,16 @@ class VideoAnalysisDraft
       type = figure_type_for(proposal)
       mount = proposal[:mount] if Figure::MOUNTS.include?(proposal[:mount])
       figure = Figure.create!(name: next_name(type), figure_type: type, carousel: @carousel,
-        mount:, description: proposal[:description].to_s.strip.presence)
+        mount:, description: proposal[:description].to_s.strip.presence, body: youtube_source_notes)
       SeatAssignment.new(seat, figure).save!
+    end
+
+    def youtube_source_notes
+      return unless @analysis.youtube?
+
+      "## Video analysis source\n\n[YouTube video](#{@analysis.youtube_playback_url}), " \
+        "#{@analysis.youtube_start_seconds}s to #{@analysis.youtube_start_seconds + @analysis.youtube_duration_seconds}s. " \
+        "Provisional identification from video analysis, reviewed by an editor."
     end
 
     def figure_type_for(proposal)
