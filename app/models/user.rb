@@ -15,6 +15,7 @@ class User < ApplicationRecord
 
   validates :name, presence: true
   validates :email_address, presence: true, uniqueness: true
+  validates :email_address, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :role, inclusion: { in: ROLES }
   validates :access_scope, inclusion: { in: ACCESS_SCOPES }
   validates :editable_carousel, absence: true, unless: :carousel_restricted?

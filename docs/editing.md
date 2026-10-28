@@ -43,6 +43,16 @@ Anyone can read; editing is invite-only. Admins invite editors from the
 Invitations page. Invitation links work for 14 days. Outbound email is not yet
 configured, so copy and send invitation links manually.
 
+Leave **Email (optional)** blank and choose **Create invitation** to generate a
+single-use link without knowing the recipient's email address. Copy the link from
+**Waiting to be accepted** and send it privately, for example in chat. The
+recipient must provide their email address, public display name, password, and
+agreement to the contribution terms when creating an account. Failed submissions
+do not consume the link. Anyone holding an unbound link can claim its configured
+editing access, so share it with only one person. Withdraw a pending invitation
+to revoke it. To restrict an invitation to a known email address, fill in that
+address when creating it; the recipient cannot change it during acceptance.
+
 Invitations offer **Site-wide editing** or **One carousel only**. For one-carousel
 access, choose an existing carousel or leave the carousel blank to allow creation
 of exactly one new carousel. The first successful creation assigns that carousel

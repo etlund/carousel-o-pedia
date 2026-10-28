@@ -3,6 +3,9 @@ class InvitationAcceptancesController < ApplicationController
   rate_limit to: 10, within: 3.minutes, only: :update, with: -> { redirect_to root_path, alert: "Try again later." }
 
   before_action :set_invitation
+  rescue_from ActiveRecord::RecordNotFound do
+    redirect_to new_session_path, alert: "That invitation link has expired or was already used."
+  end
 
   def edit
     @user = User.new(email_address: @invitation.email_address)
@@ -10,7 +13,7 @@ class InvitationAcceptancesController < ApplicationController
 
   def update
     user = @invitation.accept!(**params.expect(user: %i[
-      name password password_confirmation contribution_terms contribution_terms_version
+      email_address name password password_confirmation contribution_terms contribution_terms_version
     ]).to_h.symbolize_keys)
     return unless start_new_session_for(user)
     destination = if user.carousel_restricted?
@@ -27,7 +30,5 @@ class InvitationAcceptancesController < ApplicationController
   private
     def set_invitation
       @invitation = Invitation.find_pending!(params[:token])
-    rescue ActiveRecord::RecordNotFound
-      redirect_to new_session_path, alert: "That invitation link has expired or was already used."
     end
 end

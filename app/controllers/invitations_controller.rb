@@ -10,8 +10,13 @@ class InvitationsController < ApplicationController
   def create
     @invitation = current_user.invitations.build(invitation_params)
     if @invitation.save
-      InvitationsMailer.invite(@invitation).deliver_later
-      redirect_to invitations_path, notice: "Invitation sent to #{@invitation.email_address}."
+      if @invitation.email_address.present?
+        InvitationsMailer.invite(@invitation).deliver_later
+        notice = "Invitation sent to #{@invitation.email_address}."
+      else
+        notice = "Invitation link created. Copy it below and share it privately with one person."
+      end
+      redirect_to invitations_path, notice:
     else
       @invitations = Invitation.pending.includes(:invited_by, :editable_carousel).order(created_at: :desc)
       @users = User.includes(:editable_carousel).order(:name)

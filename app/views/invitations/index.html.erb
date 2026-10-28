@@ -1,10 +1,13 @@
 <% content_for :title, "Invitations" %>
 <h1>Invitations</h1>
 <p class="muted">Editing is invite-only. Each invitation link works for <%= Invitation::EXPIRES_IN.inspect %>.</p>
+<p>Leave the email blank to create a single-use link you can send privately, for example in chat.
+  The recipient will enter their email address when creating an account.
+  Anyone with the link can claim its editing access, so share each link with only one person.</p>
 
 <%= form_with model: @invitation, class: "form inline-form" do |form| %>
   <%= render "shared/errors", record: @invitation %>
-  <div class="field"><%= form.label :email_address, "Invite by email" %><%= form.email_field :email_address, required: true, placeholder: "name@example.com" %></div>
+  <div class="field"><%= form.label :email_address, "Email (optional)" %><%= form.email_field :email_address, placeholder: "name@example.com" %></div>
   <div class="field">
     <%= form.label :access_scope, "Editing access" %>
     <%= form.select :access_scope, [ [ "Site-wide editing", "site_wide" ], [ "One carousel only", "carousel" ] ] %>
@@ -14,7 +17,7 @@
     <%= form.collection_select :editable_carousel_id, Carousel.order(:name), :id, :name, include_blank: "Allow creation of one new carousel" %>
     <p class="hint">Choose an existing carousel, or leave blank to let the invitee create one. Leave blank for site-wide access.</p>
   </div>
-  <%= form.submit "Send invitation" %>
+  <%= form.submit "Create invitation" %>
 <% end %>
 
 <h2>Waiting to be accepted</h2>
@@ -24,16 +27,16 @@
     <tbody>
       <% @invitations.each do |invitation| %>
         <tr>
-          <td><%= invitation.email_address %></td>
+          <td><%= invitation.email_address.presence || "Shareable link" %></td>
           <td><%= invitation.access_description %></td>
           <td><%= invitation.invited_by.name %>, <%= time_ago_in_words(invitation.created_at) %> ago</td>
-          <td><input type="text" readonly value="<%= edit_invitation_acceptance_url(invitation.token) %>" aria-label="Invitation link for <%= invitation.email_address %>" class="copy-field"></td>
+          <td><input type="text" readonly value="<%= edit_invitation_acceptance_url(invitation.token) %>" aria-label="<%= invitation.email_address.present? ? "Invitation link for #{invitation.email_address}" : "Shareable invitation link" %>" class="copy-field"></td>
           <td><%= button_to "Withdraw", invitation, method: :delete, class: "link-button" %></td>
         </tr>
       <% end %>
     </tbody>
   </table>
-  <p class="hint">If email isn't set up yet, copy a link and send it yourself.</p>
+  <p class="hint">Copy a link and send it privately. Each link can create only one account; withdraw it to revoke access before it is accepted.</p>
 <% else %>
   <p>None.</p>
 <% end %>

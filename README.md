@@ -46,8 +46,11 @@ bin/rails db:migrate
 
 ## Editing
 
-Admins invite editors from the Invitations page. Links expire after 14 days;
-if email is not configured, copy and send the link manually.
+Admins invite editors from the Invitations page. Leave the email blank to create
+a single-use link to share privately, such as in chat; the recipient enters their
+email when creating an account. Or enter an email to send an email-bound invite.
+Links expire after 14 days. Anyone with an unbound link can claim its access, so
+share each link with only one person and withdraw unused links when needed.
 Choose site-wide editing or one-carousel access. For one-carousel access, select
 an existing carousel or leave it blank so the invitee can create exactly one new
 carousel, then edit its details, figures, and seats. Shared makers and figure

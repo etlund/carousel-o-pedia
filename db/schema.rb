@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_27_233000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_000000) do
   create_table "carousels", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -74,7 +74,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_233000) do
   end
 
   create_table "invitations", force: :cascade do |t|
-    t.string "email_address", null: false
+    t.string "email_address"
     t.string "token"
     t.integer "invited_by_id", null: false
     t.datetime "accepted_at"

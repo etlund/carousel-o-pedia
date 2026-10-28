@@ -1,8 +1,18 @@
 <% content_for :title, "Join carousel-o-pedia" %>
 <h1>Join carousel-o-pedia</h1>
-<p><%= @invitation.invited_by.name %> invited <strong><%= @invitation.email_address %></strong> to help edit.</p>
+<% if @invitation.email_address.present? %>
+  <p><%= @invitation.invited_by.name %> invited <strong><%= @invitation.email_address %></strong> to help edit.</p>
+<% else %>
+  <p><%= @invitation.invited_by.name %> invited you to help edit. Enter your email address to create your account.</p>
+<% end %>
 <%= form_with model: @user, url: invitation_acceptance_path(@invitation.token), method: :patch, scope: :user, class: "form narrow" do |form| %>
   <%= render "shared/errors", record: @user %>
+  <% if @invitation.email_address.blank? %>
+    <div class="field">
+      <%= form.label :email_address, "Email address" %>
+      <%= form.email_field :email_address, required: true, autocomplete: "email" %>
+    </div>
+  <% end %>
   <div class="field">
     <%= form.label :name, "Public display name" %>
     <%= form.text_field :name, required: true, autofocus: true, autocomplete: "nickname", aria: { describedby: "display-name-hint" } %>
