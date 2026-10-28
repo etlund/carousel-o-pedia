@@ -7,13 +7,15 @@ class VideoAnalysisJobTest < ActiveJob::TestCase
   end
 
   test "stores the draft and deletes the clips once the analysis succeeds" do
-    stub_analyzer(-> { { draft: sample_draft, frames_count: 4, model: "claude-opus-5-5", input_tokens: 10, output_tokens: 5 } }) do
+    stub_analyzer(-> { { draft: sample_draft, frames_count: 4, model: "claude-opus-5-5",
+      input_tokens: 10, output_tokens: 5, estimated_cost_usd: 0.01234567 } }) do
       perform_enqueued_jobs { VideoAnalysisJob.perform_now(@analysis) }
     end
 
     @analysis.reload
     assert @analysis.complete?
     assert_equal 4, @analysis.proposed_seats.size
+    assert_equal 0.01234567, @analysis.estimated_cost_usd
     assert_not @analysis.side_video.attached?
   end
 

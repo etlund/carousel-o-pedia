@@ -117,7 +117,8 @@ class CarouselVideoAnalyzer
     raise Error, "The analysis came back in an unexpected format" unless draft.is_a?(Hash)
 
     { draft:, frames_count:, model: message.model,
-      input_tokens: message.tokens.input, output_tokens: message.tokens.output }
+      input_tokens: message.tokens.input, output_tokens: message.tokens.output,
+      estimated_cost_usd: message.cost.total }
   rescue JSON::ParserError
     raise Error, "The analysis came back in an unexpected format"
   end
