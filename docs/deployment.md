@@ -130,8 +130,9 @@ locally before deploying; Kamal passes it to the app like the backup keys. Witho
 it, uploads still work but each analysis fails with a message saying the key is
 missing. `VIDEO_ANALYSIS_MODEL` overrides the model (default `claude-opus-5-5`).
 
-A run reads up to 40 frames per clip, so three clips are about 120 images. Expect
-roughly $0.50 to $1 per analysis. Uploaded clips sit in Active Storage on the
+A run reads up to 36 pairs of frames per clip (each pair a third of a second
+apart, so jumpers can be told from standers), so three clips are about 216
+images. Expect roughly $1 to $1.50 per three-clip analysis, less for one clip. Uploaded clips sit in Active Storage on the
 `storage` volume until the analysis succeeds, then they are deleted; a failed
 analysis keeps its clips so it can be retried.
 

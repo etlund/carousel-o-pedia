@@ -7,8 +7,10 @@ class CarouselVideoAnalyzer
   class Error < StandardError; end
 
   MODEL = ENV.fetch("VIDEO_ANALYSIS_MODEL", "claude-opus-5-5")
-  FRAMES_PER_CLIP = 40
-  MIN_SECONDS_BETWEEN_FRAMES = 1.0
+  # Each sample is a pair of frames a moment apart, so a jumper's rise or fall shows up.
+  SAMPLES_PER_CLIP = 36
+  MIN_SECONDS_BETWEEN_SAMPLES = 1.0
+  PAIR_GAP = 0.33
   FRAME_WIDTH = 1024
   MAX_TOKENS = 64_000
   FALLBACK_BETA = "server-side-fallback-2026-07-01"
@@ -58,11 +60,21 @@ class CarouselVideoAnalyzer
       their figures pass a fixed viewer after the lead figure, so section 2 follows it.
     - Track figures across frames so each physical figure is counted once. A clip ends
       back where it started, so use the repeat of the first figures to close the loop.
+    - Tell rows apart by depth, not by left-right position in one frame: inner-row
+      figures sit nearer the center pole, look smaller, and pass behind the rows outside
+      them. Keep each section's rows in that inward order.
+    - A tub, tea-cup or chariot bench often fills two or all rows of its section. Set
+      rows_spanned by checking whether a figure ever appears behind it in its own section;
+      a spot behind it where no figure is ever seen is probably covered by it.
     - Identify each figure's animal or object. Horses are horses; any other animal is
-      menagerie; chariots, benches, tubs and tea-cups are chariot.
-    - Decide stander or jumper from motion between frames when the ride is running: a
-      jumper rises and falls on its pole, a stander stays put with hooves planted. Use
-      unknown when the ride was still or the figure was never seen moving.
+      menagerie; chariots, benches, tubs and tea-cups are chariot. Painted patterns
+      mislead: a horse-shaped body with spots, stripes or patches is usually a painted
+      horse. Name another animal only when its head, horns, ears or body shape show it.
+    - Decide stander or jumper from motion. Frames come in pairs about a third of a
+      second apart. Compare each figure's height against something fixed, such as the
+      platform edge, the rounding boards or the canopy, within each pair and across
+      pairs: a jumper's height changes, a stander's does not. Use unknown when the ride
+      was still or you could not compare a figure in two frames.
     - Describe what you can see. Never guess names; describe colors and carving instead.
 
     Be honest about uncertainty. Mark confidence low, or the seat unknown, rather than
@@ -114,7 +126,7 @@ class CarouselVideoAnalyzer
     def content_for(clips)
       blocks = [ { type: "text", text: carousel_context } ]
       clips.each do |pass, frames|
-        blocks << { type: "text", text: "Clip: #{VideoAnalysis::PASSES.fetch(pass)}. #{frames.size} frames follow." }
+        blocks << { type: "text", text: "Clip: #{VideoAnalysis::PASSES.fetch(pass)}. #{frames.size} frames follow, in pairs #{PAIR_GAP}s apart." }
         frames.each do |seconds, jpeg|
           blocks << { type: "text", text: "#{pass.delete_suffix("_video")} clip, #{seconds.round(1)}s" }
           blocks << { type: "image", source: { type: "base64", media_type: "image/jpeg", data: Base64.strict_encode64(jpeg) } }
@@ -139,15 +151,19 @@ class CarouselVideoAnalyzer
       lines.join("\n")
     end
 
-    # Evenly spaced JPEG stills as [seconds, bytes] pairs.
+    # Evenly spaced pairs of JPEG stills as [seconds, bytes], in time order.
     def extract_frames(path)
       duration = probe_duration(path)
-      interval = [ duration / FRAMES_PER_CLIP, MIN_SECONDS_BETWEEN_FRAMES ].max
+      interval = [ duration / SAMPLES_PER_CLIP, MIN_SECONDS_BETWEEN_SAMPLES ].max
+      [ 0, PAIR_GAP ].flat_map { |offset| frames_from(path, offset:, interval:) }.sort_by(&:first)
+    end
+
+    def frames_from(path, offset:, interval:)
       Dir.mktmpdir("carousel-frames") do |dir|
-        run "ffmpeg", "-nostdin", "-loglevel", "error", "-i", path,
-          "-vf", "fps=1/#{interval.round(3)},scale=min(#{FRAME_WIDTH}\\,iw):-2", "-frames:v", FRAMES_PER_CLIP.to_s,
+        run "ffmpeg", "-nostdin", "-loglevel", "error", "-ss", offset.to_s, "-i", path,
+          "-vf", "fps=1/#{interval.round(3)},scale=min(#{FRAME_WIDTH}\\,iw):-2", "-frames:v", SAMPLES_PER_CLIP.to_s,
           "-q:v", "4", File.join(dir, "frame-%03d.jpg")
-        Dir[File.join(dir, "frame-*.jpg")].sort.each_with_index.map { |file, index| [ index * interval, File.binread(file) ] }
+        Dir[File.join(dir, "frame-*.jpg")].sort.each_with_index.map { |file, index| [ offset + index * interval, File.binread(file) ] }
       end
     end
 

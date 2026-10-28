@@ -11,12 +11,12 @@ class CarouselVideoAnalyzerTest < ActiveSupport::TestCase
     result = CarouselVideoAnalyzer.new(@analysis, client: claude).call
 
     assert_equal 2, result[:draft]["sections_count"]
-    assert_equal 4, result[:frames_count]
+    assert_equal 8, result[:frames_count]
     assert_equal [ 1200, 800 ], result.values_at(:input_tokens, :output_tokens)
 
     request = claude.requests.sole
     images = request[:messages].sole[:content].select { _1[:type] == "image" }
-    assert_equal 4, images.size
+    assert_equal 8, images.size
     assert_equal "image/jpeg", images.first[:source][:media_type]
     assert_equal :json_schema, request[:output_config][:format_][:type]
     assert_equal :default, request[:fallbacks]
