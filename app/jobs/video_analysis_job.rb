@@ -10,7 +10,8 @@ class VideoAnalysisJob < ApplicationJob
     analysis.update!(status: "complete", finished_at: Time.current, **result)
     # The draft keeps everything the tool read; the clips are large, so they go once it succeeds.
     analysis.purge_videos
-  rescue CarouselVideoAnalyzer::Error, Anthropic::Errors::APIError => error
+  rescue CarouselVideoAnalyzer::Error, RubyLLM::Error, RubyLLM::ConfigurationError,
+    Faraday::Error => error
     analysis.update!(status: "failed", finished_at: Time.current, error_message: error.message.truncate(500))
   end
 end

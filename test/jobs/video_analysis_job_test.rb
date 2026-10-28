@@ -28,6 +28,20 @@ class VideoAnalysisJobTest < ActiveJob::TestCase
     assert @analysis.side_video.attached?
   end
 
+  test "keeps the clips and records RubyLLM and transport failures" do
+    [ RubyLLM::UnauthorizedError.new("Invalid API key"),
+      RubyLLM::ConfigurationError.new("Provider is not configured"),
+      Faraday::TimeoutError.new("Request timed out") ].each do |error|
+      @analysis.update!(status: "queued")
+      stub_analyzer(-> { raise error }) { VideoAnalysisJob.perform_now(@analysis) }
+
+      @analysis.reload
+      assert @analysis.failed?
+      assert_equal error.message, @analysis.error_message
+      assert @analysis.side_video.attached?
+    end
+  end
+
   private
     def stub_analyzer(behavior)
       analyzer = Object.new

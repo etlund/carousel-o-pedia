@@ -87,9 +87,9 @@ class CarouselVideoAnalyzer
     inventing a figure you did not clearly see. Include every seat of every section.
   PROMPT
 
-  def initialize(analysis, client: nil, frame_extractor: nil)
+  def initialize(analysis, chat: nil, frame_extractor: nil)
     @analysis = analysis
-    @client = client
+    @chat = chat
     @frame_extractor = frame_extractor || method(:extract_frames)
   end
 
@@ -99,30 +99,39 @@ class CarouselVideoAnalyzer
     frames_count = clips.sum { |_, frames| frames.size }
     raise Error, "No frames could be read from the video" if frames_count.zero?
 
-    message = client.beta.messages.stream(
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system_: SYSTEM_PROMPT,
-      thinking: { type: "adaptive" },
-      output_config: { effort: :high, format_: { type: :json_schema, schema: SCHEMA } },
-      fallbacks: :default,
-      betas: [ FALLBACK_BETA ],
-      messages: [ { role: "user", content: content_for(clips) } ]
-    ).accumulated_message
+    message = chat.with_instructions(SYSTEM_PROMPT)
+      .with_schema(SCHEMA)
+      .with_provider_options(max_tokens: MAX_TOKENS, thinking: { type: "adaptive" },
+        output_config: { effort: "high" }, fallbacks: "default",
+        messages: [ { role: "user", content: content_for(clips) } ])
+      .with_headers("anthropic-beta": FALLBACK_BETA)
+      .generate
 
-    raise Error, "The model declined to analyze this video" if message.stop_reason == :refusal
-    raise Error, "The analysis was cut off before it finished" if message.stop_reason == :max_tokens
+    # RubyLLM's streaming messages do not expose Anthropic's stop reason.
+    stop_reason = message.raw.body["stop_reason"]
+    raise Error, "The model declined to analyze this video" if stop_reason == "refusal"
+    raise Error, "The analysis was cut off before it finished" if stop_reason == "max_tokens"
 
-    text = message.content.select { |block| block.type == :text }.map(&:text).join
-    { draft: JSON.parse(text), frames_count:, model: message.model.to_s,
-      input_tokens: message.usage.input_tokens, output_tokens: message.usage.output_tokens }
+    draft = message.content
+    draft = JSON.parse(draft) if draft.is_a?(String)
+    raise Error, "The analysis came back in an unexpected format" unless draft.is_a?(Hash)
+
+    { draft:, frames_count:, model: message.model,
+      input_tokens: message.tokens.input, output_tokens: message.tokens.output }
   rescue JSON::ParserError
     raise Error, "The analysis came back in an unexpected format"
   end
 
   private
-    def client
-      @client ||= Anthropic::Client.new(api_key: ENV["ANTHROPIC_API_KEY"].presence || raise(Error, "Video analysis isn't set up yet: ANTHROPIC_API_KEY is missing"))
+    def chat
+      @chat ||= begin
+        api_key = ENV["ANTHROPIC_API_KEY"].presence || raise(Error, "Video analysis isn't set up yet: ANTHROPIC_API_KEY is missing")
+        context = RubyLLM.context do |config|
+          config.anthropic_api_key = api_key
+          config.request_timeout = 600
+        end
+        context.chat(model: MODEL, provider: :anthropic, assume_model_exists: true)
+      end
     end
 
     def frames_for(pass)
