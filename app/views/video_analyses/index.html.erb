@@ -1,0 +1,17 @@
+<% content_for :title, "Video analyses of #{@carousel.name}" %>
+<p class="muted"><%= link_to @carousel.name, @carousel %></p>
+<h1>Video analyses</h1>
+<p><%= link_to "Analyze a new video", new_carousel_video_analysis_path(@carousel), class: "button" %></p>
+<% if @analyses.any? %>
+  <ul class="video-analyses">
+    <% @analyses.each do |analysis| %>
+      <li>
+        <%= link_to carousel_video_analysis_path(@carousel, analysis) do %><%= video_analysis_timestamp(analysis) %> by <%= analysis.user.name %><% end %>
+        <span class="muted">· <%= video_analysis_status(analysis) %></span>
+        <%= video_analysis_delete_button(analysis) %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>None yet.</p>
+<% end %>

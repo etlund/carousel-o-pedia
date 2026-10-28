@@ -10,7 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_161000) do
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
   create_table "carousels", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -145,6 +173,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_000000) do
     t.datetime "contribution_terms_accepted_at"
     t.string "access_scope", default: "site_wide", null: false
     t.integer "editable_carousel_id"
+    t.boolean "can_analyze_videos", default: false, null: false
     t.index ["editable_carousel_id"], name: "index_users_on_editable_carousel_id"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.check_constraint "access_scope = 'carousel' OR editable_carousel_id IS NULL", name: "users_editable_carousel_scope"
@@ -162,6 +191,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_000000) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  create_table "video_analyses", force: :cascade do |t|
+    t.integer "carousel_id", null: false
+    t.integer "user_id", null: false
+    t.string "status", default: "queued", null: false
+    t.json "draft", default: {}, null: false
+    t.text "error_message"
+    t.string "model"
+    t.integer "frames_count"
+    t.integer "input_tokens"
+    t.integer "output_tokens"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.datetime "applied_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["carousel_id"], name: "index_video_analyses_on_carousel_id"
+    t.index ["user_id"], name: "index_video_analyses_on_user_id"
+    t.check_constraint "status IN ('queued', 'processing', 'complete', 'failed')", name: "video_analyses_status"
+  end
+
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "carousels", "makers"
   add_foreign_key "figures", "carousels"
   add_foreign_key "figures", "figure_types"
@@ -173,4 +224,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_000000) do
   add_foreign_key "seats", "carousels"
   add_foreign_key "sessions", "users"
   add_foreign_key "users", "carousels", column: "editable_carousel_id"
+  add_foreign_key "video_analyses", "carousels"
+  add_foreign_key "video_analyses", "users"
 end

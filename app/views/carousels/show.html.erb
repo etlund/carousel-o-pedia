@@ -5,6 +5,10 @@
   <p class="muted address"><%= @carousel.address %></p>
   <p><%= link_to "View all figures", figures_path(carousel_id: @carousel.id) %></p>
   <%= render "shared/page_actions", record: @carousel, edit: edit_carousel_path(@carousel), history: history_carousel_path(@carousel) %>
+  <% if current_user&.can_analyze_videos_of?(@carousel) %>
+    <p><%= link_to "Analyze a video", new_carousel_video_analysis_path(@carousel) %>
+      <% if @carousel.video_analyses.any? %> · <%= link_to "Past video analyses", carousel_video_analyses_path(@carousel) %><% end %></p>
+  <% end %>
 </header>
 
 <div class="grid">

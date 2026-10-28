@@ -171,6 +171,24 @@ type. To transfer a figure through the editing forms:
 The placement service also transfers ownership for cross-carousel moves, but
 seat-editing forms only offer figures from the current carousel.
 
+## Drafting a layout from video
+
+Admins, and editors an admin allows from the Invitations page, can open
+**Analyze a video** on a carousel they can edit. They upload up to three clips,
+each a little over one revolution: a side pass pointed straight in from the rail,
+an oncoming pass angled toward approaching figures, and an inner pass from the
+platform. At least one clip should be filmed while the ride runs, so jumpers can
+be told from standers. The upload page explains the filming recipe.
+
+The analysis produces a draft, not carousel data: section and row counts,
+rotation, and for each seat the figure type, kind, motion, and a description,
+each with a confidence. The reviewer corrects the draft and ticks the seats to
+apply. Applying records the layout if the carousel has none, then fills only
+seats that are still unknown. It never replaces a figure or an empty seat an
+editor recorded, and every figure it adds is a best reading with a numbered name
+such as Horse 3. A draft whose layout disagrees with the recorded one cannot be
+applied. All changes appear in page history like any other edit.
+
 ## Counts, uncertainty, and sources
 
 Summary cards prefer published totals for horses, other animals, and
