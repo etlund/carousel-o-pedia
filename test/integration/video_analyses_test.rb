@@ -97,4 +97,29 @@ class VideoAnalysesTest < ActionDispatch::IntegrationTest
     assert analysis.reload.queued?
     assert_enqueued_with(job: VideoAnalysisJob, args: [ analysis ])
   end
+
+  test "the list names each analysis by its exact upload time, and an analysis can be deleted" do
+    sign_in_as users(:admin)
+    analysis = create_analysis(@carousel, status: "complete", draft: sample_draft, created_at: Time.utc(2026, 10, 28, 17, 10, 41))
+
+    get carousel_video_analyses_path(@carousel)
+    assert_select "a[href=?] time[datetime=?]", carousel_video_analysis_path(@carousel, analysis), "2026-10-28T17:10:41Z",
+      text: "October 28, 2026 at 5:10:41 PM UTC"
+
+    assert_difference "VideoAnalysis.count", -1 do
+      delete carousel_video_analysis_path(@carousel, analysis)
+    end
+    assert_redirected_to carousel_video_analyses_path(@carousel)
+  end
+
+  test "an analysis still running cannot be deleted" do
+    sign_in_as users(:admin)
+    analysis = create_analysis(@carousel, status: "processing")
+
+    get carousel_video_analysis_path(@carousel, analysis)
+    assert_select "button", text: "Delete", count: 0
+    assert_no_difference "VideoAnalysis.count" do
+      delete carousel_video_analysis_path(@carousel, analysis)
+    end
+  end
 end

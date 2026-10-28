@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   end
 
   resources :carousels, except: :destroy, concerns: :historical do
-    resources :video_analyses, path: "video-analyses", only: %i[ index new create show ] do
+    resources :video_analyses, path: "video-analyses", only: %i[ index new create show destroy ] do
       member do
         post :apply
         post :retry

@@ -1,4 +1,16 @@
 module VideoAnalysesHelper
+  def video_analysis_timestamp(analysis)
+    tag.time analysis.created_at.strftime("%B %-d, %Y at %-l:%M:%S %p %Z"), datetime: analysis.created_at.iso8601
+  end
+
+  def video_analysis_delete_button(analysis)
+    return if analysis.processing?
+
+    button_to "Delete", carousel_video_analysis_path(analysis.carousel, analysis), method: :delete, class: "link-button",
+      form: { data: { turbo_confirm: "Delete this video analysis? Anything already applied to the carousel stays." } },
+      aria: { label: "Delete the analysis from #{analysis.created_at.strftime("%B %-d, %Y at %-l:%M:%S %p")}" }
+  end
+
   def video_analysis_status(analysis)
     case analysis.status
     when "queued" then "Waiting to start"

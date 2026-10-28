@@ -4,7 +4,8 @@
 <% end %>
 <p class="muted"><%= link_to @carousel.name, @carousel %> · <%= link_to "All video analyses", carousel_video_analyses_path(@carousel) %></p>
 <h1>Video analysis</h1>
-<p class="muted">Uploaded by <%= @analysis.user.name %> <%= time_ago_in_words(@analysis.created_at) %> ago · <%= video_analysis_status(@analysis) %></p>
+<p class="muted">Uploaded by <%= @analysis.user.name %> on <%= video_analysis_timestamp(@analysis) %> · <%= video_analysis_status(@analysis) %></p>
+<%= video_analysis_delete_button(@analysis) %>
 
 <% if @analysis.queued? || @analysis.processing? %>
   <p class="card">The tool is reading frames from <%= pluralize(@analysis.attached_passes.size, "clip") %>. This page refreshes on its own; it usually takes a few minutes.</p>

@@ -1,7 +1,7 @@
 class VideoAnalysesController < ApplicationController
   before_action :set_carousel
   before_action -> { raise User::AccessDenied unless current_user.can_analyze_videos_of?(@carousel) }
-  before_action :set_analysis, only: %i[ show apply retry ]
+  before_action :set_analysis, only: %i[ show apply retry destroy ]
 
   def index
     @analyses = @carousel.video_analyses.includes(:user).recent_first
@@ -41,6 +41,15 @@ class VideoAnalysesController < ApplicationController
       redirect_to carousel_video_analysis_path(@carousel, @analysis), notice: "Trying the analysis again."
     else
       redirect_to carousel_video_analysis_path(@carousel, @analysis), alert: "Only a failed analysis with its video still attached can be retried."
+    end
+  end
+
+  def destroy
+    if @analysis.processing?
+      redirect_to carousel_video_analysis_path(@carousel, @analysis), alert: "Wait for the analysis to finish before deleting it."
+    else
+      @analysis.destroy!
+      redirect_to carousel_video_analyses_path(@carousel), notice: "Video analysis deleted. Anything already applied to the carousel stays."
     end
   end
 
