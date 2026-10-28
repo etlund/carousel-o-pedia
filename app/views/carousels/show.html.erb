@@ -26,6 +26,10 @@
   </div>
   <div class="stack">
     <dl class="facts card">
+      <% if @carousel.other_names.present? %>
+        <dt>Other names</dt>
+        <dd class="other-names"><ul><% @carousel.other_names.lines(chomp: true).each do |name| %><li><%= name %></li><% end %></ul></dd>
+      <% end %>
       <dt>Platform</dt><dd><%= carousel_platform_label(@carousel) || "Unknown" %></dd>
       <dt>Rotation</dt><dd><%= @carousel.rotation || "Unknown" %></dd>
       <% FigureType::CATEGORIES.each do |category| %>

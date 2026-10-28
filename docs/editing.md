@@ -4,7 +4,8 @@
 
 ## Browsing and sorting
 
-The carousel directory supports case-insensitive partial name searches and a
+The carousel directory supports case-insensitive partial searches of primary and
+other names and a
 state/region filter. Choose **Filter** to apply either or both. Filters and sort
 order stay in the URL for sharing; **Clear filters** restores the full directory
 and default **Most complete** sort.
@@ -131,6 +132,10 @@ does not suspend an accepted account.
 
 ## Core records
 
+- **Other names**: on the carousel form, enter alternate or historical names for
+  the same carousel, one per line. Blank lines and exact duplicates are removed.
+  These optional names appear on its page and directory card and are searchable.
+  They do not change its primary name or URL; edits are tracked in page history.
 - **Carousel**: location, operating status, website links, sourced published
   totals, optional rotation, and independently optional section and row counts.
 - **Seat**: a position on a platform. A chariot or tub spanning several rows is

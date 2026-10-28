@@ -3,6 +3,42 @@ require "test_helper"
 class EditingTest < ActionDispatch::IntegrationTest
   setup { @carousel = load_seeds }
 
+  test "editors can create update and clear other names with public display and history" do
+    sign_in_as users(:editor)
+    get new_carousel_path
+    assert_select "textarea[name='carousel[other_names]']:not([required])"
+
+    post carousels_path, params: { carousel: { name: "Primary carousel name",
+      other_names: " Historical name \r\n Manufacturer #51 " } }
+    carousel = Carousel.find_by!(name: "Primary carousel name")
+    slug = carousel.slug
+    assert_redirected_to carousel_path(carousel)
+    assert_equal "Historical name\nManufacturer #51", carousel.other_names
+
+    get carousel_path(carousel)
+    assert_select ".other-names li", text: "Historical name"
+    assert_select ".other-names li", text: "Manufacturer #51"
+
+    patch carousel_path(carousel), params: { carousel: { other_names: "New alternate name\n<script>alert('unsafe')</script>" } }
+    assert_redirected_to carousel_path(carousel)
+    assert_equal slug, carousel.reload.slug
+    assert_equal "Primary carousel name", carousel.name
+
+    get history_carousel_path(carousel)
+    assert_select ".changes ins", text: /New alternate name/
+    get edit_carousel_path(carousel)
+    assert_select "textarea[name='carousel[other_names]']", text: carousel.other_names
+    get carousel_path(carousel)
+    assert_select ".other-names li", text: "<script>alert('unsafe')</script>"
+    assert_select ".other-names script", count: 0
+
+    patch carousel_path(carousel), params: { carousel: { other_names: "" } }
+    assert_redirected_to carousel_path(carousel)
+    assert_nil carousel.reload.other_names
+    get carousel_path(carousel)
+    assert_select ".other-names", count: 0
+  end
+
   test "editors can create update and clear physical addresses with history" do
     sign_in_as users(:editor)
     get new_carousel_path

@@ -1,6 +1,21 @@
 require "test_helper"
 
 class CarouselTest < ActiveSupport::TestCase
+  test "other names normalize lines and duplicates and can be cleared" do
+    carousel = Carousel.create!(name: "Primary name",
+      other_names: "  Historical name \r\n\r\n Manufacturer #51 \n Historical name \n")
+
+    assert_equal "Historical name\nManufacturer #51", carousel.reload.other_names
+    assert_equal "Primary name", carousel.name
+    assert_equal "primary-name", carousel.slug
+
+    carousel.update!(other_names: " \r\n\t")
+    assert_nil carousel.reload.other_names
+    carousel.update!(other_names: nil)
+    assert_nil carousel.reload.other_names
+    assert_nil Carousel.create!(name: "No other names").reload.other_names
+  end
+
   test "addresses normalize blanks preserve leading postal zeros and leave locations unchanged" do
     carousel = Carousel.create!(name: "Address test", street_address: "  1 Main Street  ",
       city: "Hull", region: "Massachusetts", postal_code: "  02045  ", country: "United States",

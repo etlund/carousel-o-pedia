@@ -76,6 +76,7 @@ class Carousel < ApplicationRecord
   blank_as_nil :city, :region, :country, :venue, :body, :other_links, :rotation, :summary_sources, :address_sources
   normalizes :street_address, :postal_code, with: ->(value) { value.strip.presence }
   normalizes :official_url, :wikipedia_url, with: ->(value) { value.strip.presence }
+  normalizes :other_names, with: ->(value) { value.lines.map(&:strip).compact_blank.uniq.join("\n").presence }
   validate :website_urls_are_http
 
   after_save :fill_missing_seats, if: :layout_added?

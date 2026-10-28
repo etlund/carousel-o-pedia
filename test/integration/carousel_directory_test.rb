@@ -1,6 +1,33 @@
 require "test_helper"
 
 class CarouselDirectoryTest < ActionDispatch::IntegrationTest
+  test "directory searches primary and other names with region filters without duplicate cards" do
+    carousel = Carousel.create!(name: "Elitch Gardens Carousel", region: "Colorado",
+      other_names: "Philadelphia Toboggan Company Carousel #51\nPTC #51\nElitch Gardens")
+    Carousel.create!(name: "Another Carousel", region: "Montana", other_names: "PTC #51")
+    Carousel.create!(name: "Unrelated Carousel", region: "Colorado")
+
+    [ "elitch", "TOBOGGAN", "ptc #51" ].each do |query|
+      get carousels_path, params: { q: query, region: "Colorado" }
+
+      assert_response :success
+      assert_select ".cards > .card", count: 1
+      assert_select ".card h2 a[href=?]", carousel_path(carousel), text: carousel.name
+      assert_select ".card .other-names", text: "Other names: Philadelphia Toboggan Company Carousel #51; PTC #51; Elitch Gardens"
+    end
+  end
+
+  test "directory treats wildcard characters in other name searches literally" do
+    carousel = Carousel.create!(name: "Literal Carousel", other_names: "100%_Fun!")
+    Carousel.create!(name: "Decoy Carousel", other_names: "100 percent Fun!")
+
+    get carousels_path, params: { q: "%_" }
+
+    assert_response :success
+    assert_select ".cards > .card", count: 1
+    assert_select ".card h2 a[href=?]", carousel_path(carousel)
+  end
+
   test "state options show alphabetical directory-wide counts and preserve filter values" do
     Carousel.create!(name: "Northern Carousel", region: "Montana")
     Carousel.create!(name: "Western Carousel", region: "Montana")

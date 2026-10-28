@@ -30,6 +30,7 @@
   <% @carousels.each do |carousel| %>
     <li class="card">
       <h2><%= link_to carousel.name, carousel %></h2>
+      <% if carousel.other_names.present? %><p class="muted other-names">Other names: <%= carousel.other_names.lines(chomp: true).join("; ") %></p><% end %>
       <p class="muted"><%= carousel.location %></p>
       <% if carousel.official_url.present? %><p class="website"><%= link_to carousel.official_url, carousel.official_url, class: "website-link" %></p><% end %>
       <p><%= carousel_platform_label(carousel) || "Layout unknown" %>, <%= carousel.status %></p>

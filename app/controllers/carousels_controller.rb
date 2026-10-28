@@ -25,7 +25,8 @@ class CarouselsController < ApplicationController
     @carousels = @carousels.most_complete if @sort == "completeness"
     @carousels = @carousels.order(:name, :id)
     if @query
-      @carousels = @carousels.where("LOWER(name) LIKE ? ESCAPE '!'", "%#{Carousel.sanitize_sql_like(@query.downcase, "!")}%")
+      @carousels = @carousels.where("LOWER(name) LIKE :query ESCAPE '!' OR LOWER(other_names) LIKE :query ESCAPE '!'",
+        query: "%#{Carousel.sanitize_sql_like(@query.downcase, "!")}%")
     end
     @carousels = @carousels.where(region: @selected_region) if @selected_region
     @category_counts = Placement.current.joins(:seat, figure: :figure_type)
@@ -77,7 +78,7 @@ class CarouselsController < ApplicationController
 
     # The platform's size is fixed once seats exist; changing it would orphan seat codes.
     def carousel_params
-      permitted = %i[ name street_address city region postal_code country address_sources venue status year_built year_opened maker_id rotation body official_url wikipedia_url other_links
+      permitted = %i[ name other_names street_address city region postal_code country address_sources venue status year_built year_opened maker_id rotation body official_url wikipedia_url other_links
         published_horses_count published_other_animals_count published_chariots_count summary_sources ]
       permitted += %i[ sections_count rows_count ] unless @carousel&.layout_known?
       permitted << { ring_details: ("A"..).first(Carousel::MAX_ROWS).index_with { Carousel::RING_FIELDS } }
