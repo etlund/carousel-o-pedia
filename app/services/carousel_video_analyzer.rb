@@ -101,10 +101,11 @@ class CarouselVideoAnalyzer
 
     message = chat.with_instructions(SYSTEM_PROMPT)
       .with_schema(SCHEMA)
-      .with_params(max_tokens: MAX_TOKENS, thinking: { type: "adaptive" },
-        output_config: { effort: "high" }, fallbacks: "default")
+      .with_provider_options(max_tokens: MAX_TOKENS, thinking: { type: "adaptive" },
+        output_config: { effort: "high" }, fallbacks: "default",
+        messages: [ { role: "user", content: content_for(clips) } ])
       .with_headers("anthropic-beta": FALLBACK_BETA)
-      .ask(RubyLLM::Content::Raw.new(content_for(clips)))
+      .generate
 
     # RubyLLM's streaming messages do not expose Anthropic's stop reason.
     stop_reason = message.raw.body["stop_reason"]
@@ -115,8 +116,8 @@ class CarouselVideoAnalyzer
     draft = JSON.parse(draft) if draft.is_a?(String)
     raise Error, "The analysis came back in an unexpected format" unless draft.is_a?(Hash)
 
-    { draft:, frames_count:, model: message.model_id,
-      input_tokens: message.input_tokens, output_tokens: message.output_tokens }
+    { draft:, frames_count:, model: message.model,
+      input_tokens: message.tokens.input, output_tokens: message.tokens.output }
   rescue JSON::ParserError
     raise Error, "The analysis came back in an unexpected format"
   end

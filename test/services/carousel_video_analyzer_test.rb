@@ -90,8 +90,6 @@ class CarouselVideoAnalyzerTest < ActiveSupport::TestCase
   private
     def stub_chat(text: sample_draft.to_json, stop_reason: "end_turn")
       @requests = []
-      context = RubyLLM.context { |config| config.anthropic_api_key = "test-key" }
-      chat = context.chat(model: CarouselVideoAnalyzer::MODEL, provider: :anthropic, assume_model_exists: true)
       stubs = Faraday::Adapter::Test::Stubs.new do |stub|
         stub.post("/v1/messages") do |env|
           @requests << JSON.parse(env.body)
@@ -102,8 +100,13 @@ class CarouselVideoAnalyzerTest < ActiveSupport::TestCase
           [ 200, { "content-type" => "application/json" }, body.to_json ]
         end
       end
-      chat.instance_variable_get(:@connection).connection.builder.adapter :test, stubs
-      chat
+      context = RubyLLM.context do |config|
+        config.anthropic_api_key = "test-key"
+        config.faraday_adapter = Class.new(Faraday::Adapter::Test) do
+          define_method(:initialize) { |app| super(app, stubs) }
+        end
+      end
+      context.chat(model: CarouselVideoAnalyzer::MODEL, provider: :anthropic, assume_model_exists: true)
     end
 
     def with_env(values)
