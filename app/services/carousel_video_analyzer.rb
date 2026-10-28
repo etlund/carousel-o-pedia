@@ -71,10 +71,16 @@ class CarouselVideoAnalyzer
       mislead: a horse-shaped body with spots, stripes or patches is usually a painted
       horse. Name another animal only when its head, horns, ears or body shape show it.
     - Decide stander or jumper from motion. Frames come in pairs about a third of a
-      second apart. Compare each figure's height against something fixed, such as the
-      platform edge, the rounding boards or the canopy, within each pair and across
-      pairs: a jumper's height changes, a stander's does not. Use unknown when the ride
-      was still or you could not compare a figure in two frames.
+      second apart. The camera may shake, so judge each figure against things on the
+      ride in the same frame, never against the frame edges:
+      - Look first at the top of each figure's pole, where it meets the overhead
+        machinery. A jumper's pole hangs from a crank that turns as the ride goes, so
+        its top moves up and down against the canopy and rounding boards. A stander's
+        pole top stays fixed in its bracket.
+      - Then compare the figure's height against the platform edge and its neighbours
+        within each pair and across pairs: a jumper's height changes, a stander's does
+        not, and a stander usually has three or four hooves planted.
+      Use unknown when the ride was still or you could not compare a figure in two frames.
     - Describe what you can see. Never guess names; describe colors and carving instead.
 
     Be honest about uncertainty. Mark confidence low, or the seat unknown, rather than
