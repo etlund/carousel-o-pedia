@@ -10,6 +10,9 @@ Rails.application.routes.draw do
   end
 
   resources :carousels, except: :destroy, concerns: :historical do
+    resource :seat_fill, path: "fill-unknown-seats", only: %i[ new create ] do
+      post :preview
+    end
     resources :video_analyses, path: "video-analyses", only: %i[ index new create show destroy ] do
       member do
         post :apply

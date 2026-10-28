@@ -169,6 +169,24 @@ figure; choosing one already seated elsewhere moves it and leaves its old seat
 empty. Occupied chart positions open the Figure page; empty and unknown
 positions open the Seat page. Figure history and seat history remain separate.
 
+### Filling unknown seats in bulk
+
+On a carousel with a recorded layout, editors can choose **Fill unknown seats**
+when unknown seats remain. Place any known chariots (including their row spans)
+and mark empty positions first. Choose an existing figure type and motion, add
+source/research notes, then **Preview seats**. Review the affected seat codes,
+provisional names, row spans, and notes before choosing **Create draft figures**.
+You can change your choices or cancel without saving anything.
+
+Applying creates one figure per unknown seat, with a seat-based name such as
+**Horse 2A**, and copies the source notes to each figure's page. These are
+placeholders for later identification; all new placements are **best readings**,
+never confirmed. Existing figures, empty positions, and row spans are preserved.
+The entire fill is saved together and appears in figure and seat history. If the
+seats or figure type change after preview, or the preview expires after one hour,
+preview again before applying; nothing is partially saved or silently skipped.
+This tool does not infer a layout from published totals or reuse unseated figures.
+
 Figures retain their carousel assignment when removed from a seat. The Figures
 page includes unseated reserves and project figures and filters by carousel and
 type. To transfer a figure through the editing forms:

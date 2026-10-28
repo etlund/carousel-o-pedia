@@ -9,6 +9,8 @@ class Seat < ApplicationRecord
   has_many :placements, -> { order(started_on: :desc) }, dependent: :destroy
   has_one :current_placement, -> { where(ended_on: nil) }, class_name: "Placement", inverse_of: :seat
 
+  scope :unknown, -> { where(state: "unknown").where.missing(:current_placement) }
+
   validates :row, format: { with: /\A[A-Z]\z/ }, uniqueness: { scope: [ :carousel_id, :section ] }
   validates :state, inclusion: { in: STATES }
   validates :confidence, inclusion: { in: CONFIDENCES }
