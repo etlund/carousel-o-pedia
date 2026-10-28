@@ -169,6 +169,39 @@ figure; choosing one already seated elsewhere moves it and leaves its old seat
 empty. Occupied chart positions open the Figure page; empty and unknown
 positions open the Seat page. Figure history and seat history remain separate.
 
+### Creating a provisional layout from inventory
+
+When no chart exists, editors can choose **Create draft layout** without first
+claiming the section count is verified. Record the proposed sections and rows,
+choose the default figure type and motion, and enter any chariot starting seats
+and empty positions. Each chariot defaults to **two adjacent rows**, counted
+inward from its starting seat, but **Rows per chariot** is adjustable before
+saving. One spanning chariot is always one figure, not two.
+
+When all published counts and the row count are available, the form suggests a
+regular-grid section count by counting each chariot as two spaces. For example,
+68 horses, no other animals, two chariots and four rows suggest 18 sections:
+`(68 + 2 * 2) / 4`. Suggested chariots are spread around the platform, starting
+in row A; two on an 18-section draft start at 1A and 10A. These positions and
+footprints are assumptions, not claims about the source. Edit them as needed.
+Unknown counts are not treated as zero, and free-text research is not parsed.
+
+The preview shows the proposed wheel, individual placements, assumptions, and
+draft totals beside published totals. Its placements table follows the Figures
+table's Figure, Type, and Seat columns, with motion icons and seat badges
+highlighting every covered row.
+Differences are highlighted for review.
+Confirming saves the platform, figures, placements, and source notes together;
+any failure rolls back the entire draft. Existing charts are never replaced.
+Every placement is a best reading, and the chart and directory explicitly label
+the geometry **provisional**. Rotation is preserved, not inferred.
+
+Platform size remains fixed in the standard editor once seats exist. Confirm
+the dimensions before applying; individual placements and spans can be
+corrected afterward. After verifying the geometry and recording evidence in
+**Summary sources**, uncheck **Provisional layout** in the carousel editor.
+That removes the geometry warning but does not confirm individual placements.
+
 ### Filling unknown seats in bulk
 
 On a carousel with a recorded layout, editors can choose **Fill unknown seats**

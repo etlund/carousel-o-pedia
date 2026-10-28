@@ -51,8 +51,9 @@ class Carousel < ApplicationRecord
   validates :rows_count, numericality: { only_integer: true, in: 1..MAX_ROWS }, allow_nil: true
   validates :published_horses_count, :published_other_animals_count, :published_chariots_count,
     numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
-  validates :summary_sources, presence: true, if: :published_counts?
+  validates :summary_sources, presence: true, if: -> { published_counts? || layout_provisional? }
   validate :layout_dimensions_are_consistent
+  validate :provisional_layout_has_dimensions
   validate :ring_details_are_consistent
   validates :summary_sources, presence: true, if: -> { ring_details.present? }
 
@@ -161,6 +162,12 @@ class Carousel < ApplicationRecord
   end
 
   private
+    def provisional_layout_has_dimensions
+      if layout_provisional? && !layout_known?
+        errors.add(:layout_provisional, "requires recorded sections and rows")
+      end
+    end
+
     def layout_added?
       layout_known? && (saved_change_to_sections_count?(from: nil) || saved_change_to_rows_count?(from: nil))
     end

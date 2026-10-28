@@ -5,6 +5,7 @@ elsif carousel.ring_details.present?
 else
   carousel.rows_count ? "#{pluralize(carousel.rows_count, "row")} shown as concentric rings; sections and seat positions unknown." : "Layout unknown; inner and outer platform outlines only."
 end %>
+<% preview_description = "Provisional layout. #{preview_description}" if carousel.layout_provisional? %>
 <%= link_to carousel, class: "mini-seat-chart-link", aria: { label: "#{carousel.layout_known? ? "View seating chart" : "View carousel details"} for #{carousel.name}" } do %>
   <svg class="mini-seat-chart" viewBox="22 22 756 756" width="112" height="112" role="img"
        aria-label="Seat chart preview of <%= carousel.name %>. <%= preview_description %>">

@@ -80,7 +80,11 @@ class CarouselsController < ApplicationController
     def carousel_params
       permitted = %i[ name other_names street_address city region postal_code country address_sources venue status year_built year_opened maker_id rotation body official_url wikipedia_url other_links
         published_horses_count published_other_animals_count published_chariots_count summary_sources ]
-      permitted += %i[ sections_count rows_count ] unless @carousel&.layout_known?
+      if @carousel&.layout_known?
+        permitted << :layout_provisional
+      else
+        permitted += %i[ sections_count rows_count ]
+      end
       permitted << { ring_details: ("A"..).first(Carousel::MAX_ROWS).index_with { Carousel::RING_FIELDS } }
       params.expect(carousel: permitted)
     end

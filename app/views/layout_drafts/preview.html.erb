@@ -1,0 +1,60 @@
+<% content_for :title, "Preview draft layout for #{@carousel.name}" %>
+<p class="muted"><%= link_to @carousel.name, @carousel %></p>
+<h1>Preview draft layout</h1>
+<% preview_seats = @draft.preview_seats %>
+<p><strong>Provisional geometry, not a verified seating survey.</strong> Review section alignment, chariot spans, and totals before saving.
+  Platform dimensions cannot be changed through the standard editor once seats exist. No changes have been saved yet.</p>
+<div class="grid">
+  <div class="card">
+    <svg class="seat-chart draft-layout-chart" viewBox="0 0 <%= SeatChart::SIZE %> <%= SeatChart::SIZE %>" role="img"
+         aria-label="Provisional seating preview: <%= @draft.sections_count %> sections, <%= @draft.rows_count %> rows">
+      <%= render "carousels/seat_wedges", carousel: @draft.preview_carousel, seats: preview_seats %>
+    </svg>
+    <p class="hint">Blue: horses; orange: other animals; red: chariots and tubs; unfilled: empty. All placements are best readings.</p>
+  </div>
+  <div class="stack">
+    <section>
+      <h2>Inventory check</h2>
+      <% totals = @draft.category_totals %>
+      <% published = @carousel.published_category_totals %>
+      <% if published.any? { |category, count| !count.nil? && count != totals.fetch(category) } %>
+        <p class="flash alert" role="status">Draft totals differ from the published inventory. Check the chariot row spans and empty positions, or explain the discrepancy in your source notes before saving.</p>
+      <% end %>
+      <table class="draft-totals">
+        <thead><tr><th>Kind</th><th>Draft</th><th>Published</th></tr></thead>
+        <tbody>
+          <% FigureType::CATEGORIES.each do |category| %>
+            <tr><th scope="row"><%= category_label(category) %></th><td><%= totals.fetch(category) %></td><td><%= published.fetch(category).nil? ? "Unknown" : published.fetch(category) %></td></tr>
+          <% end %>
+          <tr><th scope="row">Empty positions</th><td><%= @draft.proposals.count { _1.state == "empty" } %></td><td>Not inferred</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="prose"><h2>Draft assumptions</h2><%= wiki_body(@draft.assumptions) %></section>
+  </div>
+</div>
+<h2>Proposed placements</h2>
+<div class="table-scroll">
+  <table class="draft-placements">
+    <thead><tr><th>Figure</th><th>Type</th><th>Seat</th></tr></thead>
+    <tbody>
+      <% preview_seats.each do |seat| %>
+        <% figure = seat.figure %>
+        <tr>
+          <td><%= figure&.name || "Empty" %> <%= mount_icon(figure&.mount) %></td>
+          <td><% if figure %><%= link_to figure.figure_type.name, figure.figure_type %><% else %><span class="muted">Not applicable</span><% end %></td>
+          <td><%= seat_badge(seat) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<section class="prose"><h2>Source and research notes</h2><%= wiki_body(@draft.source_notes) %></section>
+<%= form_with url: carousel_layout_draft_path(@carousel), method: :post, class: "form" do |form| %>
+  <%= hidden_field_tag :preview_token, @draft.preview_token %>
+  <div class="actions">
+    <%= form.submit "Create provisional layout" %>
+    <%= link_to "Change choices", new_carousel_layout_draft_path(@carousel, layout_draft: @draft.attributes) %>
+    <%= link_to "Cancel", @carousel %>
+  </div>
+<% end %>

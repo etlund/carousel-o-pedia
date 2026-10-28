@@ -1,0 +1,67 @@
+<% content_for :title, "Create draft layout for #{@carousel.name}" %>
+<p class="muted"><%= link_to @carousel.name, @carousel %></p>
+<h1>Create draft layout</h1>
+<%= render "shared/errors", record: @draft %>
+<% if @carousel.layout_known? || @carousel.seats.any? %>
+  <p>A seating layout already exists. This workflow will not replace it.</p>
+  <p><%= link_to "Fill unknown seats", new_carousel_seat_fill_path(@carousel) %> or edit individual placements.</p>
+<% else %>
+  <p>Turn incomplete inventory research into an explicitly provisional seating chart.
+    No changes are saved until you review the preview.</p>
+  <p>When all published counts and the row count are available, a section count may be suggested by counting
+    each chariot as two spaces. Suggested chariot positions are spread around the platform.
+    These are editable drafting assumptions, not verified geometry.</p>
+  <%= form_with model: @draft, scope: :layout_draft, url: preview_carousel_layout_draft_path(@carousel), method: :post, class: "form", data: { turbo: false } do |form| %>
+    <fieldset>
+      <legend>Provisional platform</legend>
+      <div class="field-row">
+        <div class="field"><%= form.label :sections_count, "Sections" %><%= form.number_field :sections_count, min: 1, required: true %></div>
+        <div class="field"><%= form.label :rows_count, "Rows" %><%= form.number_field :rows_count, min: 1, max: Carousel::MAX_ROWS, required: true %></div>
+      </div>
+      <p class="hint">Rows run from A outside inward. The standard editor fixes platform size once seats exist, so review these dimensions carefully before creating the draft.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Default figures</legend>
+      <div class="field-row">
+        <div class="field">
+          <%= form.label :figure_type_id, "Figure type" %>
+          <%= form.collection_select :figure_type_id, FigureType.order(:name), :id, :name, { prompt: "Choose a type" }, required: true %>
+        </div>
+        <div class="field">
+          <%= form.label :mount, "Motion" %>
+          <%= form.select :mount, Figure::MOUNTS.map { [ _1.capitalize, _1 ] }, include_blank: "Unknown" %>
+        </div>
+      </div>
+      <p class="hint">Every position not covered by a chariot or marked empty gets a provisional figure of this type.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Chariots and empty positions</legend>
+      <div class="field-row">
+        <div class="field">
+          <%= form.label :chariot_type_id, "Chariot type" %>
+          <%= form.collection_select :chariot_type_id, FigureType.where(category: "chariot").order(:name), :id, :name, include_blank: "Choose a type" %>
+        </div>
+        <div class="field">
+          <%= form.label :chariot_rows_spanned, "Rows per chariot" %>
+          <%= form.number_field :chariot_rows_spanned, min: 1, max: Carousel::MAX_ROWS, required: true %>
+        </div>
+      </div>
+      <div class="field">
+        <%= form.label :chariot_seats, "Chariot starting seats" %>
+        <%= form.text_field :chariot_seats, placeholder: "1A, 10A" %>
+        <p class="hint">One starting seat per chariot, separated by commas or spaces. A chariot at 1A spanning two rows fills 1A-1B as one figure. Two rows is an approximation you can change before saving. Chariots use fixed motion in this draft.</p>
+      </div>
+      <div class="field">
+        <%= form.label :empty_seats, "Empty seats" %>
+        <%= form.text_field :empty_seats, placeholder: "1C, 10C" %>
+        <p class="hint">Optional seat codes for empty positions. Do not list positions already covered by a chariot.</p>
+      </div>
+    </fieldset>
+    <div class="field">
+      <%= form.label :source_notes, "Source and research notes" %>
+      <%= form.text_area :source_notes, rows: 6, required: true %>
+      <p class="hint">Use Markdown links, source dates, and uncertainty notes. Existing summary research is prefilled when available. Your notes and the draft assumptions are saved with the carousel and each new figure.</p>
+    </div>
+    <div class="actions"><%= form.submit "Preview draft layout" %> <%= link_to "Cancel", @carousel %></div>
+  <% end %>
+<% end %>
