@@ -26,6 +26,28 @@ class RingResearchTest < ActionDispatch::IntegrationTest
     assert_select "svg.mini-seat-chart[aria-label*='not verified seating']", 1
   end
 
+  test "mapped charts hide the research wheel but retain ring counts and sources" do
+    @carousel.update!(sections_count: 18)
+
+    get carousel_path(@carousel)
+    assert_response :success
+    assert_select "svg.seat-chart:not(.ring-chart) a.seat", 72
+    assert_select "svg.ring-chart, .research-ring", 0
+    assert_select "table.sections tbody tr", 18
+    assert_select ".ring-research", 1
+    assert_select ".ring-details tbody tr", 4
+    assert_select ".ring-details tr[data-ring=A] td:nth-child(2)", "18"
+    assert_select ".ring-details tr[data-ring=B] td:nth-child(2)", "16"
+    assert_select ".ring-details tr[data-ring=C] td:nth-child(3)", "0"
+    assert_select "#summary-sources", text: /Research reference/
+    assert_select ".ring-research p", text: /not verified angular alignment/, count: 0
+
+    get carousels_path
+    assert_response :success
+    assert_select "svg.mini-seat-chart .mini-seat-wedge", 72
+    assert_select "svg.mini-seat-chart .research-ring", 0
+  end
+
   test "editors can record clear and correct partial ring facts with history" do
     sign_in_as users(:editor)
     get edit_carousel_path(@carousel)

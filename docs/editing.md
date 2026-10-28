@@ -217,6 +217,8 @@ zero. Only known total-position counts divide the research diagram into
 positions. Horse counts alone do not establish ring geometry, and equal spacing
 does not establish angular alignment. This research creates no figures, seats,
 or placements and does not change an existing chart.
+The research wheel appears only when no mapped seating chart exists. Once a
+chart exists, ring research remains available as a table alongside its sources.
 
 Charts use blue for horses, orange for other animals, and red for chariots/tubs.
 Best-reading placements have uncertainty styling; unknown and empty positions
