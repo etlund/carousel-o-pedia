@@ -18,26 +18,4 @@ module VideoAnalysisTestHelper
   def create_analysis(carousel, user: users(:admin), **attributes)
     VideoAnalysis.create!(carousel:, user:, side_video: video_upload, **attributes)
   end
-
-  # Stands in for the Anthropic client: returns one canned message from beta.messages.stream.
-  class FakeClaude
-    Usage = Struct.new(:input_tokens, :output_tokens)
-    Block = Struct.new(:type, :text)
-    Message = Struct.new(:content, :stop_reason, :model, :usage)
-
-    attr_reader :requests
-
-    def initialize(text, stop_reason: :end_turn)
-      @message = Message.new([ Block.new(:text, text) ], stop_reason, :"claude-opus-5-5", Usage.new(1200, 800))
-      @requests = []
-    end
-
-    def beta = self
-    def messages = self
-
-    def stream(**params)
-      @requests << params
-      Struct.new(:accumulated_message).new(@message)
-    end
-  end
 end

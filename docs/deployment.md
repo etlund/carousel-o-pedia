@@ -125,10 +125,14 @@ and [SPA measurement notes](https://developers.cloudflare.com/web-analytics/faq/
 
 Trusted users can upload carousel video for a draft seating layout (see
 `docs/editing.md`). The job pulls still frames with `ffmpeg`, which the
-Dockerfile installs, and sends them to the Claude API. Set `ANTHROPIC_API_KEY`
+Dockerfile installs, and sends them to Claude through the `ruby_llm` gem's
+Anthropic provider. Set `ANTHROPIC_API_KEY`
 locally before deploying; Kamal passes it to the app like the backup keys. Without
 it, uploads still work but each analysis fails with a message saying the key is
 missing. `VIDEO_ANALYSIS_MODEL` overrides the model (default `claude-opus-5-5`).
+Requests use structured JSON output, adaptive thinking at high effort, and
+Anthropic's server-side fallback. They wait for a complete response (up to ten
+minutes) so refusals and token-limit truncation can be detected before saving a draft.
 
 A run reads up to 36 pairs of frames per clip (each pair a third of a second
 apart, so jumpers can be told from standers), so three clips are about 216
