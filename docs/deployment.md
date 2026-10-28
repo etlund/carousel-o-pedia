@@ -133,6 +133,9 @@ missing. `VIDEO_ANALYSIS_MODEL` overrides the model (default `claude-opus-5-5`).
 Requests use structured JSON output, adaptive thinking at high effort, and
 Anthropic's server-side fallback. They wait for a complete response (up to ten
 minutes) so refusals and token-limit truncation can be detected before saving a draft.
+Completed analyses store RubyLLM's point-in-time USD cost estimate, calculated
+from the response's token usage and the model pricing registry. This is an
+estimate rather than a reconciliation with the Anthropic invoice.
 
 A run reads up to 36 pairs of frames per clip (each pair a third of a second
 apart, so jumpers can be told from standers), so three clips are about 216

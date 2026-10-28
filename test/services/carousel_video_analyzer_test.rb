@@ -14,6 +14,7 @@ class CarouselVideoAnalyzerTest < ActiveSupport::TestCase
     assert_equal 8, result[:frames_count]
     assert_equal [ 1200, 800 ], result.values_at(:input_tokens, :output_tokens)
     assert_equal CarouselVideoAnalyzer::MODEL, result[:model]
+    assert_in_delta 0.0208, result[:estimated_cost_usd]
 
     request = @requests.sole
     content = request["messages"].sole["content"]

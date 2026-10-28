@@ -21,6 +21,7 @@
     <dt>Rotation</dt><dd><%= layout["rotation"] %></dd>
     <dt>Lead figure (1A)</dt><dd><%= layout["lead_figure"] %></dd>
     <dt>Read from</dt><dd><%= pluralize(@analysis.frames_count, "frame") %></dd>
+    <% if @analysis.estimated_cost_usd %><dt>Estimated cost</dt><dd><%= number_to_currency(@analysis.estimated_cost_usd, precision: 4) %></dd><% end %>
   </dl>
   <% if @analysis.draft["notes"].present? %>
     <section class="prose"><h2>Notes from the analysis</h2><p><%= @analysis.draft["notes"] %></p></section>

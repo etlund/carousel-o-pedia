@@ -452,7 +452,7 @@ DEPENDENCIES
   rails (~> 8.1.4)
   redcarpet (~> 3.6)
   rubocop-rails-omakase
-  ruby_llm (>= 2.0.0.rc1)
+  ruby_llm (~> 2.1)
   selenium-webdriver
   solid_cable
   solid_cache

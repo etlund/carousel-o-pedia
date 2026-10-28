@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_161000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_191423) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -206,6 +206,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_161000) do
     t.datetime "applied_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "estimated_cost_usd", precision: 12, scale: 8
     t.index ["carousel_id"], name: "index_video_analyses_on_carousel_id"
     t.index ["user_id"], name: "index_video_analyses_on_user_id"
     t.check_constraint "status IN ('queued', 'processing', 'complete', 'failed')", name: "video_analyses_status"

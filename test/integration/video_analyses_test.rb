@@ -57,11 +57,13 @@ class VideoAnalysesTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_select "meta[http-equiv=refresh]"
 
-    analysis.update!(status: "complete", draft: sample_draft, frames_count: 40)
+    analysis.update!(status: "complete", draft: sample_draft, frames_count: 40, estimated_cost_usd: 1.23456789)
     get carousel_video_analysis_path(@carousel, analysis)
     assert_select "td", text: "Inner row partly hidden", count: 0
     assert_select "p", text: "Inner row partly hidden"
     assert_select "input[type=checkbox][name='seats[0][include]'][checked]"
+    assert_select "dt", text: "Estimated cost"
+    assert_select "dd", text: "$1.2346"
 
     seats = analysis.proposed_seats.each_with_index.to_h do |seat, index|
       [ index.to_s, { code: "#{seat["section"]}#{seat["row"]}", include: "1", state: "filled", figure_type: "Horse",
