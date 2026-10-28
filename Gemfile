@@ -69,4 +69,4 @@ gem "redcarpet", "~> 3.6"
 gem "dotenv-rails", "~> 3.2"
 gem "aws-sdk-s3", require: false
 
-gem "ruby_llm", "~> 1.16"
+gem "ruby_llm", ">= 2.0.0.rc1"
