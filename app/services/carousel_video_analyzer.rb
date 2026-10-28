@@ -50,7 +50,7 @@ class CarouselVideoAnalyzer
   SYSTEM_PROMPT = <<~PROMPT.freeze
     You catalog carousels for carousel-o-pedia, a wiki of carousels and their figures.
     You will see still frames, in time order, from one or more video clips of a single
-    carousel. Each clip is a little over one revolution, filmed from a different spot.
+    carousel. Clips may be filmed from different spots and may not show a full revolution.
 
     Work out the platform layout and every figure on it:
     - Sections are the radial slices of the platform, each holding one figure per row
@@ -58,8 +58,9 @@ class CarouselVideoAnalyzer
       outside in: A is the outer row.
     - Section 1 holds the lead figure in row A. Number the other sections in the order
       their figures pass a fixed viewer after the lead figure, so section 2 follows it.
-    - Track figures across frames so each physical figure is counted once. A clip ends
-      back where it started, so use the repeat of the first figures to close the loop.
+    - Track figures across frames so each physical figure is counted once. Use a repeat
+      of the first figures to close the loop only when that repeat is actually visible.
+      Explain incomplete coverage in notes; never assume a clip shows every section.
     - Tell rows apart by depth, not by left-right position in one frame: inner-row
       figures sit nearer the center pole, look smaller, and pass behind the rows outside
       them. Keep each section's rows in that inward order.
@@ -142,9 +143,15 @@ class CarouselVideoAnalyzer
     def content_for(clips)
       blocks = [ { type: "text", text: carousel_context } ]
       clips.each do |pass, frames|
-        blocks << { type: "text", text: "Clip: #{VideoAnalysis::PASSES.fetch(pass)}. #{frames.size} frames follow, in pairs #{PAIR_GAP}s apart." }
+        label = @analysis.youtube? ? "YouTube segment; viewpoint not specified" : VideoAnalysis::PASSES.fetch(pass)
+        blocks << { type: "text", text: "Clip: #{label}. #{frames.size} frames follow, in pairs #{PAIR_GAP}s apart." }
         frames.each do |seconds, jpeg|
-          blocks << { type: "text", text: "#{pass.delete_suffix("_video")} clip, #{seconds.round(1)}s" }
+          timestamp = if @analysis.youtube?
+            "YouTube video, #{(seconds + @analysis.youtube_start_seconds).round(1)}s in the original video"
+          else
+            "#{pass.delete_suffix("_video")} clip, #{seconds.round(1)}s"
+          end
+          blocks << { type: "text", text: timestamp }
           blocks << { type: "image", source: { type: "base64", media_type: "image/jpeg", data: Base64.strict_encode64(jpeg) } }
         end
       end
@@ -154,6 +161,9 @@ class CarouselVideoAnalyzer
     def carousel_context
       carousel = @analysis.carousel
       lines = [ "Carousel: #{carousel.name}#{" in #{carousel.location}" if carousel.location.present?}." ]
+      if @analysis.youtube?
+        lines << "Source: #{@analysis.youtube_url}. Selected segment: #{@analysis.youtube_start_seconds}s to #{@analysis.youtube_start_seconds + @analysis.youtube_duration_seconds}s. Cite original-video timestamps in evidence, not times relative to the clip."
+      end
       if carousel.layout_known?
         lines << "Editors have recorded #{carousel.sections_count} sections and #{carousel.rows_count} rows. Check this against the video and say so in notes if it disagrees."
       end

@@ -169,6 +169,57 @@ figure; choosing one already seated elsewhere moves it and leaves its old seat
 empty. Occupied chart positions open the Figure page; empty and unknown
 positions open the Seat page. Figure history and seat history remain separate.
 
+### Creating a provisional layout from inventory
+
+When no chart exists, editors can choose **Create draft layout** without first
+claiming the section count is verified. Record the proposed sections and rows,
+choose the default figure type and motion, and enter any chariot starting seats
+and empty positions. Each chariot defaults to **two adjacent rows**, counted
+inward from its starting seat, but **Rows per chariot** is adjustable before
+saving. One spanning chariot is always one figure, not two.
+
+When all published counts and the row count are available, the form suggests a
+regular-grid section count by counting each chariot as two spaces. For example,
+68 horses, no other animals, two chariots and four rows suggest 18 sections:
+`(68 + 2 * 2) / 4`. Suggested chariots are spread around the platform, starting
+in row A; two on an 18-section draft start at 1A and 10A. These positions and
+footprints are assumptions, not claims about the source. Edit them as needed.
+Unknown counts are not treated as zero, and free-text research is not parsed.
+
+The preview shows the proposed wheel, individual placements, assumptions, and
+draft totals beside published totals. Its placements table follows the Figures
+table's Figure, Type, and Seat columns, with motion icons and seat badges
+highlighting every covered row.
+Differences are highlighted for review.
+Confirming saves the platform, figures, placements, and source notes together;
+any failure rolls back the entire draft. Existing charts are never replaced.
+Every placement is a best reading, and the chart and directory explicitly label
+the geometry **provisional**. Rotation is preserved, not inferred.
+
+Platform size remains fixed in the standard editor once seats exist. Confirm
+the dimensions before applying; individual placements and spans can be
+corrected afterward. After verifying the geometry and recording evidence in
+**Summary sources**, uncheck **Provisional layout** in the carousel editor.
+That removes the geometry warning but does not confirm individual placements.
+
+### Filling unknown seats in bulk
+
+On a carousel with a recorded layout, editors can choose **Fill unknown seats**
+when unknown seats remain. Place any known chariots (including their row spans)
+and mark empty positions first. Choose an existing figure type and motion, add
+source/research notes, then **Preview seats**. Review the affected seat codes,
+provisional names, row spans, and notes before choosing **Create draft figures**.
+You can change your choices or cancel without saving anything.
+
+Applying creates one figure per unknown seat, with a seat-based name such as
+**Horse 2A**, and copies the source notes to each figure's page. These are
+placeholders for later identification; all new placements are **best readings**,
+never confirmed. Existing figures, empty positions, and row spans are preserved.
+The entire fill is saved together and appears in figure and seat history. If the
+seats or figure type change after preview, or the preview expires after one hour,
+preview again before applying; nothing is partially saved or silently skipped.
+This tool does not infer a layout from published totals or reuse unseated figures.
+
 Figures retain their carousel assignment when removed from a seat. The Figures
 page includes unseated reserves and project figures and filters by carousel and
 type. To transfer a figure through the editing forms:
@@ -188,6 +239,20 @@ each a little over one revolution: a side pass pointed straight in from the rail
 an oncoming pass angled toward approaching figures, and an inner pass from the
 platform. At least one clip should be filmed while the ride runs, so jumpers can
 be told from standers. The upload page explains the filming recipe.
+
+Alternatively, paste a YouTube link and choose a **Start time (seconds)** and
+**Clip length (seconds)**. The default length is 60 seconds and the maximum is
+300 seconds (five minutes). Choose a segment that fits inside the video and
+shows at least one full revolution. Start time comes from the form, not a `t=`
+parameter in the link. Use either a link or uploads in one analysis, not both.
+Only use videos you have permission to analyze. Live, private, age-restricted,
+or otherwise unavailable videos cannot be retrieved; upload an authorized clip
+instead. The tool does not sign in or bypass download restrictions.
+
+YouTube analyses keep the source link and selected interval after successful
+clips are deleted. Frame evidence uses timestamps in the original video.
+Failed retrievals show the reason and can be retried even when no clip was
+downloaded; a successfully retrieved clip is reused if analysis later fails.
 
 The analysis produces a draft, not carousel data: section and row counts,
 rotation, and for each seat the figure type, kind, motion, and a description,

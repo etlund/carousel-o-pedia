@@ -79,6 +79,16 @@ class CarouselVideoAnalyzerTest < ActiveSupport::TestCase
     end
   end
 
+  test "YouTube evidence cites original timestamps without assuming the camera viewpoint" do
+    @analysis.update!(youtube_url: "https://www.youtube.com/watch?v=Usok6GXGavc", youtube_start_seconds: 120, youtube_duration_seconds: 60)
+    CarouselVideoAnalyzer.new(@analysis, chat: stub_chat, frame_extractor: ->(_) { [ [ 0.33, "jpeg" ] ] }).call
+    content = @requests.sole["messages"].sole["content"]
+    assert_match @analysis.youtube_url, content[0]["text"]
+    assert_match "120s to 180s", content[0]["text"]
+    assert_match "viewpoint not specified", content[1]["text"]
+    assert_equal "YouTube video, 120.3s in the original video", content[2]["text"]
+  end
+
   test "rejects videos without readable frames before requesting analysis" do
     chat = stub_chat
     error = assert_raises(CarouselVideoAnalyzer::Error) do

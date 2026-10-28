@@ -31,7 +31,7 @@ class CarouselFormTest < ActionDispatch::IntegrationTest
       fields = %w[ name other_names status maker_id year_built year_opened
         venue street_address city region postal_code country address_sources body
         official_url wikipedia_url other_links ]
-      fields += layout_known ? %w[ lead_seat_id ] : %w[ sections_count rows_count ]
+      fields += layout_known ? %w[ lead_seat_id layout_provisional ] : %w[ sections_count rows_count ]
       fields += %w[ rotation published_horses_count published_other_animals_count
         published_chariots_count summary_sources ]
       fields += ("A"..).first(Carousel::MAX_ROWS).flat_map do |letter|

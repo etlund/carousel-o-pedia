@@ -1,0 +1,34 @@
+<% content_for :title, "Preview draft seats on #{@carousel.name}" %>
+<p class="muted"><%= link_to @carousel.name, @carousel %></p>
+<h1>Preview draft seats</h1>
+<p>This will create <strong><%= pluralize(@fill.seats.size, @fill.figure_type.name.downcase) %></strong> on <%= @carousel.name %>.
+  Existing figures and empty seats will not be changed. No changes have been saved yet.</p>
+<p>Names are provisional, based on the seat code rather than an identified individual figure.
+  Every new placement will be a <strong>best reading, not confirmed</strong>.</p>
+<div class="table-scroll">
+  <table class="sections">
+    <thead><tr><th>Seat</th><th>Draft figure</th><th>Rows filled</th><th>Motion</th></tr></thead>
+    <tbody>
+      <% @fill.seats.each do |seat| %>
+        <tr>
+          <th scope="row"><%= seat.code %></th>
+          <td><%= @fill.figure_name(seat) %></td>
+          <td><%= seat.rows_covered.join(", ") %></td>
+          <td><%= @fill.mount.presence&.capitalize || "Unknown" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<section class="prose">
+  <h2>Source and research notes</h2>
+  <%= wiki_body(@fill.source_notes) %>
+</section>
+<%= form_with url: carousel_seat_fill_path(@carousel), method: :post, class: "form" do |form| %>
+  <%= hidden_field_tag :preview_token, @fill.preview_token %>
+  <div class="actions">
+    <%= form.submit "Create #{pluralize(@fill.seats.size, "draft figure")}" %>
+    <%= link_to "Change choices", new_carousel_seat_fill_path(@carousel, seat_fill: @fill.attributes) %>
+    <%= link_to "Cancel", @carousel %>
+  </div>
+<% end %>

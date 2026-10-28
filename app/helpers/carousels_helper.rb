@@ -17,10 +17,11 @@ module CarouselsHelper
   def carousel_platform_label(carousel)
     return if carousel.sections_count.nil? && carousel.rows_count.nil?
 
-    [
+    label = [
       carousel.sections_count ? pluralize(carousel.sections_count, "section") : "Sections unknown",
       carousel.rows_count ? pluralize(carousel.rows_count, "row") : "Rows unknown"
     ].join(", ")
+    carousel.layout_provisional? ? "#{label} (provisional)" : label
   end
 
   def carousel_seating_completeness_label(carousel)

@@ -44,6 +44,55 @@ class VideoAnalysisJobTest < ActiveJob::TestCase
     end
   end
 
+  test "a retrieved YouTube clip is analyzed then purged while the source and interval remain" do
+    @analysis.destroy!
+    @analysis = VideoAnalysis.create!(carousel: @carousel, user: users(:admin),
+      youtube_url: "https://youtu.be/Usok6GXGavc", youtube_start_seconds: 3, youtube_duration_seconds: 20)
+    downloader = Object.new
+    analysis = @analysis
+    upload = video_upload
+    downloader.define_singleton_method(:call) { analysis.side_video.attach(upload) }
+    YoutubeVideoDownloader.define_singleton_method(:new) { |*| downloader }
+    stub_analyzer(-> {
+      assert analysis.side_video.attached?
+      { draft: sample_draft, frames_count: 4 }
+    }) do
+      perform_enqueued_jobs { VideoAnalysisJob.perform_now(@analysis) }
+    end
+    assert @analysis.reload.complete?
+    assert_empty @analysis.attached_passes
+    assert_equal [ 3, 20 ], [ @analysis.youtube_start_seconds, @analysis.youtube_duration_seconds ]
+    assert @analysis.youtube?
+  ensure
+    YoutubeVideoDownloader.singleton_class.remove_method(:new)
+  end
+
+  test "download failures are recorded without calling the analyzer" do
+    @analysis.destroy!
+    @analysis = VideoAnalysis.create!(carousel: @carousel, user: users(:admin),
+      youtube_url: "https://youtu.be/Usok6GXGavc")
+    downloader = Object.new
+    downloader.define_singleton_method(:call) { raise YoutubeVideoDownloader::Error, "Video unavailable" }
+    YoutubeVideoDownloader.define_singleton_method(:new) { |*| downloader }
+    stub_analyzer(-> { flunk "The analyzer must not run without a downloaded clip" }) do
+      VideoAnalysisJob.perform_now(@analysis)
+    end
+    assert @analysis.reload.failed?
+    assert_equal "Video unavailable", @analysis.error_message
+    assert @analysis.retryable?
+  ensure
+    YoutubeVideoDownloader.singleton_class.remove_method(:new)
+  end
+
+  test "a YouTube clip already attached after a failed analysis is reused on retry" do
+    @analysis.update!(youtube_url: "https://www.youtube.com/watch?v=Usok6GXGavc")
+    YoutubeVideoDownloader.define_singleton_method(:new) { |*| raise "Do not download the clip again" }
+    stub_analyzer(-> { { draft: sample_draft, frames_count: 4 } }) { VideoAnalysisJob.perform_now(@analysis) }
+    assert @analysis.reload.complete?
+  ensure
+    YoutubeVideoDownloader.singleton_class.remove_method(:new)
+  end
+
   private
     def stub_analyzer(behavior)
       analyzer = Object.new

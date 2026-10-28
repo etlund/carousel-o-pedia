@@ -5,11 +5,22 @@
   <p class="muted address"><%= @carousel.address %></p>
   <p><%= link_to "View all figures", figures_path(carousel_id: @carousel.id) %></p>
   <%= render "shared/page_actions", record: @carousel, edit: edit_carousel_path(@carousel), history: history_carousel_path(@carousel) %>
+  <% if can_edit?(@carousel) && !@carousel.layout_known? && @carousel.seats.empty? %>
+    <p><%= link_to "Create draft layout", new_carousel_layout_draft_path(@carousel) %></p>
+  <% end %>
+  <% if can_edit?(@carousel) && @carousel.layout_known? && @carousel.seats.unknown.exists? %>
+    <p><%= link_to "Fill unknown seats", new_carousel_seat_fill_path(@carousel) %></p>
+  <% end %>
   <% if current_user&.can_analyze_videos_of?(@carousel) %>
     <p><%= link_to "Analyze a video", new_carousel_video_analysis_path(@carousel) %>
       <% if @carousel.video_analyses.any? %> · <%= link_to "Past video analyses", carousel_video_analyses_path(@carousel) %><% end %></p>
   <% end %>
 </header>
+
+<% if @carousel.layout_provisional? %>
+  <p class="card provisional-layout"><strong>Provisional seating layout.</strong> Geometry, section alignment, and chariot footprints may be drafting assumptions rather than verified observations.
+    <%= link_to "Review sources and assumptions", "#summary-sources" %>.</p>
+<% end %>
 
 <div class="grid">
   <div class="card">

@@ -8,6 +8,7 @@
       <li>
         <%= link_to carousel_video_analysis_path(@carousel, analysis) do %><%= video_analysis_timestamp(analysis) %> by <%= analysis.user.name %><% end %>
         <span class="muted">· <%= video_analysis_status(analysis) %></span>
+        <span class="muted">· <%= video_analysis_source(analysis) %></span>
         <%= video_analysis_delete_button(analysis) %>
       </li>
     <% end %>

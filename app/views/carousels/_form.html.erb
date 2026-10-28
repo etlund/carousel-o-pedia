@@ -45,6 +45,9 @@
         <div class="field"><%= form.label :rows_count, "Rows" %><%= form.number_field :rows_count, min: 1, max: Carousel::MAX_ROWS %></div>
       </div>
       <p class="hint">Record only verified dimensions; either count can remain blank. Sections run around the platform and rows run from the outside in. A chart is created only when both are known; its size is then fixed.</p>
+      <% if carousel.persisted? %>
+        <p class="hint">For an estimate based on inventory counts, <%= link_to "Create draft layout", new_carousel_layout_draft_path(carousel) %> instead. Draft geometry stays explicitly provisional.</p>
+      <% end %>
     <% else %>
       <p><%= pluralize(carousel.sections_count, "section") %> × <%= pluralize(carousel.rows_count, "row") %>. The size can't change once seats exist.</p>
       <div class="field">
@@ -53,6 +56,12 @@
               carousel.seats.where(row: "A").includes(current_placement: :figure).map { |seat| [ "#{seat.code} · #{seat.figure&.name || seat.state.capitalize}", seat.id ] },
               { selected: carousel.lead_seat&.id } %>
         <p class="hint">The lead figure's section becomes section 1 and its outer-row seat becomes 1A. Every other section is renumbered from there, in the order figures pass the rail.</p>
+      </div>
+      <div>
+        <%= form.label :layout_provisional do %>
+          <%= form.check_box :layout_provisional %> Provisional layout (geometry not yet verified)
+        <% end %>
+        <p class="hint">Keep this checked while section alignment or chariot footprints are assumptions. Uncheck only after verifying the layout and recording supporting evidence in Summary sources.</p>
       </div>
     <% end %>
     <div class="field"><%= form.label :rotation, "Turns" %><%= form.select :rotation, Carousel::ROTATIONS.map { [ _1.capitalize, _1 ] }, include_blank: "Unknown" %></div>

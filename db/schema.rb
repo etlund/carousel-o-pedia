@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_202000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_214751) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -68,6 +68,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_202000) do
     t.text "address_sources"
     t.json "ring_details", default: {}, null: false
     t.text "other_names"
+    t.boolean "layout_provisional", default: false, null: false
     t.index ["maker_id"], name: "index_carousels_on_maker_id"
     t.index ["slug"], name: "index_carousels_on_slug", unique: true
   end
@@ -208,6 +209,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_202000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.decimal "estimated_cost_usd", precision: 12, scale: 8
+    t.string "youtube_url"
+    t.integer "youtube_start_seconds", default: 0
+    t.integer "youtube_duration_seconds", default: 60
     t.index ["carousel_id"], name: "index_video_analyses_on_carousel_id"
     t.index ["user_id"], name: "index_video_analyses_on_user_id"
     t.check_constraint "status IN ('queued', 'processing', 'complete', 'failed')", name: "video_analyses_status"
