@@ -121,6 +121,20 @@ dashboard after a few minutes. Ad blockers can prevent collection, so the counts
 are approximate. See Cloudflare's [setup guide](https://developers.cloudflare.com/web-analytics/get-started/)
 and [SPA measurement notes](https://developers.cloudflare.com/web-analytics/faq/).
 
+## Carousel video analysis
+
+Trusted users can upload carousel video for a draft seating layout (see
+`docs/editing.md`). The job pulls still frames with `ffmpeg`, which the
+Dockerfile installs, and sends them to the Claude API. Set `ANTHROPIC_API_KEY`
+locally before deploying; Kamal passes it to the app like the backup keys. Without
+it, uploads still work but each analysis fails with a message saying the key is
+missing. `VIDEO_ANALYSIS_MODEL` overrides the model (default `claude-opus-5-5`).
+
+A run reads up to 40 frames per clip, so three clips are about 120 images. Expect
+roughly $0.50 to $1 per analysis. Uploaded clips sit in Active Storage on the
+`storage` volume until the analysis succeeds, then they are deleted; a failed
+analysis keeps its clips so it can be retried.
+
 ## Database backups to DigitalOcean Spaces
 
 `DatabaseBackupJob` runs daily at 03:00 in the application's time zone (UTC by

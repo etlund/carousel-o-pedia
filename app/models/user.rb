@@ -8,6 +8,7 @@ class User < ApplicationRecord
 
   has_secure_password
   has_many :sessions, dependent: :destroy
+  has_many :video_analyses, dependent: :restrict_with_error
   has_many :invitations, foreign_key: :invited_by_id, dependent: :destroy, inverse_of: :invited_by
   belongs_to :editable_carousel, class_name: "Carousel", optional: true
 
@@ -45,6 +46,11 @@ class User < ApplicationRecord
     when Figure, Seat then record.carousel_id
     end
     editable_carousel_id.present? && carousel_id == editable_carousel_id
+  end
+
+  # Video analysis costs money per upload, so only admins and users an admin trusts can run it.
+  def can_analyze_videos_of?(carousel)
+    (admin? || can_analyze_videos?) && can_edit?(carousel)
   end
 
   def access_description

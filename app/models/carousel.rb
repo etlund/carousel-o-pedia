@@ -15,6 +15,7 @@ class Carousel < ApplicationRecord
   has_many :seats, -> { order(:section, :row) }, dependent: :destroy
   has_many :placements, through: :seats
   has_many :figures, dependent: :restrict_with_error
+  has_many :video_analyses, dependent: :destroy
 
   # Include child timestamps recorded before association changes started touching the carousel.
   scope :recently_updated, -> {

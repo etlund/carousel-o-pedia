@@ -1,0 +1,76 @@
+<% content_for :title, "Video analysis of #{@carousel.name}" %>
+<% content_for :head do %>
+  <% unless @analysis.finished? %><meta http-equiv="refresh" content="15"><% end %>
+<% end %>
+<p class="muted"><%= link_to @carousel.name, @carousel %> · <%= link_to "All video analyses", carousel_video_analyses_path(@carousel) %></p>
+<h1>Video analysis</h1>
+<p class="muted">Uploaded by <%= @analysis.user.name %> <%= time_ago_in_words(@analysis.created_at) %> ago · <%= video_analysis_status(@analysis) %></p>
+
+<% if @analysis.queued? || @analysis.processing? %>
+  <p class="card">The tool is reading frames from <%= pluralize(@analysis.attached_passes.size, "clip") %>. This page refreshes on its own; it usually takes a few minutes.</p>
+<% elsif @analysis.failed? %>
+  <div class="flash alert" role="alert"><p>The analysis failed: <%= @analysis.error_message %></p></div>
+  <% if @analysis.attached_passes.any? %><%= button_to "Try again", retry_carousel_video_analysis_path(@carousel, @analysis) %><% end %>
+<% else %>
+  <% layout = @analysis.proposed_layout %>
+  <% seats_by_code = @carousel.seats.includes(current_placement: :figure).index_by(&:code) %>
+  <dl class="facts card">
+    <dt>Sections</dt><dd><%= layout["sections_count"] %><% if @carousel.layout_known? %> <span class="muted">(recorded: <%= @carousel.sections_count %>)</span><% end %></dd>
+    <dt>Rows</dt><dd><%= layout["rows_count"] %><% if @carousel.layout_known? %> <span class="muted">(recorded: <%= @carousel.rows_count %>)</span><% end %></dd>
+    <dt>Rotation</dt><dd><%= layout["rotation"] %></dd>
+    <dt>Lead figure (1A)</dt><dd><%= layout["lead_figure"] %></dd>
+    <dt>Read from</dt><dd><%= pluralize(@analysis.frames_count, "frame") %></dd>
+  </dl>
+  <% if @analysis.draft["notes"].present? %>
+    <section class="prose"><h2>Notes from the analysis</h2><p><%= @analysis.draft["notes"] %></p></section>
+  <% end %>
+
+  <% if @analysis.layout_conflict? %>
+    <p class="flash alert">This draft found a different layout from the one recorded for <%= @carousel.name %>, so its seats can't be applied. Check the layout, then edit the carousel if the draft is right and analyze again.</p>
+  <% end %>
+
+  <h2>Review the draft</h2>
+  <p>Tick the seats to add, and correct anything the tool got wrong. Applying only fills seats that are still unknown,
+    never ones an editor has already filled in, and new figures are marked as a best reading.</p>
+  <%= form_with url: apply_carousel_video_analysis_path(@carousel, @analysis), method: :post, class: "video-draft" do |form| %>
+    <% unless @carousel.layout_known? %>
+      <p><label><%= check_box_tag :apply_layout, "1", true %> Record the layout as <%= layout["sections_count"] %> sections and <%= layout["rows_count"] %> rows</label></p>
+    <% end %>
+    <div class="table-scroll">
+      <table class="sections video-draft-seats">
+        <thead><tr><th>Add</th><th>Seat</th><th>Now</th><th>Figure</th><th>Kind</th><th>Motion</th><th>Description</th><th>Confidence</th></tr></thead>
+        <tbody>
+          <% @analysis.proposed_seats.each_with_index do |proposal, index| %>
+            <% code = "#{proposal["section"]}#{proposal["row"]}" %>
+            <% seat = seats_by_code[code] %>
+            <% prefix = "seats[#{index}]" %>
+            <tr>
+              <td>
+                <%= hidden_field_tag "#{prefix}[include]", "0", id: nil %>
+                <%= check_box_tag "#{prefix}[include]", "1", video_analysis_seat_checked?(proposal, seat, @carousel), id: "seat_include_#{index}", aria: { label: "Add #{code}" } %>
+                <%= hidden_field_tag "#{prefix}[code]", code, id: nil %>
+                <%= hidden_field_tag "#{prefix}[state]", proposal["state"], id: nil %>
+                <%= hidden_field_tag "#{prefix}[rows_spanned]", proposal["rows_spanned"], id: nil %>
+              </td>
+              <th scope="row"><%= code %><% if proposal["rows_spanned"].to_i > 1 %> <span class="muted">(<%= proposal["rows_spanned"] %> rows)</span><% end %></th>
+              <td class="muted"><%= @carousel.layout_known? ? video_analysis_current_seat(seat) : "New" %></td>
+              <% if proposal["state"] == "filled" %>
+                <td><%= text_field_tag "#{prefix}[figure_type]", proposal["figure_type"], aria: { label: "#{code} figure" }, size: 14 %></td>
+                <td><%= select_tag "#{prefix}[category]", options_for_select(FigureType::CATEGORIES.map { [ category_label(_1), _1 ] }, proposal["category"]), aria: { label: "#{code} kind" } %></td>
+                <td><%= select_tag "#{prefix}[mount]", options_for_select([ [ "Unknown", "" ] ] + Figure::MOUNTS.map { [ _1.capitalize, _1 ] }, proposal["mount"]), aria: { label: "#{code} motion" } %></td>
+                <td><%= text_area_tag "#{prefix}[description]", proposal["description"], rows: 2, aria: { label: "#{code} description" } %></td>
+              <% else %>
+                <td colspan="4" class="muted"><%= proposal["state"] == "empty" ? "Empty spot" : "Not clearly seen" %><%= " · #{proposal["description"]}" if proposal["description"].present? %></td>
+              <% end %>
+              <td><span class="badge"><%= proposal["confidence"] %></span><% if proposal["evidence"].present? %><br><span class="hint"><%= proposal["evidence"] %></span><% end %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <%= form.submit "Apply ticked seats to #{@carousel.name}", disabled: @analysis.layout_conflict?,
+        data: { turbo_confirm: "Add the ticked seats to #{@carousel.name}? Every change is kept in the page history." } %>
+    </div>
+  <% end %>
+<% end %>

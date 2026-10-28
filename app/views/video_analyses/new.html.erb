@@ -1,0 +1,30 @@
+<% content_for :title, "Analyze a video of #{@carousel.name}" %>
+<p class="muted"><%= link_to @carousel.name, @carousel %></p>
+<h1>Analyze a video</h1>
+<p>Upload clips of the carousel turning and the tool will draft its layout: how many sections and rows,
+  what each figure is, whether it's a stander or a jumper, and a short description.
+  Nothing changes on the carousel until you review the draft and apply it.</p>
+
+<section class="card prose video-recipe">
+  <h2>How to film it</h2>
+  <p>Film up to three clips, each a little over one full revolution. Start and end on the lead figure so the tool can tell where the loop closes.</p>
+  <ol>
+    <li><strong>Side pass.</strong> Stand at the rail with the camera at figure height, pointed straight in at the center pole, and hold still. This shows the carved outer side of row A.</li>
+    <li><strong>Oncoming pass.</strong> Stand at the rail angled about 45° toward the figures coming at you. The rows show side by side as each section approaches, which is the best view for counting rows and seeing faces.</li>
+    <li><strong>Inner pass.</strong> Ride the platform, or walk it while the ride is stopped, pointing outward from the inner row so the middle and inner figures aren't hidden behind the outer ones.</li>
+  </ol>
+  <p>Film at least one clip while the ride is running: jumpers go up and down and standers stay put, which is how the tool tells them apart.
+    Use landscape, the 1x lens (no ultrawide or zoom), 1080p at 30 fps, and keep the camera steady instead of following figures.</p>
+</section>
+
+<%= form_with model: [ @carousel, @analysis ], url: carousel_video_analyses_path(@carousel), class: "form" do |form| %>
+  <%= render "shared/errors", record: @analysis %>
+  <% VideoAnalysis::PASSES.each do |pass, label| %>
+    <div class="field">
+      <%= form.label pass, label %>
+      <%= form.file_field pass, accept: VideoAnalysis::VIDEO_TYPES.join(",") %>
+    </div>
+  <% end %>
+  <p class="hint">MP4, MOV, or WebM, up to <%= number_to_human_size(VideoAnalysis::MAX_VIDEO_SIZE) %> each. One clip works; more clips give a better reading. Clips are deleted once the analysis succeeds.</p>
+  <div class="actions"><%= form.submit "Upload and analyze" %> <%= link_to "Cancel", @carousel %></div>
+<% end %>

@@ -44,7 +44,8 @@
 <h2>Editors</h2>
 <p>Suspending an editor prevents sign-in and editing and revokes all their sessions.
   Their account and public edit attribution are preserved. Restoring access lets them sign in again.
-  Administrators cannot be suspended here.</p>
+  Administrators cannot be suspended here.
+  Video analysis sends uploaded clips to Claude and costs money per upload, so only admins and editors you allow can use it.</p>
 <ul>
   <% @users.each do |user| %>
     <li>
@@ -52,7 +53,13 @@
       <span class="muted">· <%= user.access_description %></span>
       <% if user.suspended? %><strong>Suspended</strong><% end %>
       <span class="muted">· <%= user.contribution_terms_accepted? ? "Current terms agreed" : "Terms agreement needed" %></span>
+      <% if user.admin? || user.can_analyze_videos? %><span class="muted">· Can analyze videos</span><% end %>
       <% unless user.admin? %>
+        <% if user.can_analyze_videos? %>
+          <%= button_to "Stop video analysis for #{user.name}", editor_video_analysis_access_path(user), method: :delete, class: "link-button" %>
+        <% else %>
+          <%= button_to "Allow video analysis for #{user.name}", editor_video_analysis_access_path(user), class: "link-button" %>
+        <% end %>
         <% if user.suspended? %>
           <%= button_to "Restore access for #{user.name}", editor_suspension_path(user), method: :delete, class: "link-button" %>
         <% else %>

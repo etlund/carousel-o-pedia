@@ -2,6 +2,7 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 require_relative "test_helpers/session_test_helper"
+require_relative "test_helpers/video_analysis_test_helper"
 
 module ActiveSupport
   class TestCase
@@ -10,6 +11,7 @@ module ActiveSupport
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
+    include VideoAnalysisTestHelper
 
     def load_seeds
       Rails.application.load_seed
