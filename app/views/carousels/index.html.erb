@@ -11,6 +11,10 @@
       <%= form.search_field :q, value: @query, placeholder: "Search carousel names" %>
     </div>
     <div class="field">
+      <%= form.label :country, "Country" %>
+      <%= form.select :country, @country_counts.map { |country, count| [ "#{country} (#{number_with_delimiter(count)})", country ] }, include_blank: "All countries", selected: @selected_country %>
+    </div>
+    <div class="field">
       <%= form.label :region, "State" %>
       <%= form.select :region, @region_counts.map { |region, count| [ "#{region} (#{number_with_delimiter(count)})", region ] }, include_blank: "All states", selected: @selected_region %>
     </div>
@@ -22,7 +26,7 @@
   <div class="actions"><%= form.submit "Filter" %> <%= link_to "Clear filters", carousels_path %></div>
 <% end %>
 <p class="muted carousel-count">
-  <% if @query || @selected_region %><%= number_with_delimiter(@pagy.count) %> of <% end %><%= number_with_delimiter(@total_carousels) %> <%= "carousel".pluralize(@total_carousels) %> listed
+  <% if @query || @selected_region || @selected_country %><%= number_with_delimiter(@pagy.count) %> of <% end %><%= number_with_delimiter(@total_carousels) %> <%= "carousel".pluralize(@total_carousels) %> listed
 </p>
 <% if @pagy.count.zero? %>
   <p>No carousels match these filters.</p>

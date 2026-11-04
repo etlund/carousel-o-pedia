@@ -39,6 +39,7 @@ class CarouselCsvIntegrationTest < ActionDispatch::IntegrationTest
     assert_redirected_to carousel_csv_path
     carousel = Carousel.find_by!(name: "Uploaded carousel")
     assert_equal "Paris", carousel.city
+    assert_equal "unknown", carousel.status
     assert_equal users(:admin).id.to_s, carousel.versions.last.whodunnit
     post apply_carousel_csv_path, params: { preview_token: token }
     assert_redirected_to carousel_csv_path

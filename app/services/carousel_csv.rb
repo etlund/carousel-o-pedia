@@ -167,7 +167,7 @@ class CarouselCsv
       elsif data["slug"].present? || data["updated_at"].present?
         errors << "New rows must have blank ID, slug, and updated_at."
       end
-      record ||= Carousel.new
+      record ||= Carousel.new(status: "unknown")
       original = record.attributes.deep_dup
       assign_fields(record, data, errors)
       if record.persisted? && original["sections_count"].present? && original["rows_count"].present? &&
@@ -177,7 +177,7 @@ class CarouselCsv
       errors.concat(record.errors.full_messages) unless record.valid?
       changes = record.changes.except("slug", "updated_at", "created_at")
       if record.new_record?
-        changes["status"] ||= [ nil, record.status ]
+        changes["status"] = [ nil, record.status ]
         changes["layout_provisional"] ||= [ nil, record.layout_provisional ]
       end
       if record.new_record? && record.name.present?

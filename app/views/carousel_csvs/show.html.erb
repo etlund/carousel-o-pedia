@@ -1,17 +1,27 @@
 <% content_for :title, "Carousel CSV import and export" %>
 <h1>Carousel CSV import and export</h1>
-<p>Export all carousel fields, edit the spreadsheet, then upload or paste the CSV for review. Figures, seats, and placement history are not included.</p>
+<p>Download the carousel spreadsheet, make your changes, then upload or paste it here to review before saving.</p>
+<p>Figures, seats, and placement history are not included in the spreadsheet.</p>
 <p><%= link_to "Download carousel CSV", export_carousel_csv_path, class: "button" %></p>
 <section class="prose">
   <h2>Before importing</h2>
-  <ul>
-    <li>Leave ID, slug, and updated_at unchanged for existing carousels; leave them blank for new rows. Omitted rows are never deleted.</li>
-    <li>Blank cells and omitted columns leave existing values unchanged. Enter <code>__CLEAR__</code> to clear an optional value; enter <code>\__CLEAR__</code> for that literal text.</li>
-    <li>Use the maker IDs below. Ring columns A through F describe independently sourced ring research. Sources are required for published counts and ring details.</li>
-    <li>Known layout dimensions cannot be changed here. Adding both dimensions to an unknown layout creates unknown seats.</li>
-    <li>Keep the csv_format column and any leading apostrophes in exported cells: these protect spreadsheet text and enable round trips. Use UTF-8 CSV and preserve text formatting.</li>
-  </ul>
-  <p>Imports are limited to 1 MB, 5,000 rows, and 10,000 newly generated seats. Preview expires after 30 minutes. <%= link_to "Import instructions", "#{editor_guide_path}#carousel-csv" %></p>
+  <ol>
+    <li><strong>Edit existing carousels:</strong> Keep their ID, slug, and updated_at cells as they are. Leaving a row out will not delete the carousel.</li>
+    <li><strong>Add carousels:</strong> Add a new row and leave ID, slug, and updated_at blank. A new carousel's status will be unknown unless you provide one.</li>
+    <li><strong>Leave or clear a value:</strong> A blank cell leaves an existing value unchanged. To remove an optional value, enter <code>__CLEAR__</code> in that cell.</li>
+    <li><strong>Review before saving:</strong> The preview shows your changes, errors, and possible duplicates. Nothing is saved until you confirm.</li>
+  </ol>
+  <details>
+    <summary>More spreadsheet details</summary>
+    <ul>
+      <li>Save as UTF-8 CSV. Keep the column names, the csv_format column, and any apostrophes at the start of exported cells. These help protect spreadsheet text and make re-importing work.</li>
+      <li>Use the maker IDs listed below. Add sources for published counts and ring research; ring columns A through F describe the individual rings.</li>
+      <li>Existing layout dimensions cannot be changed here. Adding both dimensions to a carousel without a complete layout creates unknown seats.</li>
+      <li>To save the literal text <code>__CLEAR__</code>, enter <code>\__CLEAR__</code> instead.</li>
+    </ul>
+    <p>Each import is limited to 1 MB, 5,000 rows, and 10,000 new seats. A preview is valid for 30 minutes.</p>
+  </details>
+  <p><%= link_to "Read the full import guide", editor_guide_path(anchor: "carousel-csv") %></p>
 </section>
 <%= render "form", csv_text: params[:csv_text] %>
 <% if Maker.exists? %>

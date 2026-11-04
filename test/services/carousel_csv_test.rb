@@ -59,6 +59,37 @@ class CarouselCsvTest < ActiveSupport::TestCase
     assert_equal 2, Carousel.where(name: "Example").where.not(id: @carousel.id).pluck(:slug).uniq.size
   end
 
+  test "new imports default to unknown while explicit and existing statuses are preserved" do
+    csv = rows([ %w[id updated_at name status],
+      [ "", "", "Missing status", "" ],
+      [ "", "", "Known operating", "operating" ],
+      [ @carousel.id, stamp(@carousel), "", "" ] ])
+    import = CarouselCsv.new(csv)
+    assert import.valid?, import.items.flat_map(&:errors).inspect
+    assert_equal [ nil, "unknown" ], import.items.first.changes["status"]
+    assert_equal [ nil, "operating" ], import.items.second.changes["status"]
+    assert_not import.items.last.changes.key?("status")
+    CarouselCsv.apply!(import.preview_token(@user), @user)
+    assert_equal "unknown", Carousel.find_by!(name: "Missing status").status
+    assert_equal "operating", Carousel.find_by!(name: "Known operating").status
+    assert_equal "operating", @carousel.reload.status
+    assert_equal "operating", Carousel.new.status
+    reimport = CarouselCsv.new(CarouselCsv.export)
+    assert reimport.valid?, reimport.items.flat_map(&:errors).inspect
+    assert reimport.items.all? { |item| item.changes.empty? }
+  end
+
+  test "unknown can be assigned explicitly but clearing status is invalid" do
+    import = CarouselCsv.new(rows([ %w[id updated_at name status], [ @carousel.id, stamp(@carousel), "", "unknown" ] ]))
+    assert import.valid?, import.items.flat_map(&:errors).inspect
+    CarouselCsv.apply!(import.preview_token(@user), @user)
+    assert_equal "unknown", @carousel.reload.status
+
+    import = CarouselCsv.new(rows([ %w[name status], [ "New", "__CLEAR__" ] ]))
+    assert_not import.valid?
+    assert_match(/Status/, import.items.first.errors.join)
+  end
+
   test "rejects stale nonexistent duplicate and modified reference IDs" do
     [ [ @carousel.id, "old", @carousel.slug ], [ 999999, "old", "" ],
       [ "abc", "", "" ], [ @carousel.id, stamp(@carousel), "other" ] ].each do |id, time, slug|

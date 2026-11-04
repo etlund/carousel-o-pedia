@@ -2,7 +2,7 @@
 
 A wiki for carousels, their carved figures, and their history.
 
-Browse the carousel directory by name or state, explore interactive seating
+Browse the carousel directory by name, country, or state, explore interactive seating
 charts, and follow individual figures and their placement history. Anyone can
 read; invited editors can contribute sourced research, inventory, and layouts.
 Edits are tracked with PaperTrail.

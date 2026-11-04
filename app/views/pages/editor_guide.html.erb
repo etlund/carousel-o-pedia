@@ -61,8 +61,9 @@
   </ol>
   <p>Blank cells and omitted columns do not change existing values; <code>__CLEAR__</code> clears an optional
     value. To enter that exact text, use <code>\__CLEAR__</code>; double a leading backslash to preserve it.
-    No row implies deletion. Zero is a value, not a blank. New carousels default to <code>operating</code>;
-    verify that status and do not import uncertain operating claims as fact.</p>
+    No row implies deletion. Zero is a value, not a blank. New imported carousels default to
+    <code>unknown</code>; specify <code>operating</code>, <code>stored</code>, or <code>lost</code>
+    only when supported by evidence. An existing carousel's status is unchanged when blank.</p>
   <p>For a research spreadsheet with different column names, first map the data to supported headers.
     For example, rename <code>website</code> to <code>official_url</code> only after checking that it is
     the operator's current URL. Incorporate reviewed source links and caveats into the appropriate
