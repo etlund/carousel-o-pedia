@@ -1,0 +1,33 @@
+<% content_for :title, "Preview carousel CSV import" %>
+<h1>Preview carousel CSV import</h1>
+<p>No changes have been saved. Check every change and possible duplicate. Blank cells do not clear values.</p>
+<% @import.items.each do |item| %>
+  <section class="card">
+    <h2>Row <%= item.number %>: <%= item.record.name.presence || "Unnamed carousel" %> <%= item.record.new_record? ? "(new)" : "(ID #{item.record.id})" %></h2>
+    <% item.errors.each do |error| %><p class="flash alert"><%= error %></p><% end %>
+    <% item.warnings.each do |warning| %><p class="flash alert"><%= warning %></p><% end %>
+    <% if item.changes.empty? %>
+      <p>No changes.</p>
+    <% else %>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Field</th><th>Current</th><th>Proposed</th></tr></thead>
+          <tbody>
+            <% item.changes.each do |field, (before, after)| %>
+              <tr><th scope="row"><%= field.humanize %></th><td><pre class="csv-value"><%= before.nil? ? "(empty)" : before.is_a?(Hash) ? JSON.pretty_generate(before) : before %></pre></td><td><pre class="csv-value"><%= after.nil? ? "(empty)" : after.is_a?(Hash) ? JSON.pretty_generate(after) : after %></pre></td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </section>
+<% end %>
+<% if @import.valid? %>
+  <%= form_with url: apply_carousel_csv_path, method: :post, class: "form" do |form| %>
+    <%= hidden_field_tag :preview_token, @preview_token %>
+    <div class="actions"><%= form.submit "Apply all changes" %> <%= link_to "Cancel", carousel_csv_path %></div>
+  <% end %>
+<% else %>
+  <p>Fix the errors and preview again; nothing can be applied while errors remain.</p>
+  <%= render "form", csv_text: @import.content %>
+<% end %>

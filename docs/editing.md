@@ -132,6 +132,23 @@ does not suspend an accepted account.
 
 ## Core records
 
+### Carousel CSV import and export
+
+Administrators who have accepted the contribution terms can export the complete
+carousel field list, including empty cells, from **Import / export CSV** in the
+directory. They can upload or paste a UTF-8 CSV for a field-by-field preview and
+apply it after review. The [Editor guide](../app/views/pages/editor_guide.html.erb)
+explains IDs, blank cells, explicit clears, source requirements, layout effects,
+limits, and spreadsheet safety. This is a carousel metadata workflow, not an
+export of figures, seats, placements, or their history.
+
+Existing rows require the exported ID and exact `updated_at`; stale records and
+unknown IDs are rejected. New rows have blank IDs and are checked for exact
+name/alternate-name matches, but an administrator must review duplicates.
+Missing rows never delete records. Confirmations recheck the preview, execute
+transactionally, record normal history attribution, and cannot be replayed.
+These safeguards do not replace a tested database backup or offer batch undo.
+
 The new and edit carousel forms put everyday details first: names, status,
 maker and years, venue and address, then page text and website links. Platform
 details, published totals and sources, and detailed ring research follow.

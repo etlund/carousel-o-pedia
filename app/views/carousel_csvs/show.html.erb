@@ -1,0 +1,24 @@
+<% content_for :title, "Carousel CSV import and export" %>
+<h1>Carousel CSV import and export</h1>
+<p>Export all carousel fields, edit the spreadsheet, then upload or paste the CSV for review. Figures, seats, and placement history are not included.</p>
+<p><%= link_to "Download carousel CSV", export_carousel_csv_path, class: "button" %></p>
+<section class="prose">
+  <h2>Before importing</h2>
+  <ul>
+    <li>Leave ID, slug, and updated_at unchanged for existing carousels; leave them blank for new rows. Omitted rows are never deleted.</li>
+    <li>Blank cells and omitted columns leave existing values unchanged. Enter <code>__CLEAR__</code> to clear an optional value; enter <code>\__CLEAR__</code> for that literal text.</li>
+    <li>Use the maker IDs below. Ring columns A through F describe independently sourced ring research. Sources are required for published counts and ring details.</li>
+    <li>Known layout dimensions cannot be changed here. Adding both dimensions to an unknown layout creates unknown seats.</li>
+    <li>Keep the csv_format column and any leading apostrophes in exported cells: these protect spreadsheet text and enable round trips. Use UTF-8 CSV and preserve text formatting.</li>
+  </ul>
+  <p>Imports are limited to 1 MB, 5,000 rows, and 10,000 newly generated seats. Preview expires after 30 minutes. <%= link_to "Import instructions", "#{editor_guide_path}#carousel-csv" %></p>
+</section>
+<%= render "form", csv_text: params[:csv_text] %>
+<% if Maker.exists? %>
+  <details>
+    <summary>Maker IDs</summary>
+    <table><thead><tr><th>ID</th><th>Maker</th></tr></thead>
+      <tbody><% Maker.order(:name, :id).each do |maker| %><tr><td><%= maker.id %></td><td><%= maker.name %></td></tr><% end %></tbody>
+    </table>
+  </details>
+<% end %>

@@ -10,6 +10,12 @@ Rails.application.routes.draw do
     get :history, on: :member
   end
 
+  resource :carousel_csv, path: "carousel-data", only: :show do
+    get :export
+    post :preview
+    post :apply
+  end
+
   resources :carousels, except: :destroy, concerns: :historical do
     resource :layout_draft, path: "draft-layout", only: %i[ new create ] do
       post :preview

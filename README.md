@@ -72,6 +72,11 @@ bin/rails users:create_admin EMAIL=you@example.com NAME="Your Name"
 The command prompts for a password. For editing workflows, seat conventions,
 and password resets, see the [editing and data guide](docs/editing.md).
 
+Administrators can export carousel metadata to CSV, edit it, and preview an
+upload or pasted CSV before applying a transactional import. Figures, seats,
+and placement history are not included. See the
+[editing guide](docs/editing.md#carousel-csv-import-and-export) for safeguards.
+
 ## Testing
 
 ```sh
