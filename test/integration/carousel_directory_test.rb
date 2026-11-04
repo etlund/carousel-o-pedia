@@ -95,4 +95,29 @@ class CarouselDirectoryTest < ActionDispatch::IntegrationTest
     assert_select ".carousel-count", text: "0 carousels listed"
     assert_select "p", text: "No carousels match these filters."
   end
+
+  test "directory pages results and keeps filters in page links" do
+    14.times { |i| Carousel.create!(name: "Carousel #{format("%02d", i)}", region: "Montana") }
+
+    get carousels_path, params: { sort: "name", region: "Montana" }
+
+    assert_response :success
+    assert_select ".cards > .card", count: 12
+    assert_select ".carousel-count", text: "14 of 14 carousels listed"
+    assert_select "nav.pagy a[href*=?][href*=?]", "page=2", "region=Montana"
+
+    get carousels_path, params: { sort: "name", region: "Montana", page: 2 }
+
+    assert_response :success
+    assert_select ".cards > .card", count: 2
+    assert_select ".card h2 a", text: "Carousel 13"
+  end
+
+  test "directory omits page links when everything fits on one page" do
+    Carousel.create!(name: "Only Carousel")
+
+    get carousels_path
+
+    assert_select "nav.pagy", count: 0
+  end
 end

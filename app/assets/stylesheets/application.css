@@ -181,3 +181,10 @@ fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16p
 .video-draft-seats input[type="text"], .video-draft-seats select, .video-draft-seats textarea { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
 .video-draft-seats textarea { min-width: 220px; width: 100%; resize: vertical; }
 .video-analyses form.button_to { display: inline; margin-left: 8px; }
+
+.pagy { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin: 24px 0; }
+.pagy a { padding: 4px 12px; border: 1px solid var(--line); border-radius: 8px; text-decoration: none; }
+.pagy a[href]:hover { background: var(--panel); }
+.pagy a[aria-current] { background: var(--red); border-color: var(--red); color: #fff; }
+.pagy a[aria-disabled]:not([aria-current]) { opacity: .5; cursor: default; }
+.pagy a[role="separator"] { border-color: transparent; }

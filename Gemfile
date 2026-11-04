@@ -70,3 +70,5 @@ gem "dotenv-rails", "~> 3.2"
 gem "aws-sdk-s3", require: false
 
 gem "ruby_llm", "~> 2.1"
+
+gem "pagy", "~> 43.8"

@@ -1,5 +1,7 @@
 class CarouselsController < ApplicationController
   include PageHistory
+  include Pagy::Method
+  class_attribute :per_page, default: 12
   allow_unauthenticated_access only: :index
 
   before_action :set_carousel, only: %i[ show edit update ]
@@ -29,7 +31,9 @@ class CarouselsController < ApplicationController
         query: "%#{Carousel.sanitize_sql_like(@query.downcase, "!")}%")
     end
     @carousels = @carousels.where(region: @selected_region) if @selected_region
+    @pagy, @carousels = pagy(:offset, @carousels, limit: per_page)
     @category_counts = Placement.current.joins(:seat, figure: :figure_type)
+      .where(seats: { carousel_id: @carousels.map(&:id) })
       .group("seats.carousel_id", "figure_types.category").count
   end
 

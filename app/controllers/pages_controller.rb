@@ -4,6 +4,9 @@ class PagesController < ApplicationController
   def about
   end
 
+  def updates
+  end
+
   def editor_guide
   end
 

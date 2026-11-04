@@ -1,7 +1,14 @@
 require "test_helper"
 
 class PagesTest < ActionDispatch::IntegrationTest
-  setup { @carousel = load_seeds }
+  setup do
+    @carousel = load_seeds
+    # Most directory assertions inspect every carousel, so keep them on one page.
+    @original_per_page = CarouselsController.per_page
+    CarouselsController.per_page = 1_000
+  end
+
+  teardown { CarouselsController.per_page = @original_per_page }
 
   test "site header uses the red ring for the middle o and links home with the full accessible name" do
     get root_path

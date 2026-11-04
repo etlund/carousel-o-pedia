@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   root "carousels#index"
   get "about", to: "pages#about", as: :about
+  get "updates", to: "pages#updates", as: :updates
   get "editor-guide", to: "pages#editor_guide", as: :editor_guide
   get "contribution-terms", to: "pages#contribution_terms", as: :contribution_terms
   resource :contribution_agreement, only: %i[ edit update ]
