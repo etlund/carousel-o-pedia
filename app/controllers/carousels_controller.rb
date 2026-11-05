@@ -11,8 +11,10 @@ class CarouselsController < ApplicationController
   def index
     @total_carousels = Carousel.count
     @region_counts = Carousel.where.not(region: [ nil, "" ]).group(:region).order(:region).count
+    @country_counts = Carousel.where.not(country: [ nil, "" ]).group(:country).order(:country).count
     @query = params.expect(:q).strip.presence if params[:q].present?
     @selected_region = params.expect(:region).strip.presence if params[:region].present?
+    @selected_country = params.expect(:country).strip.presence if params[:country].present?
     @sort = params[:sort].present? ? params.expect(:sort).strip.presence : nil
     @sort ||= "completeness"
     @sort = "completeness" if @sort == "confirmed_seats"
@@ -20,6 +22,9 @@ class CarouselsController < ApplicationController
 
     if @selected_region && !@region_counts.key?(@selected_region)
       raise ActiveRecord::RecordNotFound, "Unknown state or region"
+    end
+    if @selected_country && !@country_counts.key?(@selected_country)
+      raise ActiveRecord::RecordNotFound, "Unknown country"
     end
 
     @carousels = Carousel.includes(:maker, seats: { current_placement: { figure: :figure_type } })
@@ -31,6 +36,7 @@ class CarouselsController < ApplicationController
         query: "%#{Carousel.sanitize_sql_like(@query.downcase, "!")}%")
     end
     @carousels = @carousels.where(region: @selected_region) if @selected_region
+    @carousels = @carousels.where(country: @selected_country) if @selected_country
     @pagy, @carousels = pagy(:offset, @carousels, limit: per_page)
     @category_counts = Placement.current.joins(:seat, figure: :figure_type)
       .where(seats: { carousel_id: @carousels.map(&:id) })

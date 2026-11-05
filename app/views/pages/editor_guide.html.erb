@@ -44,6 +44,41 @@
     Charts show mapped inventory; the two can differ. Published totals and independent ring research
     do not create figures, seats, or placements. Never invent individual figures just to match a total.</p>
 
+  <h2 id="carousel-csv">Carousel CSV import and export (admins)</h2>
+  <p>On the carousel directory, administrators can choose <strong>Import / export CSV</strong>.
+    Download all carousel records and editable carousel fields, including blank fields. Figures, seats,
+    placements, and their history are not exported. Back up the database before a substantial import.</p>
+  <ol>
+    <li>Open the UTF-8 CSV as text in a spreadsheet, preserving the headers, line breaks, leading apostrophes,
+      <code>csv_format</code>, IDs, slug and <code>updated_at</code>. Avoid automatic date or number reformatting.
+      For a new carousel, add a row with blank ID, slug and updated_at. Never copy another row's ID.</li>
+    <li>Upload the file or paste CSV, then preview. A smaller file may omit columns, but must include
+      <code>name</code>. Exact name matches and other names are flagged as possible duplicates, not merged.
+      Review them manually, along with locations and sources.</li>
+    <li>Inspect the changes and warnings before choosing <strong>Apply all changes</strong>. Any validation error
+      blocks the batch. The preview expires after 30 minutes and can be applied only once. If relevant data
+      changes before confirmation, export or preview again.</li>
+  </ol>
+  <p>Blank cells and omitted columns do not change existing values; <code>__CLEAR__</code> clears an optional
+    value. To enter that exact text, use <code>\__CLEAR__</code>; double a leading backslash to preserve it.
+    No row implies deletion. Zero is a value, not a blank. New imported carousels default to
+    <code>unknown</code>; specify <code>operating</code>, <code>stored</code>, or <code>lost</code>
+    only when supported by evidence. An existing carousel's status is unchanged when blank.</p>
+  <p>For a research spreadsheet with different column names, first map the data to supported headers.
+    For example, rename <code>website</code> to <code>official_url</code> only after checking that it is
+    the operator's current URL. Incorporate reviewed source links and caveats into the appropriate
+    source or body fields; remove research-only columns before importing.</p>
+  <p>Use an existing maker ID from the list on the import page. Independent ring columns are
+    <code>ring_A_positions_count</code>, <code>ring_A_horses_count</code>, and <code>ring_A_mount</code>,
+    repeated through F; mounts are <code>stander</code> or <code>jumper</code>. Sources remain required
+    for published counts, provisional layouts, and ring research. Editing known dimensions is prohibited;
+    adding both previously unknown dimensions creates unknown seats. No figures or placements are created.</p>
+  <p>CSV exports prefix potentially spreadsheet-executable text with an apostrophe; keep it when saving.
+    Do not open untrusted CSV files in a spreadsheet without appropriate formula protections.
+    Imports are limited to 1 MB, 5,000 rows, and 10,000 newly generated seats; split larger exports
+    into smaller CSV files, retaining the header. Each successful import is transactional and records
+    the administrator in normal page history. This does not provide a one-click batch undo.</p>
+
   <h2>Mistakes, disagreements, and help</h2>
   <p>For a simple typo, make a corrective edit. For a misplaced figure, duplicate record, layout problem, or uncertain correction,
     pause and ask the administrator rather than repeatedly changing records.

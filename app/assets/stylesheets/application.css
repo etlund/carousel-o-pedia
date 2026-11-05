@@ -69,6 +69,7 @@ h2 { font-size: 1.35rem; margin: 28px 0 8px; }
 .facts dd { margin: 0; }
 
 .table-scroll { overflow-x: auto; }
+.csv-value { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 32rem; font: inherit; margin: 0; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }

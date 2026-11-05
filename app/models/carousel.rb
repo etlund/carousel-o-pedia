@@ -4,7 +4,7 @@ class Carousel < ApplicationRecord
   include Sluggable
   has_paper_trail on: %i[ create update destroy ]
 
-  STATUSES = %w[ operating stored lost ].freeze
+  STATUSES = %w[ operating stored lost unknown ].freeze
   ROTATIONS = %w[ clockwise counterclockwise ].freeze
   MAX_ROWS = 6
   RING_FIELDS = %w[ positions_count horses_count mount ].freeze

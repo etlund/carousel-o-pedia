@@ -1,0 +1,5 @@
+<%= form_with url: preview_carousel_csv_path, method: :post, multipart: true, class: "form", data: { turbo: false } do |form| %>
+  <div class="field"><%= form.label :file, "Upload CSV" %><%= form.file_field :file, accept: ".csv,text/csv" %></div>
+  <div class="field"><%= form.label :csv_text, "Or paste CSV" %><%= form.text_area :csv_text, rows: 10, value: csv_text %></div>
+  <div class="actions"><%= form.submit "Preview import" %> <%= link_to "Cancel", carousels_path %></div>
+<% end %>

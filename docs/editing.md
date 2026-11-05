@@ -5,13 +5,14 @@
 ## Browsing and sorting
 
 The carousel directory supports case-insensitive partial searches of primary and
-other names and a
-state/region filter. Choose **Filter** to apply either or both. Filters and sort
+other names, plus country and state/region filters. Choose **Filter** to apply
+any combination. Filters and sort
 order stay in the URL for sharing; **Clear filters** restores the full directory
 and default **Most complete** sort.
 
-State options include directory-wide carousel counts, such as **Montana (2)**.
-These counts stay the same when name or state filters are applied.
+Country and state options include directory-wide carousel counts, such as
+**Montana (2)**. These counts stay the same when filters are applied; the state
+list is not restricted to the selected country.
 
 Below the filter button, a count shows the total number of carousels listed.
 When filtering, it shows the matching count alongside the directory total.
@@ -131,6 +132,26 @@ Pending invitations can still be withdrawn separately. Withdrawing an invitation
 does not suspend an accepted account.
 
 ## Core records
+
+### Carousel CSV import and export
+
+Administrators who have accepted the contribution terms can export the complete
+carousel field list, including empty cells, from **Import / export CSV** in the
+directory. They can upload or paste a UTF-8 CSV for a field-by-field preview and
+apply it after review. The [Editor guide](../app/views/pages/editor_guide.html.erb)
+explains IDs, blank cells, explicit clears, source requirements, layout effects,
+limits, and spreadsheet safety. This is a carousel metadata workflow, not an
+export of figures, seats, placements, or their history.
+
+Existing rows require the exported ID and exact `updated_at`; stale records and
+unknown IDs are rejected. New rows have blank IDs and are checked for exact
+name/alternate-name matches, but an administrator must review duplicates.
+New imported rows default to `unknown` status unless a status is supplied;
+blank statuses on existing rows leave their current status unchanged. The
+regular carousel form retains its existing default.
+Missing rows never delete records. Confirmations recheck the preview, execute
+transactionally, record normal history attribution, and cannot be replayed.
+These safeguards do not replace a tested database backup or offer batch undo.
 
 The new and edit carousel forms put everyday details first: names, status,
 maker and years, venue and address, then page text and website links. Platform

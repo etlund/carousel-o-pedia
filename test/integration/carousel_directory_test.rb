@@ -48,6 +48,41 @@ class CarouselDirectoryTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "country options show alphabetical directory-wide counts and exclude missing countries" do
+    Carousel.create!(name: "Canadian Carousel", country: "Canada", region: "Ontario")
+    Carousel.create!(name: "American Carousel", country: "United States", region: "Ontario")
+    Carousel.create!(name: "Another American Carousel", country: "United States", region: "Montana")
+    Carousel.create!(name: "Unknown Country")
+
+    [ {}, { country: "Canada", region: "Montana", q: "Missing" } ].each do |filters|
+      get carousels_path, params: filters
+      assert_response :success
+      options = css_select("select[name=country] option")
+      assert_equal [ "All countries", "Canada (1)", "United States (2)" ], options.map(&:text)
+      assert_equal [ "", "Canada", "United States" ], options.map { |option| option["value"] }
+      assert_select "select[name=country] option[selected][value=Canada]", text: "Canada (1)" if filters[:country]
+    end
+  end
+
+  test "country combines with state, name, and sorting and reports matching totals" do
+    match = Carousel.create!(name: "Carousel One", other_names: "Shared Alias", country: "Canada", region: "Ontario")
+    Carousel.create!(name: "Carousel Two", other_names: "Shared Alias", country: "United States", region: "Ontario")
+    Carousel.create!(name: "Other", country: "Canada", region: "Quebec")
+    get carousels_path, params: { country: "Canada", region: "Ontario", q: "alias", sort: "name" }
+    assert_response :success
+    assert_select ".carousel-count", text: "1 of 3 carousels listed"
+    assert_select ".cards > .card", count: 1
+    assert_select ".card h2 a[href=?]", carousel_path(match)
+    assert_select "select[name=country] option[selected][value=Canada]"
+    assert_select "select[name=sort] option[selected][value=name]"
+
+    get carousels_path, params: { country: "Canada", region: "Ontario", q: "missing" }
+    assert_select ".carousel-count", text: "0 of 3 carousels listed"
+    assert_select "p", text: "No carousels match these filters."
+    get carousels_path, params: { country: "Unknown country" }
+    assert_response :not_found
+  end
+
   test "directory shows its total below the filter form for every sort order" do
     Carousel.create!(name: "Northern Carousel")
     Carousel.create!(name: "Southern Carousel")
@@ -97,16 +132,17 @@ class CarouselDirectoryTest < ActionDispatch::IntegrationTest
   end
 
   test "directory pages results and keeps filters in page links" do
-    14.times { |i| Carousel.create!(name: "Carousel #{format("%02d", i)}", region: "Montana") }
+    14.times { |i| Carousel.create!(name: "Carousel #{format("%02d", i)}", region: "Montana", country: "United States") }
 
-    get carousels_path, params: { sort: "name", region: "Montana" }
+    get carousels_path, params: { sort: "name", region: "Montana", country: "United States" }
 
     assert_response :success
     assert_select ".cards > .card", count: 12
     assert_select ".carousel-count", text: "14 of 14 carousels listed"
     assert_select "nav.pagy a[href*=?][href*=?]", "page=2", "region=Montana"
+    assert_select "nav.pagy a[href*=?][href*=?]", "page=2", "country=United"
 
-    get carousels_path, params: { sort: "name", region: "Montana", page: 2 }
+    get carousels_path, params: { sort: "name", region: "Montana", country: "United States", page: 2 }
 
     assert_response :success
     assert_select ".cards > .card", count: 2

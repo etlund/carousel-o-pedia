@@ -2,7 +2,7 @@
 
 A wiki for carousels, their carved figures, and their history.
 
-Browse the carousel directory by name or state, explore interactive seating
+Browse the carousel directory by name, country, or state, explore interactive seating
 charts, and follow individual figures and their placement history. Anyone can
 read; invited editors can contribute sourced research, inventory, and layouts.
 Edits are tracked with PaperTrail.
@@ -71,6 +71,11 @@ bin/rails users:create_admin EMAIL=you@example.com NAME="Your Name"
 
 The command prompts for a password. For editing workflows, seat conventions,
 and password resets, see the [editing and data guide](docs/editing.md).
+
+Administrators can export carousel metadata to CSV, edit it, and preview an
+upload or pasted CSV before applying a transactional import. Figures, seats,
+and placement history are not included. See the
+[editing guide](docs/editing.md#carousel-csv-import-and-export) for safeguards.
 
 ## Testing
 
