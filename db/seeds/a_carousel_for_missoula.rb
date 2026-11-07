@@ -301,6 +301,7 @@ ActiveRecord::Base.transaction do
   end
 
   carousel = Carousel.find_or_initialize_by(slug: "a-carousel-for-missoula")
+  carousel.skip_layout_resize = true
   carousel.update!(
     name: "A Carousel for Missoula", city: "Missoula", region: "Montana", country: "United States",
     venue: "Caras Park", status: "operating", year_opened: 1995, year_built: nil, maker:,

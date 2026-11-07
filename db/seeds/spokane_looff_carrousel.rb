@@ -95,6 +95,7 @@ ActiveRecord::Base.transaction do
   end
 
   carousel = Carousel.find_or_initialize_by(slug: "spokane-looff-carrousel")
+  carousel.skip_layout_resize = true
   carousel.update!(
     name: "Looff Carrousel", city: "Spokane", region: "Washington", country: "United States",
     venue: "Riverfront Park", status: "operating", maker:, year_built: 1909, year_opened: 1909,

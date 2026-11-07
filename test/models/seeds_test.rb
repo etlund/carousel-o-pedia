@@ -203,8 +203,10 @@ class SeedsTest < ActiveSupport::TestCase
     missoula_figure("Patches").update!(description: "Edited replacement description")
     missoula_figure("Patches").figure_type.update!(name: "Edited type", category: "menagerie")
 
-    assert_no_difference %w[ Carousel.count Maker.count Seat.count Figure.count Placement.count FigureType.count ] do
-      load_seeds
+    assert_no_difference %w[ Carousel.count Maker.count Figure.count Placement.count FigureType.count ] do
+      assert_difference "Seat.count", -3 do
+        load_seeds
+      end
     end
 
     carousel.reload

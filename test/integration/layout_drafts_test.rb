@@ -183,7 +183,8 @@ class LayoutDraftsTest < ActionDispatch::IntegrationTest
     post carousel_layout_draft_path(@carousel), params: { preview_token: token }
     get edit_carousel_path(@carousel)
     assert_select "input[name='carousel[layout_provisional]'][type=checkbox][checked]"
-    assert_select "input[name='carousel[sections_count]']", 0
+    assert_select "input[name='carousel[sections_count]'][value=?]", @attributes[:sections_count]
+    assert_select "input[name='carousel[rows_count]'][value=?]", @attributes[:rows_count]
     patch carousel_path(@carousel), params: { carousel: { layout_provisional: "0" } }
     assert_redirected_to carousel_path(@carousel)
     assert_not @carousel.reload.layout_provisional?

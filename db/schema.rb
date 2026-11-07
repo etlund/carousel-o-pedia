@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_212000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_07_185320) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -106,6 +106,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_212000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "carousel_id", null: false
+    t.boolean "draft_placeholder", default: false, null: false
     t.index ["carousel_id"], name: "index_figures_on_carousel_id"
     t.index ["carver_id"], name: "index_figures_on_carver_id"
     t.index ["figure_type_id"], name: "index_figures_on_figure_type_id"

@@ -324,6 +324,7 @@ ActiveRecord::Base.transaction do
   end
 
   carousel = Carousel.find_or_initialize_by(slug: "salems-riverfront-carousel")
+  carousel.skip_layout_resize = true
   existing_inventory = Figure.where(slug: entries.map { "#{carousel.slug}-#{_1.fetch(:name).parameterize}" })
   expected_slugs = seating.transform_values { "#{carousel.slug}-#{_1.fetch(:name).parameterize}" }
   # End displaced placements while their seats still fit the pre-restoration chart.

@@ -245,6 +245,12 @@ Applying creates one figure per unknown seat, with a seat-based name such as
 **Horse 2A**, and copies the source notes to each figure's page. These are
 placeholders for later identification; all new placements are **best readings**,
 never confirmed. Existing figures, empty positions, and row spans are preserved.
+When correcting a filled draft, replacing an auto-filled figure, marking its
+seat empty or unknown, or expanding a spanning figure across it removes that
+generated placeholder. This makes it possible to replace rows A-B with one
+chariot and mark row C empty after an all-horse fill. Researched figures are
+never removed this way and continue to block an overlapping span until their
+placements are corrected explicitly.
 The entire fill is saved together and appears in figure and seat history. If the
 seats or figure type change after preview, or the preview expires after one hour,
 preview again before applying; nothing is partially saved or silently skipped.

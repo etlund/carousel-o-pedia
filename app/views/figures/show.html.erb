@@ -6,6 +6,14 @@
   <%= render "shared/page_actions", record: @figure, edit: edit_figure_path(@figure), history: history_figure_path(@figure),
         edit_label: "Edit figure", history_label: "Figure history" %>
 </header>
+<% if @figure.draft_placeholder? && can_edit?(@figure) %>
+  <div class="card">
+    <strong>Auto-filled draft figure.</strong>
+    To identify this position, use <strong>Edit figure</strong> to change its name, type, and motion.
+    Then use <strong>Edit placement</strong> in the Current seat card to change how many rows it fills.
+    To remove it instead, choose Unknown or Empty in Edit placement.
+  </div>
+<% end %>
 <div class="<%= "seat-layout" if @seat %>">
   <section class="figure-details" aria-labelledby="figure-heading">
     <%= render "figures/details", figure: @figure %>

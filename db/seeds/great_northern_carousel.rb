@@ -65,6 +65,7 @@ ActiveRecord::Base.transaction do
   end
 
   carousel = Carousel.find_or_initialize_by(slug: "great-northern-carousel")
+  carousel.skip_layout_resize = true
   carousel.update!(
     name: "Great Northern Carousel", city: "Helena", region: "Montana", country: "United States",
     status: "operating", venue: nil, maker: nil, year_built: nil, year_opened: nil,

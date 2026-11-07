@@ -16,12 +16,17 @@ class Figure < ApplicationRecord
 
   validates :mount, inclusion: { in: MOUNTS }, allow_nil: true
   validate :carousel_matches_current_seat, if: :will_save_change_to_carousel_id?
+  before_update :promote_edited_draft_placeholder
 
   delegate :category, to: :figure_type
 
   def chart_label = short_name.presence || name
 
   private
+    def promote_edited_draft_placeholder
+      self.draft_placeholder = false if draft_placeholder? && (changes_to_save.keys - %w[ updated_at ]).any?
+    end
+
     def carousel_matches_current_seat
       return unless persisted?
 

@@ -47,6 +47,7 @@ class SeatFillTest < ActiveSupport::TestCase
       assert_includes figure.description, "Provisional"
       assert_includes figure.body, @attributes[:source_notes]
       assert_equal users(:editor).id.to_s, figure.versions.last.whodunnit
+      assert_predicate figure, :draft_placeholder?
       assert_equal users(:editor).id.to_s, seat.versions.last.whodunnit
       assert_equal users(:editor).id.to_s, seat.current_placement.versions.last.whodunnit
     end

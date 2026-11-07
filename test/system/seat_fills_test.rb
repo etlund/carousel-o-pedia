@@ -52,4 +52,32 @@ class SeatFillsSystemTest < ApplicationSystemTestCase
     assert_link "Operator", href: "https://example.com/"
     assert_text "Best reading, not yet confirmed"
   end
+
+  test "an editor replaces auto-filled horses with a spanning chariot and empty inner seat" do
+    type = FigureType.find_by!(name: "Horse")
+    %w[ 2A 2B 2C ].each do |code|
+      DraftSeatAssignment.create!(@carousel.seat(code), figure_type: type, mount: "jumper", source_notes: "Draft source")
+    end
+    chariot = create_figure("Replacement chariot", category: "chariot", carousel: @carousel)
+
+    visit edit_carousel_seat_path(@carousel, "2A")
+    select "Replacement chariot (#{@carousel.name})", from: "Figure in this seat"
+    fill_in "Rows it fills", with: "2"
+    select "Confirmed", from: "Confidence"
+    click_button "Save seat"
+
+    assert_selector "h1", text: "Replacement chariot"
+    assert_equal chariot, @carousel.reload.seat("2A").figure
+    assert_nil @carousel.seat("2B")
+    assert_not Figure.exists?(name: "Horse 2A")
+    assert_not Figure.exists?(name: "Horse 2B")
+
+    visit edit_carousel_seat_path(@carousel, "2C")
+    select "Empty", from: "Figure in this seat"
+    click_button "Save seat"
+
+    assert_selector "h1", text: "Seat 2C"
+    assert_equal "empty", @carousel.reload.seat("2C").state
+    assert_not Figure.exists?(name: "Horse 2C")
+  end
 end

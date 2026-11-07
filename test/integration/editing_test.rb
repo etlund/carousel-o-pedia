@@ -145,6 +145,44 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_nil figure.seat
   end
 
+  test "an editor corrects two auto-filled sections to spanning chariots and empty inner seats" do
+    sign_in_as users(:editor)
+    carousel = build_carousel(sections: 12, rows: 3)
+    horse_type = FigureType.create!(name: "Correction horse", category: "horse")
+    fill = SeatFill.new(carousel, figure_type_id: horse_type.id, mount: "jumper", source_notes: "Draft source")
+    fill, snapshot = SeatFill.from_preview(carousel, fill.preview_token)
+    assert_equal 36, fill.apply!(expected_snapshot: snapshot)
+    chariots = [ 1, 7 ].map { create_figure("Chariot #{_1}", category: "chariot", carousel:) }
+
+    get edit_carousel_seat_path(carousel, "1A")
+    assert_select "option", text: "Correction horse 1A (#{carousel.name})"
+    assert_select "option", text: "Correction horse 2A (#{carousel.name})", count: 0
+    assert_select ".hint", text: /Expanding across auto-filled draft figures removes those placeholders/
+    get figure_path(carousel.seat("1A").figure)
+    assert_select ".card", text: /Auto-filled draft figure.*Edit figure.*Edit placement/
+
+    [ 1, 7 ].zip(chariots).each do |section, chariot|
+      patch carousel_seat_path(carousel, "#{section}A"), params: {
+        seat: { figure_id: chariot.id, confidence: "confirmed", rows_spanned: 2 }
+      }
+      assert_redirected_to figure_path(chariot)
+      patch carousel_seat_path(carousel, "#{section}C"), params: {
+        seat: { figure_id: "empty", confidence: "confirmed", rows_spanned: 1 }
+      }
+      assert_redirected_to carousel_seat_path(carousel, "#{section}C")
+    end
+
+    carousel.reload
+    assert_equal 30, carousel.figures.where(figure_type: horse_type).count
+    assert_equal 32, carousel.figures.count
+    assert_equal chariots, [ carousel.seat("1A").figure, carousel.seat("7A").figure ]
+    assert_equal [ 2, 2 ], [ carousel.seat("1A").rows_spanned, carousel.seat("7A").rows_spanned ]
+    assert_nil carousel.seat("1B")
+    assert_nil carousel.seat("7B")
+    assert_equal %w[ empty empty ], [ carousel.seat("1C").state, carousel.seat("7C").state ]
+    %w[ 1A 1B 1C 7A 7B 7C ].each { assert_not Figure.exists?(name: "Correction horse #{_1}") }
+  end
+
   test "figure creation requires a carousel and supports preselecting one" do
     sign_in_as users(:editor)
     get new_figure_path(carousel_id: @carousel.id)

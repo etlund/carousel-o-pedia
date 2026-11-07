@@ -10,6 +10,7 @@ class Carousel < ApplicationRecord
   RING_FIELDS = %w[ positions_count horses_count mount ].freeze
   RING_MOUNTS = %w[ stander jumper ].freeze
   SeatingCompleteness = Data.define(:confirmed_seats, :best_reading_seats, :rows_count, :sections_count)
+  attr_accessor :skip_layout_resize
 
   belongs_to :maker, optional: true
   has_many :seats, -> { order(:section, :row) }, dependent: :destroy
@@ -80,7 +81,7 @@ class Carousel < ApplicationRecord
   normalizes :other_names, with: ->(value) { value.lines.map(&:strip).compact_blank.uniq.join("\n").presence }
   validate :website_urls_are_http
 
-  after_save :resize_layout, if: :layout_changed?
+  after_save :resize_layout, if: :layout_changed?, unless: :skip_layout_resize
 
   def layout_known? = sections_count.present? && rows_count.present?
 
@@ -187,6 +188,8 @@ class Carousel < ApplicationRecord
     end
 
     def layout_dimensions_are_consistent
+      return if skip_layout_resize
+
       if !layout_known? && seats.exists?
         errors.add(:base, "The layout cannot be cleared while seats exist")
       end
