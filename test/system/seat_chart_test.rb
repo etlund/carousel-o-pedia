@@ -217,7 +217,7 @@ class SeatChartTest < ApplicationSystemTestCase
 
   test "mini seat charts use base and faded fills with uniform gray outlines and open the full chart" do
     visit carousels_path
-    assert_selector "svg.mini-seat-chart", count: Carousel.count
+    assert_selector "svg.mini-seat-chart", count: [ Carousel.count, CarouselsController.per_page ].min
     within("li.card", text: "Great Northern Carousel") do
       assert_selector "path.mini-seat-wedge", count: 39
       measurements = find("svg.mini-seat-chart").evaluate_script(<<~JS)
@@ -397,7 +397,7 @@ class SeatChartTest < ApplicationSystemTestCase
           };
         })
       JS
-      assert_equal Carousel.count, measurements.size
+      assert_equal [ Carousel.count, CarouselsController.per_page ].min, measurements.size
       measurements.each do |measurement|
         assert_in_delta 112, measurement.fetch("chartWidth"), 0.1
         assert_operator measurement.fetch("chartRight"), :<, measurement.fetch("factsLeft")
@@ -439,7 +439,7 @@ class SeatChartTest < ApplicationSystemTestCase
     end.map(&:name)
     visit carousels_path
     assert_selector :select, "Sort", selected: "Most complete"
-    assert_carousel_order expected
+    assert_carousel_order expected.first(CarouselsController.per_page)
 
     select "Last updated", from: "Sort"
     click_on "Filter"
@@ -451,14 +451,14 @@ class SeatChartTest < ApplicationSystemTestCase
     click_on "Filter"
     assert_carousel_filters sort: "name"
     assert_selector :select, "Sort", selected: "Name (A-Z)"
-    assert_carousel_order Carousel.order(:name, :id).pluck(:name)
+    assert_carousel_order Carousel.order(:name, :id).limit(CarouselsController.per_page).pluck(:name)
 
     select "Most complete", from: "Sort"
     click_on "Filter"
     assert_carousel_filters sort: "completeness"
     assert_selector :select, "Sort", selected: "Most complete"
-    assert_selector ".seating-completeness", count: Carousel.count
-    assert_carousel_order expected
+    assert_selector ".seating-completeness", count: [ Carousel.count, CarouselsController.per_page ].min
+    assert_carousel_order expected.first(CarouselsController.per_page)
 
     fill_in "Name", with: "looff"
     california_option = "California (#{Carousel.where(region: 'California').count})"
@@ -480,14 +480,14 @@ class SeatChartTest < ApplicationSystemTestCase
 
     click_on "Clear filters"
     assert_current_path carousels_path
-    assert_selector ".cards > li.card", count: 54
+    assert_selector ".cards > li.card", count: [ Carousel.count, CarouselsController.per_page ].min
     assert_selector :select, "Sort", selected: "Most complete"
-    assert_carousel_order expected
+    assert_carousel_order expected.first(CarouselsController.per_page)
   end
 
   test "carousel name and state filters combine retain selections and clear" do
     visit carousels_path
-    assert_selector ".cards > li.card", count: 54
+    assert_selector ".cards > li.card", count: [ Carousel.count, CarouselsController.per_page ].min
     fill_in "Name", with: "lOoFf"
     click_on "Filter"
     assert_selector ".cards > li.card", count: 2
@@ -510,15 +510,54 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_selector :select, "State", selected: "Montana (2)"
 
     click_on "Clear filters"
-    assert_selector ".cards > li.card", count: 54
+    assert_selector ".cards > li.card", count: [ Carousel.count, CarouselsController.per_page ].min
     assert_field "Name", with: ""
     assert_selector :select, "State", selected: "All states"
+  end
+
+  test "directory pagination preserves filters and sorting and resets after filtering" do
+    names = (1..CarouselsController.per_page + 1).map do |number|
+      name = format("Pagination carousel %02d", number)
+      Carousel.create!(name:, country: "Testland", region: "Testshire")
+      name
+    end
+    visit carousels_path
+    fill_in "Name", with: "Pagination carousel"
+    select "Testland (#{names.size})", from: "Country"
+    select "Testshire (#{names.size})", from: "State"
+    select "Name (A-Z)", from: "Sort"
+    click_on "Filter"
+    assert_carousel_order names.first(CarouselsController.per_page)
+
+    within ".pagy" do
+      click_link "2", exact: true
+    end
+    assert_current_path carousels_path, ignore_query: true do |uri|
+      Rack::Utils.parse_query(uri.query) == {
+        "q" => "Pagination carousel", "country" => "Testland", "region" => "Testshire",
+        "sort" => "name", "commit" => "Filter", "page" => "2"
+      }
+    end
+    assert_carousel_order names.last(1)
+    assert_field "Name", with: "Pagination carousel"
+    assert_selector :select, "Country", selected: "Testland (#{names.size})"
+    assert_selector :select, "State", selected: "Testshire (#{names.size})"
+    assert_selector :select, "Sort", selected: "Name (A-Z)"
+
+    click_on "Filter"
+    assert_current_path carousels_path, ignore_query: true do |uri|
+      !Rack::Utils.parse_query(uri.query).key?("page")
+    end
+    assert_carousel_order names.first(CarouselsController.per_page)
+    within ".pagy" do
+      assert_selector "a[aria-current='page']", exact_text: "1"
+    end
   end
 
   test "directory entries show unknown layout until a seating chart is recorded" do
     carousel = Carousel.create!(name: "Directory carousel", city: "Seattle", region: "Washington",
       country: "United States", official_url: "https://example.com/")
-    visit carousels_path
+    visit carousels_path(q: carousel.name)
     within("li.card", text: carousel.name) do
       assert_text "Layout unknown, operating"
       assert_selector "dl.facts dd", text: "Unknown", count: 3
@@ -739,7 +778,7 @@ class SeatChartTest < ApplicationSystemTestCase
 
   def assert_carousel_filters(sort:, q: "", region: "")
     assert_current_path carousels_path, ignore_query: true do |uri|
-      Rack::Utils.parse_query(uri.query) == { "q" => q, "region" => region, "sort" => sort, "commit" => "Filter" }
+      Rack::Utils.parse_query(uri.query) == { "q" => q, "country" => "", "region" => region, "sort" => sort, "commit" => "Filter" }
     end
   end
 

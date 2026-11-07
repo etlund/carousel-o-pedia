@@ -5,8 +5,22 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 
   def visit(...)
     super.tap do
-      # Web fonts can move links and checkboxes after they first become visible.
-      page.evaluate_async_script("document.fonts.ready.then(() => arguments[0](true))")
+      wait_for_page_ready
     end
   end
+
+  %i[ click_link click_button click_on fill_in select check uncheck ].each do |action|
+    define_method(action) do |*args, **options, &block|
+      wait_for_page_ready
+      super(*args, **options, &block)
+    end
+  end
+
+  private
+    def wait_for_page_ready
+      # A cached Turbo preview may expose controls that the final response replaces.
+      page.document.assert_selector("html:not([data-turbo-preview]):not([aria-busy='true'])") do
+        page.evaluate_script("Boolean(window.Turbo && window.Stimulus) && document.fonts.status === 'loaded'")
+      end
+    end
 end

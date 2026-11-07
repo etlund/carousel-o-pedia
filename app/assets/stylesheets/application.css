@@ -60,6 +60,8 @@ h2 { font-size: 1.35rem; margin: 28px 0 8px; }
 @media (max-width: 860px) { .grid, .seat-layout { grid-template-columns: minmax(0, 1fr); } }
 .stack { display: grid; gap: 16px; }
 .prose { max-width: 70ch; }
+.prose pre { white-space: pre-wrap; }
+.prose code { overflow-wrap: anywhere; }
 .seat-context h2 { margin-top: 0; }
 .seat-context ul { margin-bottom: 0; padding-left: 20px; }
 .seat-unassigned { max-width: 70ch; }
