@@ -46,12 +46,45 @@ class CarouselFormTest < ActionDispatch::IntegrationTest
     assert_empty carousel.seats
   end
 
+  test "carousel deck count can be recorded without adding deck details" do
+    carousel = Carousel.create!(name: "Undocumented multi-deck carousel")
+
+    get edit_carousel_path(carousel)
+    assert_response :success
+    assert_select "#carousel_decks_count[min='1']"
+
+    patch carousel_path(carousel), params: { carousel: { decks_count: 3 } }
+
+    assert_redirected_to carousel_path(carousel)
+    assert_equal 3, carousel.reload.decks_count
+    assert_empty carousel.carousel_decks
+
+    get carousel_path(carousel)
+    assert_response :success
+    assert_select "dt", text: "Number of decks"
+    assert_select "dd", text: "3"
+
+    get carousels_path(q: carousel.name)
+    assert_response :success
+    assert_select ".cards > li.card", text: /3 decks; Layout unknown/
+  end
+
+  test "carousel deck count cannot be smaller than the number of recorded decks" do
+    carousel = Carousel.create!(name: "Two recorded decks")
+    2.times { |index| carousel.carousel_decks.create!(name: "Deck #{index + 1}", position: index + 1) }
+
+    patch carousel_path(carousel), params: { carousel: { decks_count: 1 } }
+
+    assert_response :unprocessable_entity
+    assert_nil carousel.reload.decks_count
+    assert_select ".flash.alert", text: /cannot be less than the number of deck records/
+  end
+
   private
     def assert_field_order(layout_known:)
       fields = %w[ name other_names status maker_id year_built year_opened
         venue street_address city region postal_code country address_sources body
-        official_url wikipedia_url other_links ]
-      fields += %w[ sections_count rows_count ]
+        official_url wikipedia_url other_links decks_count sections_count rows_count ]
       fields += %w[ lead_seat_id layout_provisional ] if layout_known
       fields += %w[ rotation published_horses_count published_other_animals_count
         published_chariots_count summary_sources ]

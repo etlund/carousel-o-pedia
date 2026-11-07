@@ -92,7 +92,7 @@ class CarouselsController < ApplicationController
 
     def carousel_params
       permitted = %i[ name other_names street_address city region postal_code country address_sources venue status year_built year_opened maker_id rotation body official_url wikipedia_url other_links
-        published_horses_count published_other_animals_count published_chariots_count summary_sources sections_count rows_count ]
+        published_horses_count published_other_animals_count published_chariots_count summary_sources decks_count sections_count rows_count ]
       if @carousel&.layout_known?
         permitted << :layout_provisional
       end

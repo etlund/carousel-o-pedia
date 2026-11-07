@@ -52,8 +52,10 @@ class Carousel < ApplicationRecord
   validates :rotation, inclusion: { in: ROTATIONS }, allow_nil: true
   validates :published_horses_count, :published_other_animals_count, :published_chariots_count,
     numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :decks_count, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :summary_sources, presence: true, if: -> { published_counts? || layout_provisional? }
   validate :ring_details_are_consistent
+  validate :decks_count_covers_recorded_decks
   validates :summary_sources, presence: true, if: -> { ring_details.present? }
 
   normalizes :ring_details, with: ->(value) {
@@ -146,6 +148,12 @@ class Carousel < ApplicationRecord
           errors.add(:ring_details, "#{letter} cannot have more horses than positions")
         end
       end
+    end
+
+    def decks_count_covers_recorded_decks
+      return if decks_count.nil? || decks_count >= carousel_decks.size
+
+      errors.add(:decks_count, "cannot be less than the number of deck records")
     end
 
     def website_urls_are_http

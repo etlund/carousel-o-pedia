@@ -42,6 +42,7 @@
         <dt>Other names</dt>
         <dd class="other-names"><ul><% @carousel.other_names.lines(chomp: true).each do |name| %><li><%= name %></li><% end %></ul></dd>
       <% end %>
+      <% if @carousel.decks_count %><dt>Number of decks</dt><dd><%= @carousel.decks_count %></dd><% end %>
       <dt>Platform</dt><dd><%= carousel_platform_label(@carousel) || "Unknown" %></dd>
       <dt>Rotation</dt><dd><%= @carousel.rotation || "Unknown" %></dd>
       <% FigureType::CATEGORIES.each do |category| %>
