@@ -264,6 +264,11 @@ type. To transfer a figure through the editing forms:
 2. Change its carousel on the Figure edit page.
 3. Assign it a seat on the destination carousel.
 
+On Edit Figure, site-wide editors can use **Add it first** beside **Type** when
+the shared catalog is missing the needed type. Creating it returns to the same
+figure with the new type selected but not yet saved. One-carousel editors cannot
+add shared types.
+
 The placement service also transfers ownership for cross-carousel moves, but
 seat-editing forms only offer figures from the current carousel.
 

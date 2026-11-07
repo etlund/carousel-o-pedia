@@ -196,6 +196,47 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_select "[role=alert]", text: /Carousel must exist/
   end
 
+  test "a site-wide editor adds a missing type from edit figure and returns with it selected" do
+    sign_in_as users(:editor)
+    figure = Figure.find_by!(name: "Gulliver")
+    original_type = figure.figure_type
+
+    get edit_figure_path(figure)
+    assert_select "a[href=?]", new_figure_type_path(figure_id: figure.id), text: "Add it first"
+    get new_figure_type_path(figure_id: figure.id)
+    assert_select "input[type=hidden][name=figure_id][value=?]", figure.id.to_s
+    assert_select "a[href=?]", edit_figure_path(figure), text: "Cancel"
+
+    post figure_types_path, params: {
+      figure_id: figure.id, figure_type: { name: "Sea serpent", category: "menagerie" }
+    }
+    type = FigureType.find_by!(name: "Sea serpent")
+    assert_redirected_to edit_figure_path(figure, figure_type_id: type.id)
+    follow_redirect!
+    assert_select ".flash", text: "Type added."
+    assert_select "select[name='figure[figure_type_id]'] option[selected][value=?]", type.id.to_s
+    assert_equal original_type, figure.reload.figure_type
+
+    patch figure_path(figure), params: { figure: { figure_type_id: type.id } }
+    assert_redirected_to figure_path(figure)
+    assert_equal type, figure.reload.figure_type
+  end
+
+  test "an invalid missing type keeps the return to edit figure" do
+    sign_in_as users(:editor)
+    figure = Figure.find_by!(name: "Gulliver")
+
+    assert_no_difference "FigureType.count" do
+      post figure_types_path, params: {
+        figure_id: figure.id, figure_type: { name: "", category: "menagerie" }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_select "input[type=hidden][name=figure_id][value=?]", figure.id.to_s
+    assert_select "a[href=?]", edit_figure_path(figure), text: "Cancel"
+  end
+
   test "an editor can reassign unseated inventory but cannot strand an occupied seat" do
     sign_in_as users(:editor)
     figure = Figure.find_by!(slug: "salems-riverfront-carousel-pancho")

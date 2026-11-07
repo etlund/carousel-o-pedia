@@ -166,6 +166,8 @@ class CarouselAccessTest < ActionDispatch::IntegrationTest
 
     get edit_figure_path(@other_figure)
     assert_denied
+    get edit_figure_path(@figure)
+    assert_select "a[href=?]", new_figure_type_path(figure_id: @figure.id), count: 0
     [
       [ @figure, { carousel_id: @other.id } ],
       [ @other_figure, { carousel_id: @carousel.id, description: "Imported" } ]

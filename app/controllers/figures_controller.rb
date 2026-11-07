@@ -41,6 +41,7 @@ class FiguresController < ApplicationController
   end
 
   def edit
+    @figure.figure_type = FigureType.find(params.expect(:figure_type_id)) if params[:figure_type_id].present?
   end
 
   def update

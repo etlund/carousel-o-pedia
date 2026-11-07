@@ -10,7 +10,12 @@
     <p class="hint">Unseated figures still belong to a carousel. Only site-wide editors can transfer figures between carousels; remove a seated figure from its seat first.</p>
   </div>
   <div class="field-row">
-    <div class="field"><%= form.label :figure_type_id, "Type" %><%= form.collection_select :figure_type_id, FigureType.order(:name), :id, :name, { prompt: "Choose a type" }, required: true %></div>
+    <div class="field">
+      <%= form.label :figure_type_id, "Type" %><%= form.collection_select :figure_type_id, FigureType.order(:name), :id, :name, { prompt: "Choose a type" }, required: true %>
+      <% if figure.persisted? && current_user.site_wide_access? %>
+        <p class="hint">Missing a type? <%= link_to "Add it first", new_figure_type_path(figure_id: figure.id) %>; you will return here with it selected.</p>
+      <% end %>
+    </div>
     <div class="field"><%= form.label :mount %><%= form.select :mount, Figure::MOUNTS.map { [ _1.capitalize, _1 ] }, include_blank: "Unknown" %></div>
   </div>
   <div class="field"><%= form.label :description %><%= form.text_area :description, rows: 3 %></div>

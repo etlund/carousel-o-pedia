@@ -4,6 +4,7 @@ class FigureTypesController < ApplicationController
 
   before_action :set_figure_type, only: %i[ show edit update ]
   before_action :require_site_wide_access, only: %i[ new create edit update ]
+  before_action :set_return_figure, only: %i[ new create ]
 
   def index
     @figure_types = FigureType.left_joins(:figures).group(:id).select("figure_types.*, COUNT(figures.id) AS figures_count").order(:category, :name)
@@ -20,7 +21,12 @@ class FigureTypesController < ApplicationController
   def create
     @figure_type = FigureType.new(figure_type_params)
     if @figure_type.save
-      redirect_to @figure_type, notice: "Type added."
+      destination = if @return_figure
+        edit_figure_path(@return_figure, figure_type_id: @figure_type.id)
+      else
+        @figure_type
+      end
+      redirect_to destination, notice: "Type added."
     else
       render :new, status: :unprocessable_entity
     end
@@ -45,4 +51,8 @@ class FigureTypesController < ApplicationController
     def history_record = FigureType.find_by!(slug: params[:id])
 
     def figure_type_params = params.expect(figure_type: %i[ name category body ])
+
+    def set_return_figure
+      @return_figure = Figure.find(params.expect(:figure_id)) if params[:figure_id].present?
+    end
 end
