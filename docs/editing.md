@@ -155,7 +155,8 @@ These safeguards do not replace a tested database backup or offer batch undo.
 
 The new and edit carousel forms put everyday details first: names, status,
 maker and years, venue and address, then page text and website links. Platform
-details, published totals and sources, and detailed ring research follow.
+details and published totals and sources follow. Per-ring research fields are
+not part of these forms; saving everyday details preserves existing ring research.
 
 - **Other names**: on the carousel form, enter alternate or historical names for
   the same carousel, one per line. Blank lines and exact duplicates are removed.
@@ -325,6 +326,9 @@ does not establish angular alignment. This research creates no figures, seats,
 or placements and does not change an existing chart.
 The research wheel appears only when no mapped seating chart exists. Once a
 chart exists, ring research remains available as a table alongside its sources.
+The new and edit carousel forms do not expose per-ring research fields.
+Existing research is preserved and administrators can maintain it through CSV.
+For an estimated seating chart instead, use **Create draft layout**.
 
 Charts use blue for horses, orange for other animals, and red for chariots/tubs.
 Best-reading placements have uncertainty styling; unknown and empty positions

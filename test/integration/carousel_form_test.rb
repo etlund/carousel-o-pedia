@@ -26,6 +26,26 @@ class CarouselFormTest < ActionDispatch::IntegrationTest
     assert_select ".actions a[href=?]", carousels_path, text: "Cancel"
   end
 
+  test "saving everyday details preserves existing ring research without exposing its fields" do
+    carousel = Carousel.create!(name: "Researched carousel", rows_count: 3,
+      summary_sources: "Research reference", ring_details: { "A" => { "horses_count" => 18 } })
+    research = carousel.ring_details.deep_dup
+
+    get edit_carousel_path(carousel)
+
+    assert_response :success
+    assert_field_order(layout_known: false)
+    assert_select "a[href=?]", new_carousel_layout_draft_path(carousel), text: "Create draft layout"
+
+    patch carousel_path(carousel), params: { carousel: { name: "Updated carousel", rows_count: 3,
+      sections_count: "", summary_sources: "Research reference" } }
+
+    assert_redirected_to carousel_path(carousel.reload)
+    assert_equal "Updated carousel", carousel.name
+    assert_equal research, carousel.ring_details
+    assert_empty carousel.seats
+  end
+
   private
     def assert_field_order(layout_known:)
       fields = %w[ name other_names status maker_id year_built year_opened
@@ -35,11 +55,10 @@ class CarouselFormTest < ActionDispatch::IntegrationTest
       fields += %w[ lead_seat_id layout_provisional ] if layout_known
       fields += %w[ rotation published_horses_count published_other_animals_count
         published_chariots_count summary_sources ]
-      fields += ("A"..).first(Carousel::MAX_ROWS).flat_map do |letter|
-        %w[ positions_count horses_count mount ].map { "ring_details_#{letter}_#{_1}" }
-      end
 
       assert_equal fields.map { "carousel_#{_1}" },
         css_select("form.form input[id], form.form select[id], form.form textarea[id]").map { _1["id"] }
+      assert_select "form.form legend", text: "Independent ring research", count: 0
+      assert_select "form.form [name^='carousel[ring_details]']", count: 0
     end
 end

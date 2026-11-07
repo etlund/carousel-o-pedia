@@ -48,11 +48,11 @@ class RingResearchTest < ActionDispatch::IntegrationTest
     assert_select "svg.mini-seat-chart .research-ring", 0
   end
 
-  test "editors can record clear and correct partial ring facts with history" do
+  test "partial ring facts can still be corrected and cleared with history" do
     sign_in_as users(:editor)
     get edit_carousel_path(@carousel)
-    assert_select "input[name='carousel[ring_details][A][positions_count]'][value='18']"
-    assert_select "select[name='carousel[ring_details][A][mount]']"
+    assert_response :success
+    assert_select "[name^='carousel[ring_details]']", count: 0
     patch carousel_path(@carousel), params: { carousel: { ring_details: {
       A: { positions_count: "", horses_count: "18", mount: "stander" },
       B: { positions_count: "", horses_count: "", mount: "jumper" },
