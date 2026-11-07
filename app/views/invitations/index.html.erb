@@ -1,5 +1,7 @@
 <% content_for :title, "Invitations" %>
 <h1>Invitations</h1>
+<p><%= link_to "Download database snapshot", database_export_path, data: { turbo: false } %></p>
+<p class="hint">The download contains private account and session data. Keep it secure; see the <%= link_to "local restore instructions", editor_guide_path(anchor: "database-export") %>.</p>
 <p class="muted">Editing is invite-only. Each invitation link works for <%= Invitation::EXPIRES_IN.inspect %>.</p>
 <p>Leave the email blank to create a single-use link you can send privately, for example in chat.
   The recipient will enter their email address when creating an account.

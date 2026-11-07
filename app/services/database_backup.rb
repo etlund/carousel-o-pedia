@@ -26,7 +26,7 @@ class DatabaseBackup
 
     Dir.mktmpdir("carousel-backup-") do |directory|
       path = File.join(directory, "production.sqlite3")
-      snapshot(path)
+      SqliteSnapshot.create(@database_path, path)
       checksum = Digest::SHA256.file(path).hexdigest
 
       File.open(path, "rb") do |file|
@@ -53,7 +53,7 @@ class DatabaseBackup
 
       counts = {}
       SQLite3::Database.new(path, readonly: true) do |database|
-        check_integrity(database)
+        SqliteSnapshot.validate!(database)
         counts = %w[carousels figures seats versions].to_h do |table|
           [ table, database.get_first_value("SELECT COUNT(*) FROM #{table}") ]
         end
@@ -64,28 +64,6 @@ class DatabaseBackup
   end
 
   private
-    def snapshot(path)
-      File.open(path, File::WRONLY | File::CREAT | File::EXCL, 0600) { }
-      SQLite3::Database.new(@database_path, readonly: true) do |source|
-        source.busy_timeout = 5_000
-        SQLite3::Database.new(path) do |target|
-          backup = SQLite3::Backup.new(target, "main", source, "main")
-          begin
-            result = backup.step(-1)
-            raise "SQLite backup failed with code #{result}" unless result == SQLite3::Constants::ErrorCode::DONE
-          ensure
-            backup.finish
-          end
-          check_integrity(target)
-        end
-      end
-    end
-
-    def check_integrity(database)
-      raise "SQLite integrity check failed" unless database.execute("PRAGMA integrity_check") == [ [ "ok" ] ]
-      raise "SQLite foreign-key check failed" unless database.execute("PRAGMA foreign_key_check").empty?
-    end
-
     def backup_key?(key)
       /\Adatabase\/production\/\d{8}T\d{6}Z-[0-9a-f]{16}\.sqlite3\z/.match?(key)
     end

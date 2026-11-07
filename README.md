@@ -76,6 +76,8 @@ Administrators can export carousel metadata to CSV, edit it, and preview an
 upload or pasted CSV before applying a transactional import. Figures, seats,
 and placement history are not included. See the
 [editing guide](docs/editing.md#carousel-csv-import-and-export) for safeguards.
+Administrators can also download the primary database and restore a sanitized
+copy locally; see [deployment and backups](docs/deployment.md#download-a-copy-for-local-development).
 
 ## Testing
 

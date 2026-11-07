@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     post :preview
     post :apply
   end
+  resource :database_export, path: "database-export", only: :show
 
   resources :carousels, except: :destroy, concerns: :historical do
     resource :layout_draft, path: "draft-layout", only: %i[ new create ] do

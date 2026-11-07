@@ -8,4 +8,12 @@ namespace :backups do
   task verify: :environment do
     puts JSON.pretty_generate(DatabaseBackup.new.verify(ENV.fetch("KEY")))
   end
+
+  desc "Replace the local development database with a sanitized snapshot (stop local servers first)"
+  task restore_development: :environment do
+    backup = DevelopmentDatabaseRestore.call(source_path: ENV.fetch("FILE"), confirmation: ENV["CONFIRM"])
+    puts "Development database restored. Previous database saved to #{backup}."
+    puts "Copied sessions and pending invitations were removed; all copied passwords were disabled."
+    puts "Set a local password using bin/rails users:reset_password EMAIL=your-admin-email."
+  end
 end

@@ -89,6 +89,21 @@
     into smaller CSV files, retaining the header. Each successful import is transactional and records
     the administrator in normal page history. This does not provide a one-click batch undo.</p>
 
+  <h2 id="database-export">Copy the database to development (admins)</h2>
+  <p>On the Invitations page, administrators can download a consistent SQLite snapshot of the primary database.
+    It contains private accounts, password hashes, sessions, invitation links, and other data. Keep it private,
+    do not commit it, and remove downloaded copies securely when no longer needed.</p>
+  <p>Stop your local Rails server, jobs, consoles, and other processes accessing the development database.
+    Update the local checkout to the same database schema as production, then run:</p>
+  <pre><code>bin/rails backups:restore_development FILE=/absolute/path/to/download.sqlite3 CONFIRM=replace-development</code></pre>
+  <p>This replaces the development database, saving a backup of the old one in <code>storage/</code>.
+    Copied sessions and unaccepted invitations are removed and copied passwords disabled. Set a new local
+    password with <code>bin/rails users:reset_password EMAIL=your-admin-email</code> before signing in.
+    Keep the old database backup private too. Never use a production password in development.</p>
+  <p>The snapshot is the primary database only: uploaded files and the separate job queue, cache, and cable
+    databases are not included. Do not expect video attachments to work without their separately stored files.
+    Restart local services only after the restore finishes. See the deployment guide for backup details.</p>
+
   <h2>Mistakes, disagreements, and help</h2>
   <p>For a simple typo, make a corrective edit. For a misplaced figure, duplicate record, layout problem, or uncertain correction,
     pause and ask the administrator rather than repeatedly changing records.

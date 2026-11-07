@@ -168,6 +168,31 @@ timing remain on the analysis record for provenance and retries.
 
 ## Database backups to DigitalOcean Spaces
 
+### Download a copy for local development
+
+Administrators can download a consistent primary SQLite snapshot from
+**Invitations → Download database snapshot**. The download includes private
+user and session data; keep it private, never commit it, and remove the downloaded
+file when finished. It does not include Active Storage files or the separate
+queue, cache, or cable databases.
+
+Stop all local servers, jobs, consoles, and any other processes using the
+development database. Ensure the checkout has exactly the same database
+migrations as the snapshot. Then, with `DATABASE_URL` unset:
+
+```sh
+bin/rails backups:restore_development FILE=/absolute/path/to/download.sqlite3 CONFIRM=replace-development
+bin/rails users:reset_password EMAIL=your-admin-email
+```
+
+The restore validates the snapshot and replaces only the standard development
+database. It first saves a private snapshot of the old database in `storage/`;
+this backup also contains sensitive data. It removes copied sessions and
+unaccepted invitations and disables all copied passwords. Reset a local
+administrator's password before signing in; do not reuse a production password.
+The source download is not modified. Keep local services stopped through the
+whole operation. The command does not synchronize uploaded video files.
+
 `DatabaseBackupJob` runs daily at 03:00 in the application's time zone (UTC by
 default). It uses SQLite's online backup API, includes committed WAL data, checks
 integrity and foreign keys, and uploads the primary database privately to
