@@ -70,6 +70,20 @@ class EditorAccessTest < ApplicationSystemTestCase
     assert_not users(:editor).reload.suspended?
   end
 
+  test "agreement checkbox remains interactive after signing in" do
+    users(:editor).update!(contribution_terms_version: nil, contribution_terms_accepted_at: nil)
+    sign_in "editor@example.com"
+
+    10.times do
+      visit edit_contribution_agreement_path
+      assert_unchecked_field "user_contribution_terms"
+      check "user_contribution_terms"
+      assert_checked_field "user_contribution_terms"
+      uncheck "user_contribution_terms"
+      assert_unchecked_field "user_contribution_terms"
+    end
+  end
+
   private
     def sign_in(email)
       visit new_session_path

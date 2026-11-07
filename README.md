@@ -96,7 +96,9 @@ bin/rails test test/system/seat_chart_test.rb --seed 37336
 Run database-backed suites sequentially, not concurrently. System tests wait
 for JavaScript, web fonts, and the final Turbo page before interacting with
 controls, so cached previews and font swaps do not replace or move controls
-mid-interaction. Directory assertions cover one page at a time, including
+mid-interaction. Chrome's compromised-password warning is disabled in the
+test browser because fixture credentials can trigger a browser-owned prompt
+that intercepts input. Directory assertions cover one page at a time, including
 filter and sort preservation across pagination.
 
 ## Documentation

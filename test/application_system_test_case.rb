@@ -1,7 +1,10 @@
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
+  driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ] do |options|
+    # Chrome's compromised-password prompt can intercept input after fixture logins.
+    options.add_preference("profile.password_manager_leak_detection", false)
+  end
 
   def visit(...)
     super.tap do
