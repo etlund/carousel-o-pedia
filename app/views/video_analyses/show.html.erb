@@ -33,6 +33,9 @@
   <% end %>
 
   <h2>Review the draft</h2>
+  <% if @carousel.carousel_decks.any? %>
+    <p class="flash alert">This analysis does not identify decks. Use it as research for the individual deck editor; its seating draft cannot be applied to a multi-deck carousel.</p>
+  <% else %>
   <p>Tick the seats to add, and correct anything the tool got wrong. Applying only fills seats that are still unknown,
     never ones an editor has already filled in, and new figures are marked as a best reading.</p>
   <%= form_with url: apply_carousel_video_analysis_path(@carousel, @analysis), method: :post, class: "video-draft" do |form| %>
@@ -75,5 +78,6 @@
       <%= form.submit "Apply ticked seats to #{@carousel.name}", disabled: @analysis.layout_conflict?,
         data: { turbo_confirm: "Add the ticked seats to #{@carousel.name}? Every change is kept in the page history." } %>
     </div>
+  <% end %>
   <% end %>
 <% end %>

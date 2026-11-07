@@ -10,11 +10,13 @@ class Carousel < ApplicationRecord
   RING_FIELDS = %w[ positions_count horses_count mount ].freeze
   RING_MOUNTS = %w[ stander jumper ].freeze
   SeatingCompleteness = Data.define(:confirmed_seats, :best_reading_seats, :rows_count, :sections_count)
-  attr_accessor :skip_layout_resize
+  include SeatingLayout
 
   belongs_to :maker, optional: true
-  has_many :seats, -> { order(:section, :row) }, dependent: :destroy
-  has_many :placements, through: :seats
+  has_many :seats, -> { where(carousel_deck_id: nil).order(:section, :row) }, dependent: :destroy
+  has_many :all_seats, class_name: "Seat", dependent: :destroy
+  has_many :carousel_decks, -> { order(:position, :id) }, dependent: :destroy
+  has_many :placements, through: :all_seats
   has_many :figures, dependent: :restrict_with_error
   has_many :video_analyses, dependent: :destroy
 
@@ -48,14 +50,12 @@ class Carousel < ApplicationRecord
   validates :name, presence: true
   validates :status, inclusion: { in: STATUSES }
   validates :rotation, inclusion: { in: ROTATIONS }, allow_nil: true
-  validates :sections_count, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
-  validates :rows_count, numericality: { only_integer: true, in: 1..MAX_ROWS }, allow_nil: true
   validates :published_horses_count, :published_other_animals_count, :published_chariots_count,
     numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :decks_count, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :summary_sources, presence: true, if: -> { published_counts? || layout_provisional? }
-  validate :layout_dimensions_are_consistent
-  validate :provisional_layout_has_dimensions
   validate :ring_details_are_consistent
+  validate :decks_count_covers_recorded_decks
   validates :summary_sources, presence: true, if: -> { ring_details.present? }
 
   normalizes :ring_details, with: ->(value) {
@@ -81,12 +81,11 @@ class Carousel < ApplicationRecord
   normalizes :other_names, with: ->(value) { value.lines.map(&:strip).compact_blank.uniq.join("\n").presence }
   validate :website_urls_are_http
 
-  after_save :resize_layout, if: :layout_changed?, unless: :skip_layout_resize
-
-  def layout_known? = sections_count.present? && rows_count.present?
+  def any_layout_known? = layout_known? || carousel_decks.any?(&:layout_known?)
+  def display_name = name
 
   def seating_completeness
-    counts = seats.map(&:confidence).tally
+    counts = (carousel_decks.empty? ? seats : all_seats).map(&:confidence).tally
     SeatingCompleteness.new(confirmed_seats: counts.fetch("confirmed", 0),
       best_reading_seats: counts.fetch("best_reading", 0), rows_count:, sections_count:)
   end
@@ -97,9 +96,6 @@ class Carousel < ApplicationRecord
 
   def published_counts? = published_category_totals.values.any? { !_1.nil? }
 
-  # Rows are lettered from the outside in: A is always the outer row.
-  def row_letters = layout_known? ? ("A"..).first(rows_count) : []
-
   def location = [ city, region, country ].compact_blank.join(", ")
 
   def address
@@ -108,106 +104,18 @@ class Carousel < ApplicationRecord
     [ street_address, locality, country ].compact_blank.join(", ")
   end
 
-  def seat(code) = seats.find_by(Seat.parse_code(code) || { id: nil })
-
-  # The lead figure sits in the outer row of section 1. Numbering runs from it.
-  def lead_seat = seat("1A")
-
-  def lead_figure = lead_seat&.figure
-
-  # Renumbers every section so the given seat's section becomes section 1, keeping the
-  # order figures pass the rail. Each seat's change is kept in its history.
-  def renumber_from!(seat)
-    shift = seat.section - 1
-    return if shift.zero?
-
-    transaction do
-      all = seats.reload.to_a
-      # Park every section on a negative number first, so no two seats ever share a code.
-      seats.update_all("section = -section")
-      all.each { |each_seat| each_seat.update!(section: (each_seat.section - 1 - shift) % sections_count + 1) }
-      seats.reset
-    end
-  end
-
-  # One entry per section: its seats and how many figures of each category sit there.
-  def section_breakdown
-    return [] unless layout_known?
-
-    by_section = seats.includes(current_placement: { figure: :figure_type }).group_by(&:section)
-    (1..sections_count).map do |number|
-      section_seats = by_section.fetch(number, [])
-      counts = FigureType::CATEGORIES.index_with { 0 }
-      section_seats.each { |seat| counts[seat.category] += 1 if seat.category }
-      { number:, seats: section_seats.index_by(&:row), counts: }
-    end
-  end
-
-  # Every spot on the platform not covered by a seat gets an "unknown" seat, so a new
-  # carousel starts with a full chart to fill in.
-  def fill_missing_seats
-    return unless layout_known?
-
-    covered = seats.reload.flat_map { |seat| seat.rows_covered.map { |row| [ seat.section, row ] } }.to_set
-    (1..sections_count).each do |section|
-      row_letters.each do |row|
-        seats.create!(section:, row:, state: "unknown") unless covered.include?([ section, row ])
+  def category_totals(sections = section_breakdown)
+    if carousel_decks.any?
+      return all_seats.includes(current_placement: { figure: :figure_type }).each_with_object(FigureType::CATEGORIES.index_with { 0 }) do |seat, totals|
+        totals[seat.category] += 1 if seat.category
       end
     end
-  end
-
-  def category_totals(sections = section_breakdown)
     sections.each_with_object(FigureType::CATEGORIES.index_with { 0 }) do |section, totals|
       section[:counts].each { |category, count| totals[category] += count }
     end
   end
 
   private
-    def provisional_layout_has_dimensions
-      if layout_provisional? && !layout_known?
-        errors.add(:layout_provisional, "requires recorded sections and rows")
-      end
-    end
-
-    def layout_changed?
-      layout_known? && (saved_change_to_sections_count? || saved_change_to_rows_count?)
-    end
-
-    def seats_outside_layout
-      seats.where("section > ? OR row > ?", sections_count, row_letters.last)
-    end
-
-    def untouched_unknown_seat?(seat)
-      seat.state == "unknown" && seat.confidence == "best_reading" && seat.rows_spanned == 1 &&
-        seat.placements.empty? && !seat.versions.where(event: "update").exists?
-    end
-
-    def resize_layout
-      seats_outside_layout.each(&:destroy!)
-      fill_missing_seats
-    end
-
-    def layout_dimensions_are_consistent
-      return if skip_layout_resize
-
-      if !layout_known? && seats.exists?
-        errors.add(:base, "The layout cannot be cleared while seats exist")
-      end
-      return unless layout_known? && errors[:sections_count].empty? && errors[:rows_count].empty?
-
-      outside = seats_outside_layout.includes(:placements).to_a
-      protected_codes = outside.reject { untouched_unknown_seat?(_1) }.map(&:code)
-      if protected_codes.any?
-        errors.add(:base, "The layout cannot remove #{protected_codes.to_sentence}: only untouched unknown seats can be removed")
-      end
-      spanning_codes = seats.where.not(id: outside.map(&:id)).select do |seat|
-        seat.row_index + seat.rows_spanned > rows_count
-      end.map(&:code)
-      if spanning_codes.any?
-        errors.add(:base, "The layout would cut off spanning seats #{spanning_codes.to_sentence}; edit their row spans first")
-      end
-    end
-
     def ring_details_are_consistent
       unless ring_details.is_a?(Hash)
         errors.add(:ring_details, "must describe rows from the outside in")
@@ -240,6 +148,12 @@ class Carousel < ApplicationRecord
           errors.add(:ring_details, "#{letter} cannot have more horses than positions")
         end
       end
+    end
+
+    def decks_count_covers_recorded_decks
+      return if decks_count.nil? || decks_count >= carousel_decks.size
+
+      errors.add(:decks_count, "cannot be less than the number of deck records")
     end
 
     def website_urls_are_http

@@ -38,7 +38,7 @@
       <% if carousel.other_names.present? %><p class="muted other-names">Other names: <%= carousel.other_names.lines(chomp: true).join("; ") %></p><% end %>
       <p class="muted"><%= carousel.location %></p>
       <% if carousel.official_url.present? %><p class="website"><%= link_to carousel.official_url, carousel.official_url, class: "website-link" %></p><% end %>
-      <p><%= carousel_platform_label(carousel) || "Layout unknown" %>, <%= carousel.status %></p>
+      <p><% if carousel.decks_count %><%= pluralize(carousel.decks_count, "deck") %>; <% end %><%= carousel_platform_label(carousel) || "Layout unknown" %>, <%= carousel.status %></p>
       <div class="card-seating">
         <%= render "mini_seat_chart", carousel: %>
         <dl class="facts">

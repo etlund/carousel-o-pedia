@@ -3,12 +3,12 @@ class LayoutDraftsController < ApplicationController
   before_action -> { authorize_edit!(@carousel) }
 
   def new
-    attributes = params[:layout_draft].present? ? draft_params : LayoutDraft.sketch_defaults_for(@carousel)
-    @draft = LayoutDraft.new(@carousel, attributes)
+    attributes = params[:layout_draft].present? ? draft_params : LayoutDraft.sketch_defaults_for(@layout)
+    @draft = LayoutDraft.new(@layout, attributes)
   end
 
   def preview
-    @draft = LayoutDraft.new(@carousel, draft_params)
+    @draft = LayoutDraft.new(@layout, draft_params)
     if @draft.valid?
       render :preview
     else
@@ -17,11 +17,11 @@ class LayoutDraftsController < ApplicationController
   end
 
   def create
-    @draft, snapshot = LayoutDraft.from_preview(@carousel, params.expect(:preview_token))
+    @draft, snapshot = LayoutDraft.from_preview(@layout, params.expect(:preview_token))
     added = @draft.apply!(expected_snapshot: snapshot)
     redirect_to @carousel, notice: "Created a provisional seating layout with #{added} #{"draft figure".pluralize(added)}. All placements are best readings."
   rescue LayoutDraft::Conflict => error
-    redirect_to new_carousel_layout_draft_path(@carousel), alert: error.message
+    redirect_to new_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id]), alert: error.message
   rescue ActiveModel::ValidationError
     render :new, status: :unprocessable_entity
   rescue ActiveRecord::RecordInvalid => error
@@ -32,6 +32,7 @@ class LayoutDraftsController < ApplicationController
   private
     def set_carousel
       @carousel = Carousel.find_by!(slug: params[:carousel_id])
+      @layout = params[:deck_id].present? ? @carousel.carousel_decks.find(params[:deck_id]) : @carousel
     end
 
     def draft_params

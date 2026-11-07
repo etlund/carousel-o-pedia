@@ -28,7 +28,7 @@
           <td><%= link_to figure.name, figure %> <%= mount_icon(figure.mount) %></td>
           <td><%= link_to figure.figure_type.name, figure.figure_type %></td>
           <td><%= link_to figure.carousel.name, figure.carousel %><% unless figure.seat %> <span class="muted">(not currently seated)</span><% end %></td>
-          <td><% if figure.seat %><%= link_to seat_badge(figure.seat), carousel_seat_path(figure.seat.carousel, figure.seat), class: "seat-link" %><% end %></td>
+          <td><% if figure.seat %><%= link_to seat_badge(figure.seat), seat_record_path(figure.seat), class: "seat-link" %><% end %></td>
         </tr>
       <% end %>
     </tbody>

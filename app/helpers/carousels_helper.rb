@@ -2,8 +2,9 @@ require "base64"
 
 module CarouselsHelper
   def carousel_favicon_data_uri(carousel)
-    seats = carousel.seats.includes(current_placement: { figure: :figure_type })
-    svg = render(partial: "carousels/favicon", formats: [ :svg ], locals: { carousel:, seats: })
+    layout = carousel.layout_known? ? carousel : (carousel.carousel_decks.find(&:layout_known?) || carousel)
+    seats = layout.seats.includes(current_placement: { figure: :figure_type })
+    svg = render(partial: "carousels/favicon", formats: [ :svg ], locals: { carousel: layout, seats: })
     "data:image/svg+xml;base64,#{Base64.strict_encode64(svg)}"
   end
 
@@ -11,10 +12,17 @@ module CarouselsHelper
     published = carousel.published_category_totals.fetch(category)
     return published unless published.nil?
 
-    mapped_count if carousel.layout_known?
+    mapped_count if carousel.any_layout_known?
   end
 
   def carousel_platform_label(carousel)
+    if carousel.is_a?(Carousel) && carousel.carousel_decks.any?
+      names = carousel.carousel_decks.map do |deck|
+        "#{deck.name}: #{carousel_platform_label(deck) || 'geometry unknown'}"
+      end
+      names.unshift("Main platform: #{carousel.sections_count || '?'} sections, #{carousel.rows_count || '?'} rows") if carousel.layout_known?
+      return names.join("; ")
+    end
     return if carousel.sections_count.nil? && carousel.rows_count.nil?
 
     label = [
@@ -29,6 +37,7 @@ module CarouselsHelper
     if completeness.confirmed_seats + completeness.best_reading_seats > 0
       return "#{completeness.confirmed_seats} confirmed \u00b7 #{completeness.best_reading_seats} best reading"
     end
+    return "#{pluralize(carousel.carousel_decks.size, 'deck')} recorded; geometry unknown" if !carousel.any_layout_known? && carousel.carousel_decks.any?
     return "Layout unknown" unless completeness.rows_count || completeness.sections_count
 
     details = []

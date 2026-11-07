@@ -1,0 +1,6 @@
+<% content_for :title, @deck.display_name %>
+<p><%= link_to @carousel.name, @carousel %></p>
+<h1><%= @deck.name %></h1>
+<p><%= link_to "History", history_carousel_deck_path(@carousel, @deck) %>
+  <% if can_edit?(@deck) %><%= link_to "Edit deck", edit_carousel_deck_path(@carousel, @deck) %><% end %></p>
+<%= render "layout", deck: @deck %>

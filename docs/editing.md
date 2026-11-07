@@ -176,6 +176,41 @@ not part of these forms; saving everyday details preserves existing ring researc
 
 ## Seating and inventory
 
+### Multi-deck carousels
+
+For genuinely separate seating decks, open the carousel and choose **Add deck**.
+Give each deck a name (for example, Lower or Upper) and a display order, lowest
+first. Each deck has its own independently editable section and row counts,
+published allocations, sources, provisional flag, and seating chart. Unknown
+geometry and per-deck counts can remain blank. Do not divide carousel-wide
+counts between decks or copy an aggregate row count onto each deck.
+
+Open a deck's page to **Edit deck**, review its history, create a draft layout,
+or fill its unknown seats. Draft previews and signed confirmations apply to
+only the selected deck. They use that deck's recorded counts, not the whole
+carousel's counts. The existing resizing safeguards also apply independently
+to each deck; a chariot can span adjacent rows on its deck but never cross
+decks. Both verified dimensions create unknown seats; estimated geometry
+should be saved through the provisional draft workflow with source notes.
+
+Seat codes remain local to their platform: Lower - 5A and Upper - 5A are
+different seats. Deck seat links include the deck ID. Figures remain inventory
+of the carousel and can move between decks, preserving placement history.
+Mapped totals count figures across all decks once; carousel-wide published
+totals remain separate and are never overwritten by a deck's allocation.
+
+Existing single-level layouts and seat URLs are unchanged and remain the
+**main platform** if decks are added. The carousel editor's platform dimensions
+and CSV geometry fields continue to describe only that main platform. CSV
+does not export or edit deck records; use each deck's editor and a complete
+database backup to preserve deck data. Video analysis can be used as research,
+but its current single-platform drafts cannot be applied to multi-deck rides.
+
+Adding decks is not appropriate for simply stepped concentric rows. Verify the
+structure first: Balboa Park's recorded “two-level platform” description does
+not establish deck-specific rows or inventory allocations, so it is not
+automatically converted.
+
 Seat codes combine a section number and row letter: `5A` means section 5 at
 the outer rail. Rows run from A inward; sections follow the order figures pass
 someone standing at the rail. A spanning figure occupies one seat across

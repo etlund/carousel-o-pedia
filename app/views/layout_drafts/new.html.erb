@@ -1,10 +1,13 @@
 <% content_for :title, "Create draft layout for #{@carousel.name}" %>
 <p class="muted"><%= link_to @carousel.name, @carousel %></p>
 <h1><%= @draft.sketch? ? "Sketch carousel layout" : "Create draft layout" %></h1>
+<% if @layout.is_a?(CarouselDeck) %>
+  <p><strong><%= @layout.name %> only.</strong> Use this deck's counts and rows, not carousel-wide totals. Unknown allocations are not divided automatically.</p>
+<% end %>
 <%= render "shared/errors", record: @draft %>
-<% if @carousel.layout_known? || @carousel.seats.any? %>
+<% if @layout.layout_known? || @layout.seats.any? %>
   <p>A seating layout already exists. This workflow will not replace it.</p>
-  <p><%= link_to "Fill unknown seats", new_carousel_seat_fill_path(@carousel) %> or edit individual placements.</p>
+  <p><%= link_to "Fill unknown seats", new_carousel_seat_fill_path(@carousel, deck_id: params[:deck_id]) %> or edit individual placements.</p>
 <% else %>
   <p>Turn incomplete inventory research into an explicitly provisional seating chart.
     No changes are saved until you review the preview.</p>
@@ -15,12 +18,12 @@
       Extra positions are marked as assumed empty, immediately inward of chariots in the same section
       when space allows. Nothing here establishes the actual seating arrangement.</p>
     <p>For specific seat positions or figure types,
-      <%= link_to "use the detailed layout", new_carousel_layout_draft_path(@carousel, layout_draft: LayoutDraft.defaults_for(@carousel).merge(input_mode: "layout")) %>.
+      <%= link_to "use the detailed layout", new_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id], layout_draft: LayoutDraft.defaults_for(@layout).merge(input_mode: "layout")) %>.
       Unequal rings cannot be represented by this regular-grid sketch.</p>
   <% else %>
-    <p><%= link_to "Use the simple sketch", new_carousel_layout_draft_path(@carousel) %> for animal totals, chariots, and rows.</p>
+    <p><%= link_to "Use the simple sketch", new_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id]) %> for animal totals, chariots, and rows.</p>
   <% end %>
-  <%= form_with model: @draft, scope: :layout_draft, url: preview_carousel_layout_draft_path(@carousel), method: :post, class: "form", data: { turbo: false } do |form| %>
+  <%= form_with model: @draft, scope: :layout_draft, url: preview_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id]), method: :post, class: "form", data: { turbo: false } do |form| %>
     <%= form.hidden_field :input_mode %>
     <% if @draft.sketch? %>
       <fieldset>

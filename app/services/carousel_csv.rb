@@ -170,6 +170,9 @@ class CarouselCsv
       record ||= Carousel.new(status: "unknown")
       original = record.attributes.deep_dup
       assign_fields(record, data, errors)
+      if record.persisted? && record.carousel_decks.any?
+        warnings << "This carousel has separate decks. CSV covers carousel-wide totals and the main platform only; deck records are unchanged."
+      end
       if record.persisted? && original["sections_count"].present? && original["rows_count"].present? &&
           (record.sections_count != original["sections_count"] || record.rows_count != original["rows_count"])
         errors << "A known layout's dimensions cannot be changed through CSV."

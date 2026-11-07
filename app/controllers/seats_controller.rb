@@ -23,7 +23,8 @@ class SeatsController < ApplicationController
     figure = Figure.find(choice) if choice.present? && choice != EMPTY
     authorize_edit!(figure) if figure
     SeatEdit.new(@seat, figure, attributes:, empty: choice == EMPTY).save!
-    redirect_to @seat.figure || carousel_seat_path(@carousel, @seat), notice: "Saved."
+    path = @seat.carousel_deck ? deck_seat_path(@carousel, @seat.carousel_deck, @seat) : carousel_seat_path(@carousel, @seat)
+    redirect_to @seat.figure || path, notice: "Saved."
   rescue ActiveRecord::RecordInvalid => error
     messages = error.record.errors.full_messages
     @seat.reload.assign_attributes(attributes)
@@ -35,7 +36,8 @@ class SeatsController < ApplicationController
   private
     def set_seat
       @carousel = Carousel.find_by!(slug: params[:carousel_id])
-      @seat = @carousel.seat(params[:code]) or raise ActiveRecord::RecordNotFound
+      layout = params[:deck_id] ? @carousel.carousel_decks.find(params[:deck_id]) : @carousel
+      @seat = layout.seat(params[:code]) or raise ActiveRecord::RecordNotFound
       set_available_figures
     end
 

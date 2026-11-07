@@ -11,10 +11,11 @@
       <% end %>
       <dt>Position</dt>
       <dd>Section <%= seat.section %>, <%= seat.rows_spanned > 1 ? "rows #{seat.rows_covered.first} to #{seat.rows_covered.last}" : "row #{seat.row}" %></dd>
+      <% if seat.carousel_deck %><dt>Deck</dt><dd><%= link_to seat.carousel_deck.name, carousel_deck_path(seat.carousel, seat.carousel_deck) %></dd><% end %>
       <dt>Confidence</dt><dd><%= seat.confirmed? ? "Confirmed" : "Best reading, not yet confirmed" %></dd>
       <% unless occupied %><dt>Status</dt><dd><%= seat.state.capitalize %></dd><% end %>
     </dl>
-    <%= render "shared/page_actions", record: seat, edit: edit_carousel_seat_path(seat.carousel, seat), history: history_carousel_seat_path(seat.carousel, seat),
+    <%= render "shared/page_actions", record: seat, edit: edit_seat_record_path(seat), history: history_seat_record_path(seat),
           edit_label: "Edit placement", history_label: "Seat history" %>
   </section>
   <% if previous_placements.any? %>

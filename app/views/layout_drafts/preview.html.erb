@@ -1,6 +1,7 @@
 <% content_for :title, "Preview draft layout for #{@carousel.name}" %>
 <p class="muted"><%= link_to @carousel.name, @carousel %></p>
 <h1><%= @draft.sketch? ? "Preview sketch" : "Preview draft layout" %></h1>
+<% if @layout.is_a?(CarouselDeck) %><p><strong><%= @layout.name %> only.</strong> Other decks will not be changed.</p><% end %>
 <% preview_seats = @draft.preview_seats %>
 <p><strong>Provisional geometry, not a verified seating survey.</strong> Review section alignment, chariot spans, and totals before saving.
   No changes have been saved yet.</p>
@@ -19,10 +20,10 @@
     <% if @draft.sketch? %>
       <p><%= pluralize(@draft.sections_count, "section") %>, <%= pluralize(@draft.rows_count, "row") %>.
         <%= pluralize(@draft.proposals.count { _1.state == "empty" }, "assumed empty position") %>.</p>
-      <p><%= link_to "Adjust chariot footprint", new_carousel_layout_draft_path(@carousel, layout_draft: @draft.attributes, anchor: "chariot-footprint") %>
+      <p><%= link_to "Adjust chariot footprint", new_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id], layout_draft: @draft.attributes, anchor: "chariot-footprint") %>
         (currently <%= pluralize(@draft.chariot_rows_spanned, "row") %> per chariot).</p>
       <% unless @draft.mixed_animals? %>
-        <p><%= link_to "Adjust individual positions in the detailed layout", new_carousel_layout_draft_path(@carousel, layout_draft: @draft.attributes.merge(input_mode: "layout")) %></p>
+        <p><%= link_to "Adjust individual positions in the detailed layout", new_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id], layout_draft: @draft.attributes.merge(input_mode: "layout")) %></p>
       <% end %>
     <% end %>
   </div>
@@ -30,7 +31,7 @@
     <section>
       <h2>Inventory check</h2>
       <% totals = @draft.category_totals %>
-      <% published = @carousel.published_category_totals %>
+      <% published = @layout.published_category_totals %>
       <% animal_difference = @draft.mixed_animals? && published.values_at("horse", "menagerie").none?(&:nil?) && @draft.animals_count != published.fetch("horse") + published.fetch("menagerie") %>
       <% if animal_difference || published.any? { |category, count| !count.nil? && (!@draft.mixed_animals? || category == "chariot") && count != totals.fetch(category) } %>
         <p class="flash alert" role="status">Draft totals differ from the published inventory. Check the chariot row spans and empty positions, or explain the discrepancy in your source notes before saving.</p>
@@ -69,11 +70,11 @@
 </div>
 <% if @draft.sketch? %></details><% end %>
 <section class="prose"><h2>Source and research notes</h2><%= wiki_body(@draft.source_notes) %></section>
-<%= form_with url: carousel_layout_draft_path(@carousel), method: :post, class: "form" do |form| %>
+<%= form_with url: carousel_layout_draft_path(@carousel, deck_id: params[:deck_id]), method: :post, class: "form" do |form| %>
   <%= hidden_field_tag :preview_token, @draft.preview_token %>
   <div class="actions">
     <%= form.submit "Create provisional layout" %>
-    <%= link_to "Change choices", new_carousel_layout_draft_path(@carousel, layout_draft: @draft.attributes) %>
+    <%= link_to "Change choices", new_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id], layout_draft: @draft.attributes) %>
     <%= link_to "Cancel", @carousel %>
   </div>
 <% end %>

@@ -83,9 +83,23 @@ copy locally; see [deployment and backups](docs/deployment.md#download-a-copy-fo
 
 ```sh
 bin/rails test
-bin/rails test:system test/system/seat_chart_test.rb
+RAILS_ENV=test bin/rails db:test:prepare test:system
 bin/rubocop
 ```
+
+Run a single browser test file (or reproduce a failing seed) with:
+
+```sh
+bin/rails test test/system/seat_chart_test.rb --seed 37336
+```
+
+Run database-backed suites sequentially, not concurrently. System tests wait
+for JavaScript, web fonts, and the final Turbo page before interacting with
+controls, so cached previews and font swaps do not replace or move controls
+mid-interaction. Chrome's compromised-password warning is disabled in the
+test browser because fixture credentials can trigger a browser-owned prompt
+that intercepts input. Directory assertions cover one page at a time, including
+filter and sort preservation across pagination.
 
 ## Documentation
 
