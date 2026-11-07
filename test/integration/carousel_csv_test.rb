@@ -59,6 +59,26 @@ class CarouselCsvIntegrationTest < ActionDispatch::IntegrationTest
     assert_redirected_to carousel_csv_path
   end
 
+  test "preview shows problem rows first with original row numbers and preserves error and warning behavior" do
+    sign_in_as users(:admin)
+    csv = "name,official_url\nFirst,https://example.com/\nExisting carousel,https://example.com/\nBad,javascript:alert(1)\nLast,https://example.com/\n"
+    post preview_carousel_csv_path, params: { csv_text: csv }
+    assert_response :unprocessable_entity
+    assert_equal [ "Row 3: Existing carousel (new)", "Row 4: Bad (new)",
+      "Row 2: First (new)", "Row 5: Last (new)" ], css_select("section.card h2").map(&:text).map(&:strip)
+    assert_select "p", /2 rows to review first/
+    assert_select ".alert", /Import problem \(warning\): Possible duplicate/
+    assert_select ".alert", /Import problem \(error\):/
+    assert_select "input[name=preview_token]", count: 0
+
+    post preview_carousel_csv_path, params: { csv_text: "name\nFirst\nExisting carousel\nLast\n" }
+    assert_response :success
+    assert_equal [ "Row 3: Existing carousel (new)", "Row 2: First (new)", "Row 4: Last (new)" ],
+      css_select("section.card h2").map(&:text).map(&:strip)
+    assert_select "p", /warnings do not prevent import or automatically skip duplicates/
+    assert_select "input[name=preview_token]", count: 1
+  end
+
   test "admins with unaccepted terms cannot import or export" do
     admin = users(:admin)
     admin.update_columns(contribution_terms_version: nil, contribution_terms_accepted_at: nil)
