@@ -93,6 +93,17 @@ published terms before protected editing/admin actions. Public browsing and
 sign-out remain available. Confirm that the prospective CC BY-SA 4.0 policy
 is ready to publish before deploying; the public contact route remains deferred.
 
+## Multi-deck layouts
+
+The multi-deck migration adds separate deck records and a nullable deck reference
+on seats. Existing seats stay on the main platform with unchanged codes and
+URLs. Deploy with the normal database preparation step and a tested backup.
+It does not create decks or allocate inventory for Balboa Park or any other
+existing carousel. Carousel CSV exports exclude deck records; use a complete
+database backup when preserving multi-deck layouts. Old draft-preview tokens
+must be previewed again after this deployment because confirmations now bind
+to both the layout type and its ID.
+
 ## Web traffic statistics
 
 Cloudflare Web Analytics provides a free dashboard for visits, page views,

@@ -43,6 +43,13 @@
   <p>Assigning an already-seated figure to another seat moves it and leaves its old seat empty.
     Check for an existing figure before creating one. To transfer a figure between carousels,
     remove it from its seat, edit its carousel, and then assign a seat at the destination.</p>
+  <p>For separate seating decks, choose <strong>Add deck</strong> on the carousel page.
+    Each named deck has independent rows, sections, sourced counts, history, and a seating chart.
+    Leave unknown per-deck allocations blank; never divide the carousel-wide totals automatically.
+    Open a deck to edit it or create its provisional draft. Seat codes are local to the deck:
+    Lower - 5A and Upper - 5A are different seats. Figures can move between decks, preserving history.
+    Existing layouts remain on the main platform with unchanged seat links. A raised concentric row
+    is not necessarily a separate deck; verify the structure before adding decks.</p>
   <p>Site-wide editors who cannot find the correct figure type can choose <strong>Add it first</strong>
     beside Type on the Edit Figure page. After creating the shared type, the same figure form reopens
     with it selected. One-carousel editors cannot change the shared type catalog.</p>
@@ -67,7 +74,8 @@
   <h2 id="carousel-csv">Carousel CSV import and export (admins)</h2>
   <p>On the carousel directory, administrators can choose <strong>Import / export CSV</strong>.
     Download all carousel records and editable carousel fields, including blank fields. Figures, seats,
-    placements, and their history are not exported. Back up the database before a substantial import.</p>
+    placements, decks, and their history are not exported. CSV geometry describes the main platform only;
+    edit separate decks through their own pages. Back up the database before a substantial import.</p>
   <ol>
     <li>Open the UTF-8 CSV as text in a spreadsheet, preserving the headers, line breaks, leading apostrophes,
       <code>csv_format</code>, IDs, slug and <code>updated_at</code>. Avoid automatic date or number reformatting.
