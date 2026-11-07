@@ -1,6 +1,6 @@
 <% content_for :title, "Create draft layout for #{@carousel.name}" %>
 <p class="muted"><%= link_to @carousel.name, @carousel %></p>
-<h1>Create draft layout</h1>
+<h1><%= @draft.sketch? ? "Sketch carousel layout" : "Create draft layout" %></h1>
 <%= render "shared/errors", record: @draft %>
 <% if @carousel.layout_known? || @carousel.seats.any? %>
   <p>A seating layout already exists. This workflow will not replace it.</p>
@@ -8,17 +8,44 @@
 <% else %>
   <p>Turn incomplete inventory research into an explicitly provisional seating chart.
     No changes are saved until you review the preview.</p>
-  <p>When all published counts and the row count are available, a section count may be suggested by counting
-    each chariot as two spaces. Suggested chariot positions are spread around the platform.
-    These are editable drafting assumptions, not verified geometry.</p>
+  <% if @draft.sketch? %>
+    <p>Enter horses, other animals, chariots, and rows to sketch a regular wheel. Horses and other animals
+      are added together to size the layout. If other animals are included, animal positions stay unclassified
+      until researched. Chariots are spread around the platform.
+      Extra positions are marked as assumed empty, immediately inward of chariots in the same section
+      when space allows. Nothing here establishes the actual seating arrangement.</p>
+    <p>For specific seat positions or figure types,
+      <%= link_to "use the detailed layout", new_carousel_layout_draft_path(@carousel, layout_draft: LayoutDraft.defaults_for(@carousel).merge(input_mode: "layout")) %>.
+      Unequal rings cannot be represented by this regular-grid sketch.</p>
+  <% else %>
+    <p><%= link_to "Use the simple sketch", new_carousel_layout_draft_path(@carousel) %> for animal totals, chariots, and rows.</p>
+  <% end %>
   <%= form_with model: @draft, scope: :layout_draft, url: preview_carousel_layout_draft_path(@carousel), method: :post, class: "form", data: { turbo: false } do |form| %>
+    <%= form.hidden_field :input_mode %>
+    <% if @draft.sketch? %>
+      <fieldset>
+        <legend>Sketch from counts</legend>
+        <div class="field-row">
+          <div class="field"><%= form.label :horses_count, "Horses" %><%= form.number_field :horses_count, min: 0, required: true %></div>
+          <div class="field"><%= form.label :other_animals_count, "Other animals" %><%= form.number_field :other_animals_count, min: 0, required: true %></div>
+          <div class="field"><%= form.label :chariots_count, "Chariots" %><%= form.number_field :chariots_count, min: 0, required: true %></div>
+          <div class="field"><%= form.label :rows_count, "Rows" %><%= form.number_field :rows_count, min: 1, max: Carousel::MAX_ROWS, required: true %></div>
+        </div>
+        <p class="hint">Rows run from the outside inward. Count each chariot once, not its passengers. Unknown is not zero; enter zero only when no chariots are intended in this sketch. These draft counts do not change published totals.</p>
+      </fieldset>
+      <details id="chariot-footprint" <%= "open" if params[:layout_draft].present? %>>
+        <summary>Adjust chariot footprint</summary>
+        <div class="field"><%= form.label :chariot_rows_spanned, "Rows per chariot" %><%= form.select :chariot_rows_spanned, (1..Carousel::MAX_ROWS).map { [ pluralize(_1, "row"), _1 ] } %></div>
+        <p class="hint">Initially two rows, or one for a single-row carousel. This is an assumption, not a verified footprint. Use one when sketching a single row.</p>
+      </details>
+    <% else %>
     <fieldset>
       <legend>Provisional platform</legend>
       <div class="field-row">
         <div class="field"><%= form.label :sections_count, "Sections" %><%= form.number_field :sections_count, min: 1, required: true %></div>
         <div class="field"><%= form.label :rows_count, "Rows" %><%= form.number_field :rows_count, min: 1, max: Carousel::MAX_ROWS, required: true %></div>
       </div>
-      <p class="hint">Rows run from A outside inward. The standard editor fixes platform size once seats exist, so review these dimensions carefully before creating the draft.</p>
+      <p class="hint">Rows run from A outside inward. Review these dimensions carefully before creating the draft.</p>
     </fieldset>
     <fieldset>
       <legend>Default figures</legend>
@@ -57,11 +84,12 @@
         <p class="hint">Optional seat codes for empty positions. Do not list positions already covered by a chariot.</p>
       </div>
     </fieldset>
+    <% end %>
     <div class="field">
       <%= form.label :source_notes, "Source and research notes" %>
       <%= form.text_area :source_notes, rows: 6, required: true %>
       <p class="hint">Use Markdown links, source dates, and uncertainty notes. Existing summary research is prefilled when available. Your notes and the draft assumptions are saved with the carousel and each new figure.</p>
     </div>
-    <div class="actions"><%= form.submit "Preview draft layout" %> <%= link_to "Cancel", @carousel %></div>
+    <div class="actions"><%= form.submit @draft.sketch? ? "Preview sketch" : "Preview draft layout" %> <%= link_to "Cancel", @carousel %></div>
   <% end %>
 <% end %>

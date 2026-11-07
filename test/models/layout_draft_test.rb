@@ -33,6 +33,72 @@ class LayoutDraftTest < ActiveSupport::TestCase
     assert_equal 18, LayoutDraft.defaults_for(@carousel)[:sections_count]
   end
 
+  test "simple sketches round up and preserve exact requested counts across footprints" do
+    [ [ 67, 2, 4, 2, 18, 1 ], [ 68, 2, 4, 1, 18, 2 ],
+      [ 7, 0, 3, 2, 3, 2 ], [ 5, 0, 1, 2, 5, 0 ],
+      [ 5, 2, 1, 1, 7, 0 ], [ 0, 2, 2, 2, 2, 0 ] ].each do |horses, chariots, rows, span, sections, gaps|
+      draft = LayoutDraft.new(@carousel, LayoutDraft.sketch_defaults_for(@carousel).merge(
+        horses_count: horses, chariots_count: chariots, rows_count: rows, chariot_rows_spanned: span))
+
+      assert draft.valid?, draft.errors.full_messages.inspect
+      assert_equal sections, draft.sections_count.to_i
+      assert_equal({ "horse" => horses, "menagerie" => 0, "chariot" => chariots }, draft.category_totals)
+      assert_equal gaps, draft.proposals.count { _1.state == "empty" }
+      assert draft.proposals.select { _1.figure_type&.category == "horse" }.all? { _1.mount.nil? }
+      assert_includes draft.assumptions, "not observed empty seats"
+    end
+    assert_empty @carousel.seats
+  end
+
+  test "sketches reject unknown invalid and impossible counts" do
+    defaults = LayoutDraft.sketch_defaults_for(@carousel)
+    [
+      { horses_count: nil }, { other_animals_count: nil }, { other_animals_count: "-1" },
+      { chariots_count: nil }, { horses_count: "3.5" },
+      { horses_count: "-1" }, { chariots_count: "-1" }, { rows_count: "0" },
+      { rows_count: "7" }, { rows_count: "1", chariot_rows_spanned: "2" },
+      { horses_count: "0", chariots_count: "0" }, { horses_count: "0", chariots_count: "4", rows_count: "4" },
+      { input_mode: "invalid" }
+    ].each do |invalid|
+      draft = LayoutDraft.new(@carousel, defaults.merge(invalid))
+      assert_not draft.valid?, invalid.inspect
+    end
+    assert_empty @carousel.seats
+  end
+
+  test "Jane's Carousel sketch places one assumed gap immediately inward of each chariot" do
+    draft = LayoutDraft.new(@carousel, LayoutDraft.sketch_defaults_for(@carousel).merge(
+      horses_count: 48, other_animals_count: 0, chariots_count: 2, rows_count: 3, chariot_rows_spanned: 2))
+
+    assert draft.valid?, draft.errors.full_messages.inspect
+    assert_equal "18", draft.sections_count
+    assert_equal "1A, 10A", draft.chariot_seats
+    assert_equal "1C, 10C", draft.empty_seats
+    assert_equal({ "horse" => 48, "menagerie" => 0, "chariot" => 2 }, draft.category_totals)
+    assert_equal %w[ 1C 10C ], draft.proposals.select { _1.state == "empty" }.map(&:code)
+    assert_includes draft.assumptions, "immediately inward of chariots"
+    assert_empty @carousel.seats
+  end
+
+  test "sketch gaps are distributed across chariots before moving farther inward" do
+    draft = LayoutDraft.new(@carousel, LayoutDraft.sketch_defaults_for(@carousel).merge(
+      horses_count: 65, rows_count: 6, chariot_rows_spanned: 1))
+
+    assert draft.valid?, draft.errors.full_messages.inspect
+    assert_equal "1B, 7B, 1C, 7C, 1D", draft.empty_seats
+    assert_equal 65, draft.category_totals.fetch("horse")
+    assert_equal 5, draft.proposals.count { _1.state == "empty" }
+  end
+
+  test "sketch gaps fall back to available positions when chariots span every row" do
+    draft = LayoutDraft.new(@carousel, LayoutDraft.sketch_defaults_for(@carousel).merge(
+      horses_count: 5, chariots_count: 1, rows_count: 3, chariot_rows_spanned: 3))
+
+    assert draft.valid?, draft.errors.full_messages.inspect
+    assert_equal "3C", draft.empty_seats
+    assert_equal({ "horse" => 5, "menagerie" => 0, "chariot" => 1 }, draft.category_totals)
+  end
+
   test "provisional geometry requires both dimensions and supporting source notes" do
     @carousel.layout_provisional = true
     assert_not @carousel.valid?

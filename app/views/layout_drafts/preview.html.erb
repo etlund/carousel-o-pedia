@@ -1,29 +1,47 @@
 <% content_for :title, "Preview draft layout for #{@carousel.name}" %>
 <p class="muted"><%= link_to @carousel.name, @carousel %></p>
-<h1>Preview draft layout</h1>
+<h1><%= @draft.sketch? ? "Preview sketch" : "Preview draft layout" %></h1>
 <% preview_seats = @draft.preview_seats %>
 <p><strong>Provisional geometry, not a verified seating survey.</strong> Review section alignment, chariot spans, and totals before saving.
-  Platform dimensions cannot be changed through the standard editor once seats exist. No changes have been saved yet.</p>
+  No changes have been saved yet.</p>
 <div class="grid">
   <div class="card">
     <svg class="seat-chart draft-layout-chart" viewBox="0 0 <%= SeatChart::SIZE %> <%= SeatChart::SIZE %>" role="img"
          aria-label="Provisional seating preview: <%= @draft.sections_count %> sections, <%= @draft.rows_count %> rows">
       <%= render "carousels/seat_wedges", carousel: @draft.preview_carousel, seats: preview_seats %>
     </svg>
-    <p class="hint">Blue: horses; orange: other animals; red: chariots and tubs; unfilled: empty. All placements are best readings.</p>
+    <p class="hint">Blue: horses; orange: other animals; red: chariots and tubs. Unknown animal positions and assumed empty gaps are unfilled. All placements are best readings.</p>
+    <% if @draft.mixed_animals? %>
+      <p><strong><%= pluralize(@draft.animals_count, "unclassified animal position") %></strong>
+        (<%= pluralize(@draft.horses_count, "horse") %> + <%= pluralize(@draft.other_animals_count, "other animal") %>).
+        Animal locations and species remain unknown. Research each seat before assigning a figure.</p>
+    <% end %>
+    <% if @draft.sketch? %>
+      <p><%= pluralize(@draft.sections_count, "section") %>, <%= pluralize(@draft.rows_count, "row") %>.
+        <%= pluralize(@draft.proposals.count { _1.state == "empty" }, "assumed empty position") %>.</p>
+      <p><%= link_to "Adjust chariot footprint", new_carousel_layout_draft_path(@carousel, layout_draft: @draft.attributes, anchor: "chariot-footprint") %>
+        (currently <%= pluralize(@draft.chariot_rows_spanned, "row") %> per chariot).</p>
+      <% unless @draft.mixed_animals? %>
+        <p><%= link_to "Adjust individual positions in the detailed layout", new_carousel_layout_draft_path(@carousel, layout_draft: @draft.attributes.merge(input_mode: "layout")) %></p>
+      <% end %>
+    <% end %>
   </div>
   <div class="stack">
     <section>
       <h2>Inventory check</h2>
       <% totals = @draft.category_totals %>
       <% published = @carousel.published_category_totals %>
-      <% if published.any? { |category, count| !count.nil? && count != totals.fetch(category) } %>
+      <% animal_difference = @draft.mixed_animals? && published.values_at("horse", "menagerie").none?(&:nil?) && @draft.animals_count != published.fetch("horse") + published.fetch("menagerie") %>
+      <% if animal_difference || published.any? { |category, count| !count.nil? && (!@draft.mixed_animals? || category == "chariot") && count != totals.fetch(category) } %>
         <p class="flash alert" role="status">Draft totals differ from the published inventory. Check the chariot row spans and empty positions, or explain the discrepancy in your source notes before saving.</p>
       <% end %>
       <table class="draft-totals">
         <thead><tr><th>Kind</th><th>Draft</th><th>Published</th></tr></thead>
         <tbody>
-          <% FigureType::CATEGORIES.each do |category| %>
+          <% if @draft.mixed_animals? %>
+            <tr><th scope="row">Animals (unclassified)</th><td><%= @draft.animals_count %></td><td><%= published.values_at("horse", "menagerie").any?(&:nil?) ? "Unknown" : published.fetch("horse") + published.fetch("menagerie") %></td></tr>
+          <% end %>
+          <% (@draft.mixed_animals? ? [ "chariot" ] : FigureType::CATEGORIES).each do |category| %>
             <tr><th scope="row"><%= category_label(category) %></th><td><%= totals.fetch(category) %></td><td><%= published.fetch(category).nil? ? "Unknown" : published.fetch(category) %></td></tr>
           <% end %>
           <tr><th scope="row">Empty positions</th><td><%= @draft.proposals.count { _1.state == "empty" } %></td><td>Not inferred</td></tr>
@@ -33,7 +51,7 @@
     <section class="prose"><h2>Draft assumptions</h2><%= wiki_body(@draft.assumptions) %></section>
   </div>
 </div>
-<h2>Proposed placements</h2>
+<% if @draft.sketch? %><details><summary>Proposed placements</summary><% else %><h2>Proposed placements</h2><% end %>
 <div class="table-scroll">
   <table class="draft-placements">
     <thead><tr><th>Figure</th><th>Type</th><th>Seat</th></tr></thead>
@@ -41,14 +59,15 @@
       <% preview_seats.each do |seat| %>
         <% figure = seat.figure %>
         <tr>
-          <td><%= figure&.name || "Empty" %> <%= mount_icon(figure&.mount) %></td>
-          <td><% if figure %><%= link_to figure.figure_type.name, figure.figure_type %><% else %><span class="muted">Not applicable</span><% end %></td>
+          <td><%= figure&.name || (seat.state == "unknown" ? "Unclassified animal" : "Empty") %> <%= mount_icon(figure&.mount) %></td>
+          <td><% if figure %><%= link_to figure.figure_type.name, figure.figure_type %><% else %><span class="muted"><%= seat.state == "unknown" ? "Unknown" : "Not applicable" %></span><% end %></td>
           <td><%= seat_badge(seat) %></td>
         </tr>
       <% end %>
     </tbody>
   </table>
 </div>
+<% if @draft.sketch? %></details><% end %>
 <section class="prose"><h2>Source and research notes</h2><%= wiki_body(@draft.source_notes) %></section>
 <%= form_with url: carousel_layout_draft_path(@carousel), method: :post, class: "form" do |form| %>
   <%= hidden_field_tag :preview_token, @draft.preview_token %>

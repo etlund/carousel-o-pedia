@@ -16,11 +16,115 @@ class LayoutDraftsTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", new_carousel_seat_fill_path(@carousel), 0
     get new_carousel_layout_draft_path(@carousel)
     assert_response :success
-    assert_select "input[name='layout_draft[sections_count]'][value='18']"
+    assert_select "input[name='layout_draft[horses_count]'][value='68']"
+    assert_select "input[name='layout_draft[chariots_count]'][value='2']"
     assert_select "input[name='layout_draft[rows_count]'][value='4']"
-    assert_select "input[name='layout_draft[chariot_rows_spanned]'][value='2']:not([readonly]):not([disabled])"
-    assert_select "input[name='layout_draft[chariot_seats]'][value='1A, 10A']"
+    assert_select "input[name='layout_draft[sections_count]'], input[name='layout_draft[chariot_seats]'], select[name='layout_draft[figure_type_id]']", 0
+    assert_select "input[type=submit][value='Preview sketch']"
     assert_select "form[action=?][data-turbo=false]", preview_carousel_layout_draft_path(@carousel)
+  end
+
+  test "a counts-first sketch previews exact totals and saves assumed gaps provisionally" do
+    counts = { input_mode: "sketch", horses_count: "67", other_animals_count: "0", chariots_count: "2", rows_count: "4",
+      chariot_rows_spanned: "2", source_notes: "Approximate roster; footprints unverified." }
+    assert_no_difference [ "Figure.count", "Seat.count", "Placement.count" ] do
+      post preview_carousel_layout_draft_path(@carousel), params: { layout_draft: counts }
+    end
+    assert_response :success
+    assert_select "h1", "Preview sketch"
+    assert_select "svg.draft-layout-chart .horse", 67
+    assert_select "svg.draft-layout-chart .chariot", 2
+    assert_select "svg.draft-layout-chart .empty", 1
+    assert_select "p", text: /1 assumed empty position/
+    assert_select "a", text: "Adjust chariot footprint"
+    footprint_path = css_select("a").find { _1.text == "Adjust chariot footprint" }["href"]
+    change_path = css_select("a").find { _1.text == "Change choices" }["href"]
+    token = css_select("input[name=preview_token]").sole["value"]
+
+    get footprint_path
+    assert_select "#chariot-footprint[open]"
+    assert_select "input[name='layout_draft[horses_count]'][value='67']"
+    post preview_carousel_layout_draft_path(@carousel), params: { layout_draft: counts.merge(chariot_rows_spanned: "1") }
+    assert_response :success
+    assert_select "svg.draft-layout-chart .horse", 67
+    assert_select "svg.draft-layout-chart .empty", 3
+
+    get change_path
+    assert_select "input[name='layout_draft[horses_count]'][value='67']"
+    assert_select "textarea[name='layout_draft[source_notes]']", text: counts[:source_notes]
+
+    post carousel_layout_draft_path(@carousel), params: { preview_token: token }
+    assert_redirected_to carousel_path(@carousel)
+    assert @carousel.reload.layout_provisional?
+    assert_equal [ 18, 4 ], [ @carousel.sections_count, @carousel.rows_count ]
+    assert_equal({ "horse" => 67, "menagerie" => 0, "chariot" => 2 }, @carousel.category_totals)
+    assert_equal 1, @carousel.seats.where(state: "empty").count
+    assert_equal 68, @carousel.published_horses_count
+    assert_includes @carousel.summary_sources, "assumed gaps"
+  end
+
+  test "Kit Carson counts produce 46 unclassified animal positions without inventing animal figures" do
+    @carousel.update!(rows_count: 3, published_horses_count: 25, published_other_animals_count: 21,
+      published_chariots_count: 4)
+    get new_carousel_layout_draft_path(@carousel)
+    assert_select "input[name='layout_draft[horses_count]'][value='25']"
+    assert_select "input[name='layout_draft[other_animals_count]'][value='21']"
+
+    assert_no_difference [ "Figure.count", "Seat.count", "Placement.count" ] do
+      post preview_carousel_layout_draft_path(@carousel), params: {
+        layout_draft: LayoutDraft.sketch_defaults_for(@carousel)
+      }
+    end
+    assert_response :success
+    assert_select "svg.draft-layout-chart .horse, svg.draft-layout-chart .menagerie", 0
+    assert_select "svg.draft-layout-chart .unknown", 46
+    assert_select "svg.draft-layout-chart .chariot", 4
+    assert_select "svg.draft-layout-chart .empty", 0
+    assert_select "table.draft-totals tr", text: /Animals \(unclassified\)\s*46\s*46/
+    assert_select "p[role=status]", 0
+    token = css_select("input[name=preview_token]").sole["value"]
+    assert_difference [ "Figure.count", "Placement.count" ], 4 do
+      post carousel_layout_draft_path(@carousel), params: { preview_token: token }
+    end
+    assert_redirected_to carousel_path(@carousel)
+    assert @carousel.reload.layout_provisional?
+    assert_equal [ 18, 3 ], [ @carousel.sections_count, @carousel.rows_count ]
+    assert_equal 46, @carousel.seats.unknown.count
+    assert_equal [ 25, 21, 4 ], @carousel.published_category_totals.values
+    assert_equal [ "chariot" ], @carousel.figures.joins(:figure_type).distinct.pluck("figure_types.category")
+    assert_includes @carousel.summary_sources, "No animal figures are invented"
+  end
+
+  test "invalid sketch counts preserve inputs and produce no preview token" do
+    post preview_carousel_layout_draft_path(@carousel), params: { layout_draft: {
+      input_mode: "sketch", horses_count: "-1", other_animals_count: "0", chariots_count: "", rows_count: "4",
+      chariot_rows_spanned: "2", source_notes: "Notes"
+    } }
+    assert_response :unprocessable_entity
+    assert_select "[role=alert]", text: /Horses count/
+    assert_select "input[name='layout_draft[horses_count]'][value='-1']"
+    assert_select "input[name=preview_token]", 0
+    assert_empty @carousel.seats
+  end
+
+  test "Jane's Carousel preview and saved sketch put gaps inward of opposite chariots" do
+    @carousel.update!(rows_count: 3, published_horses_count: 48)
+    post preview_carousel_layout_draft_path(@carousel), params: {
+      layout_draft: LayoutDraft.sketch_defaults_for(@carousel)
+    }
+    assert_response :success
+    assert_select "svg.draft-layout-chart .empty", 2
+    assert_select "table.draft-placements svg.seat-badge.empty[aria-label='Seat 1C']", 1
+    assert_select "table.draft-placements svg.seat-badge.empty[aria-label='Seat 10C']", 1
+    assert_select "p", text: /immediately inward of chariots/
+    token = css_select("input[name=preview_token]").sole["value"]
+
+    post carousel_layout_draft_path(@carousel), params: { preview_token: token }
+
+    assert_redirected_to carousel_path(@carousel)
+    assert_equal %w[ 1C 10C ], @carousel.seats.where(state: "empty").map(&:code)
+    assert_equal({ "horse" => 48, "menagerie" => 0, "chariot" => 2 }, @carousel.reload.category_totals)
+    assert @carousel.layout_provisional?
   end
 
   test "preview displays assumptions and inventory without saving then creates an explicitly provisional chart" do

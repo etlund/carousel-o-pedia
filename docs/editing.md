@@ -203,13 +203,49 @@ positions open the Seat page. Figure history and seat history remain separate.
 ### Creating a provisional layout from inventory
 
 When no chart exists, editors can choose **Create draft layout** without first
-claiming the section count is verified. Record the proposed sections and rows,
+claiming the section count is verified. The default **Sketch carousel layout**
+form asks for horses, other animals, chariots, rows, and source notes. Known
+published counts and the row count are prefilled; unknown counts stay blank.
+Sketch counts never overwrite published totals. Horse motion stays unknown.
+Horses and other animals are combined when calculating the platform size. If
+other animals are included, every non-chariot animal position stays **unknown**:
+the sketch does not assign horses or species to specific seats or invent animal
+figures. After saving the provisional platform, research each seat before
+assigning its figure. The preview compares the combined animal total with the
+published horse-plus-other-animal total rather than pretending categories have
+been mapped. For example, Kit Carson's 25 horses plus 21 other animals produce
+46 unclassified animal positions, not 25 horse placeholders.
+
+Choose **Preview sketch** to see the wheel without saving anything. Each chariot
+initially spans two rows (one for a known single-row carousel), and chariots are
+spread around the platform starting in row A. The section count is rounded up:
+`ceil((horses + other_animals + chariots * rows_per_chariot) / rows)`. Leftover positions become
+explicitly assumed empty gaps, not observed empty seats. Gaps go immediately
+inward of chariots in the same section, one per chariot before moving farther
+inward. If there is insufficient room inward (or no chariots), remaining gaps
+use the last available positions. For example, Jane's Carousel's 48 horses,
+two two-row chariots, and three rows suggest 18 sections, chariots at 1A-B and
+10A-B, and assumed gaps at 1C and 10C. These gap locations are not verified.
+For example, 67 horses,
+two two-row chariots, and four rows produce 18 sections and one assumed empty
+position. Choose **Adjust chariot footprint** beside the preview, change
+**Rows per chariot**, then **Preview sketch** to regenerate while preserving
+the requested horse and chariot counts.
+The wheel is a regular-grid approximation, not evidence of alignment or equal
+ring counts. It cannot represent unequal rings.
+
+For specific positions or other figure types, choose **use the detailed layout**
+from the form, or **Adjust individual positions in the detailed layout** from
+the preview for horse-only drafts. For mixed-animal sketches, identify positions
+through seat research after saving rather than assigning a default species to
+every unknown position.
+In the detailed workflow, record the proposed sections and rows,
 choose the default figure type and motion, and enter any chariot starting seats
 and empty positions. Each chariot defaults to **two adjacent rows**, counted
 inward from its starting seat, but **Rows per chariot** is adjustable before
 saving. One spanning chariot is always one figure, not two.
 
-When all published counts and the row count are available, the form suggests a
+When all published counts and the row count are available, the detailed form suggests a
 regular-grid section count by counting each chariot as two spaces. For example,
 68 horses, no other animals, two chariots and four rows suggest 18 sections:
 `(68 + 2 * 2) / 4`. Suggested chariots are spread around the platform, starting

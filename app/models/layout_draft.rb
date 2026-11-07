@@ -20,11 +20,19 @@ class LayoutDraft
   attribute :chariot_rows_spanned, :string, default: "2"
   attribute :empty_seats, :string
   attribute :source_notes, :string
+  attribute :input_mode, :string, default: "layout"
+  attribute :horses_count, :string
+  attribute :other_animals_count, :string
+  attribute :chariots_count, :string
 
+  validate :build_sketch, if: :sketch?
+  validates :input_mode, inclusion: { in: %w[ layout sketch ] }
+  validates :horses_count, :other_animals_count, :chariots_count,
+    numericality: { only_integer: true, greater_than_or_equal_to: 0 }, if: :sketch?
   validates :sections_count, numericality: { only_integer: true, greater_than: 0 }
   validates :rows_count, :chariot_rows_spanned,
     numericality: { only_integer: true, in: 1..Carousel::MAX_ROWS }
-  validates :figure_type, presence: { message: "must be an existing figure type" }
+  validates :figure_type, presence: { message: "must be an existing figure type" }, unless: :mixed_animals?
   validates :mount, inclusion: { in: Figure::MOUNTS }, allow_blank: true
   validates :source_notes, presence: true
   validate :no_existing_layout
@@ -56,6 +64,17 @@ class LayoutDraft
     }
   end
 
+  def self.sketch_defaults_for(carousel)
+    defaults_for(carousel).merge(input_mode: "sketch", horses_count: carousel.published_horses_count,
+      other_animals_count: carousel.published_other_animals_count,
+      chariots_count: carousel.published_chariots_count,
+      chariot_rows_spanned: carousel.rows_count == 1 ? 1 : 2, mount: nil)
+  end
+
+  def sketch? = input_mode == "sketch"
+  def mixed_animals? = sketch? && other_animals_count.to_i.positive?
+  def animals_count = horses_count.to_i + other_animals_count.to_i
+
   def figure_type
     FigureType.find_by(id: figure_type_id) if figure_type_id.to_s.match?(/\A[1-9]\d*\z/)
   end
@@ -78,9 +97,11 @@ class LayoutDraft
         position = { section:, row: }
         chariot = chariots.include?(position)
         is_empty = empty.include?(position)
+        unclassified = !chariot && mixed_animals?
         Proposal.new(section:, row:, rows_spanned: chariot ? chariot_rows_spanned.to_i : 1,
-          state: is_empty ? "empty" : "filled", figure_type: is_empty ? nil : (chariot ? vehicle_type : type),
-          mount: is_empty ? nil : (chariot ? "fixed" : mount.presence))
+          state: is_empty ? "empty" : (unclassified ? "unknown" : "filled"),
+          figure_type: is_empty || unclassified ? nil : (chariot ? vehicle_type : type),
+          mount: is_empty || unclassified ? nil : (chariot ? "fixed" : mount.presence))
       end
     end
   end
@@ -90,10 +111,15 @@ class LayoutDraft
   end
 
   def assumptions
+    animals = if mixed_animals?
+      "#{animals_count} animal positions remain unclassified: #{horses_count} horses and #{other_animals_count} other animals are reported, but their individual locations and species are unknown. No animal figures are invented."
+    else
+      "All remaining positions use #{figure_type.name} with #{mount.presence || 'unknown'} motion."
+    end
     [
       "Provisional #{sections_count}-section, #{rows_count}-row regular grid; equal spacing and cross-ring alignment are assumptions.",
       "Chariots start at #{codes(:chariot_seats).presence&.join(', ') || 'no seats'} and each spans #{chariot_rows_spanned} adjacent rows inward. Their positions, fixed motion, and footprints are drafting assumptions, not verified observations.",
-      "Empty positions: #{codes(:empty_seats).presence&.join(', ') || 'none'}. All remaining positions use #{figure_type.name} with #{mount.presence || 'unknown'} motion.",
+      "Empty positions: #{codes(:empty_seats).presence&.join(', ') || 'none'}. #{sketch? ? 'These are assumed gaps to fit the requested counts into a regular grid, not observed empty seats. Gaps are placed immediately inward of chariots in the same section, distributed across chariots first; any remaining gaps use the last available positions. ' : ''}#{animals}",
       "Figure names and section 1 are editorial references. Every placement is a best reading, not confirmed."
     ].join("\n\n")
   end
@@ -127,7 +153,9 @@ class LayoutDraft
       proposals.each do |proposal|
         seat = @carousel.seat(proposal.code)
         seat.update!(rows_spanned: proposal.rows_spanned, confidence: "best_reading")
-        if proposal.state == "empty"
+        if proposal.state == "unknown"
+          seat.update!(state: "unknown")
+        elsif proposal.state == "empty"
           SeatAssignment.new(seat, nil, empty: true).save!
         else
           DraftSeatAssignment.create!(seat, figure_type: proposal.figure_type, mount: proposal.mount, source_notes: notes)
@@ -138,6 +166,48 @@ class LayoutDraft
   end
 
   private
+    def build_sketch
+      self.sections_count = nil
+      self.chariot_seats = nil
+      self.empty_seats = nil
+      self.figure_type_id = FigureType.find_by(name: "Horse", category: "horse")&.id
+      self.chariot_type_id = FigureType.find_by(name: "Chariot", category: "chariot")&.id
+      self.mount = nil
+      return unless [ horses_count, other_animals_count, chariots_count, rows_count, chariot_rows_spanned ].all? { _1.to_s.match?(/\A\d+\z/) }
+
+      chariots, rows, span = [ chariots_count, rows_count, chariot_rows_spanned ].map(&:to_i)
+      return unless rows.between?(1, Carousel::MAX_ROWS) && span.between?(1, Carousel::MAX_ROWS)
+      if chariots.positive? && span > rows
+        errors.add(:chariot_rows_spanned, "cannot exceed the number of rows")
+        return
+      end
+
+      spaces = animals_count + chariots * span
+      if spaces.zero?
+        errors.add(:base, "Enter at least one animal or chariot to sketch a layout.")
+        return
+      end
+      sections = (spaces + rows - 1) / rows
+      if chariots > sections
+        errors.add(:chariots_count, "cannot fit with one chariot per section; increase the animals or rows per chariot, or use the detailed layout.")
+        return
+      end
+      self.sections_count = sections
+      starts = chariots.times.map { _1 * sections / chariots + 1 }
+      self.chariot_seats = starts.map { "#{_1}A" }.join(", ")
+      covered = starts.flat_map { |section| span.times.map { [ section, _1 ] } }.to_set
+      positions = (1..sections).flat_map do |section|
+        rows.times.filter_map { |row| "#{section}#{('A'.ord + row).chr}" unless covered.include?([ section, row ]) }
+      end
+      gaps = sections * rows - spaces
+      inward_positions = (span...rows).flat_map do |row|
+        starts.map { |section| "#{section}#{('A'.ord + row).chr}" }
+      end
+      preferred = inward_positions.first(gaps)
+      remaining = (positions - preferred).last(gaps - preferred.size)
+      self.empty_seats = (preferred + remaining).join(", ")
+    end
+
     def snapshot
       Digest::SHA256.hexdigest([
         @carousel.cache_key_with_version, figure_type&.cache_key_with_version, chariot_type&.cache_key_with_version,

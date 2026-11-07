@@ -17,6 +17,7 @@ class LayoutDraftsSystemTest < ApplicationSystemTestCase
   test "an editor adjusts the two-row approximation and reviews the complete provisional layout" do
     visit carousel_path(@carousel)
     click_link "Create draft layout"
+    click_link "use the detailed layout"
     assert_field "Sections", with: "18"
     assert_field "Rows", with: "4"
     assert_field "Rows per chariot", with: "2"
@@ -68,5 +69,43 @@ class LayoutDraftsSystemTest < ApplicationSystemTestCase
     assert_no_selector ".provisional-layout"
     assert_not @carousel.reload.layout_provisional?
     assert_equal "best_reading", @carousel.seat("1A").confidence
+  end
+
+  test "simple sketch previews exact counts and saves provisional geometry" do
+    visit carousel_path(@carousel)
+    click_link "Create draft layout"
+    assert_selector "h1", text: "Sketch carousel layout"
+    assert_no_field "Sections"
+    assert_no_field "Chariot starting seats"
+    assert_field "Horses", with: "68"
+    assert_field "Chariots", with: "2"
+    fill_in "Horses", with: "67"
+    click_button "Preview sketch"
+    assert_selector "svg.draft-layout-chart .horse", count: 67
+    assert_selector "svg.draft-layout-chart .empty", count: 1
+    assert_text "1 assumed empty position"
+    assert_selector "svg.draft-layout-chart .chariot", count: 2
+    assert_link "Adjust chariot footprint"
+    assert_empty @carousel.seats
+    click_button "Create provisional layout"
+    assert_selector ".provisional-layout", text: "Provisional seating layout"
+    assert_equal 2, @carousel.seat("1A").rows_spanned
+    assert_equal 67, @carousel.reload.category_totals.fetch("horse")
+    assert_equal 1, @carousel.seats.where(state: "empty").count
+    assert_equal 68, @carousel.published_horses_count
+  end
+
+  test "mixed animal sketch shows the combined total without assigning species" do
+    @carousel.update!(rows_count: 3, published_horses_count: 25, published_other_animals_count: 21,
+      published_chariots_count: 4)
+    visit new_carousel_layout_draft_path(@carousel)
+    assert_field "Horses", with: "25"
+    assert_field "Other animals", with: "21"
+    click_button "Preview sketch"
+    assert_text "46 unclassified animal positions"
+    assert_selector "svg.draft-layout-chart .unknown", count: 46
+    assert_selector "svg.draft-layout-chart .chariot", count: 4
+    assert_no_selector "svg.draft-layout-chart .horse, svg.draft-layout-chart .menagerie"
+    assert_empty @carousel.seats
   end
 end

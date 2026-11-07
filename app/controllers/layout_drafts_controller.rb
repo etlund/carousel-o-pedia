@@ -3,7 +3,7 @@ class LayoutDraftsController < ApplicationController
   before_action -> { authorize_edit!(@carousel) }
 
   def new
-    attributes = params[:layout_draft].present? ? draft_params : LayoutDraft.defaults_for(@carousel)
+    attributes = params[:layout_draft].present? ? draft_params : LayoutDraft.sketch_defaults_for(@carousel)
     @draft = LayoutDraft.new(@carousel, attributes)
   end
 
@@ -36,6 +36,6 @@ class LayoutDraftsController < ApplicationController
 
     def draft_params
       params.expect(layout_draft: %i[ sections_count rows_count figure_type_id mount chariot_type_id
-        chariot_seats chariot_rows_spanned empty_seats source_notes ])
+        chariot_seats chariot_rows_spanned empty_seats source_notes input_mode horses_count other_animals_count chariots_count ])
     end
 end
