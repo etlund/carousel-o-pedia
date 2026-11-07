@@ -5,7 +5,8 @@
   <p class="muted address"><%= @carousel.address %></p>
   <p><%= link_to "View all figures", figures_path(carousel_id: @carousel.id) %></p>
   <%= render "shared/page_actions", record: @carousel, edit: edit_carousel_path(@carousel), history: history_carousel_path(@carousel) %>
-  <% if can_edit?(@carousel) && !@carousel.layout_known? && @carousel.seats.empty? %>
+  <% if can_edit?(@carousel) %><p><%= link_to "Add deck", new_carousel_deck_path(@carousel) %></p><% end %>
+  <% if can_edit?(@carousel) && @carousel.carousel_decks.empty? && !@carousel.layout_known? && @carousel.seats.empty? %>
     <p><%= link_to "Create draft layout", new_carousel_layout_draft_path(@carousel) %></p>
   <% end %>
   <% if can_edit?(@carousel) && @carousel.layout_known? && @carousel.seats.unknown.exists? %>
@@ -99,6 +100,16 @@
     </tbody>
   </table>
 </div>
+<% end %>
+
+<% if @carousel.carousel_decks.any? %>
+  <h2>Decks</h2>
+  <p>Each deck has its own rows, sections, and seating chart. Published carousel totals are not automatically divided between decks.
+    <% if @carousel.layout_known? %>The existing chart above is the main platform.<% end %></p>
+  <% @carousel.carousel_decks.each do |deck| %>
+    <h3><%= link_to deck.name, carousel_deck_path(@carousel, deck) %></h3>
+    <%= render "carousel_decks/layout", deck: %>
+  <% end %>
 <% end %>
 
 <% if @carousel.address_sources.present? %>

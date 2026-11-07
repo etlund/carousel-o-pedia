@@ -27,7 +27,7 @@ class CarouselsController < ApplicationController
       raise ActiveRecord::RecordNotFound, "Unknown country"
     end
 
-    @carousels = Carousel.includes(:maker, seats: { current_placement: { figure: :figure_type } })
+    @carousels = Carousel.includes(:maker, :carousel_decks, all_seats: { current_placement: { figure: :figure_type } }, seats: { current_placement: { figure: :figure_type } })
     @carousels = @carousels.recently_updated if @sort == "updated"
     @carousels = @carousels.most_complete if @sort == "completeness"
     @carousels = @carousels.order(:name, :id)

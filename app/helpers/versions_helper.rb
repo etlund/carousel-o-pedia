@@ -12,7 +12,8 @@ module VersionsHelper
   def version_subject(version)
     record = version.item || version.reify
     case record
-    when Seat then link_to("#{record.carousel.name} seat #{record.code}", carousel_seat_path(record.carousel, record))
+    when Seat then link_to("#{record.carousel.name} seat #{record.display_code}", seat_record_path(record))
+    when CarouselDeck then link_to(record.display_name, carousel_deck_path(record.carousel, record))
     when Placement then placement_summary(record)
     when nil then version.item_type
     else link_to(record.name, record)
@@ -29,6 +30,7 @@ module VersionsHelper
     return Figure.find_by(id: value)&.name || value if field == "figure_id"
     return FigureType.find_by(id: value)&.name || value if field == "figure_type_id"
     return Carousel.find_by(id: value)&.name || value if field == "carousel_id"
+    return CarouselDeck.find_by(id: value)&.name || value if field == "carousel_deck_id"
     return Maker.find_by(id: value)&.name || value if field.in?(%w[ maker_id carver_id ])
 
     truncate(value.to_s, length: 140)
@@ -39,6 +41,6 @@ module VersionsHelper
       figure, seat = placement.figure, placement.seat
       return "A placement" unless figure && seat
 
-      safe_join([ link_to(figure.name, figure), " in ", link_to("#{seat.carousel.name} #{seat.code}", carousel_seat_path(seat.carousel, seat)) ])
+      safe_join([ link_to(figure.name, figure), " in ", link_to("#{seat.carousel.name} #{seat.display_code}", seat_record_path(seat)) ])
     end
 end

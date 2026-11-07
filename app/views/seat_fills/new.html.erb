@@ -1,12 +1,13 @@
 <% content_for :title, "Fill unknown seats on #{@carousel.name}" %>
 <p class="muted"><%= link_to @carousel.name, @carousel %></p>
 <h1>Fill unknown seats</h1>
+<% if @layout.is_a?(CarouselDeck) %><p><strong><%= @layout.name %> only.</strong> Other decks will not be filled.</p><% end %>
 <%= render "shared/errors", record: @fill %>
 
-<% if !@carousel.layout_known? %>
+<% if !@layout.layout_known? %>
   <p>Record the carousel's sections and rows before filling unknown seats.</p>
-  <p><%= link_to "Edit carousel layout", edit_carousel_path(@carousel) %></p>
-  <p>Working from approximate inventory instead? <%= link_to "Create draft layout", new_carousel_layout_draft_path(@carousel) %> and review the assumptions before saving.</p>
+  <p><%= link_to "Edit carousel layout", @layout.is_a?(CarouselDeck) ? edit_carousel_deck_path(@carousel, @layout) : edit_carousel_path(@carousel) %></p>
+  <p>Working from approximate inventory instead? <%= link_to "Create draft layout", new_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id]) %> and review the assumptions before saving.</p>
 <% elsif @fill.seats.empty? %>
   <p>There are no unknown seats to fill. Existing figures and empty seats will not be changed.</p>
 <% else %>
@@ -14,7 +15,7 @@
     Existing figures and empty seats will not be changed. Place chariots and mark empty positions first.</p>
   <p>Each unknown seat gets a new figure with a provisional seat-based name, such as Horse 2A.
     All new placements are marked as best readings, not confirmed. Existing row spans are preserved.</p>
-  <%= form_with model: @fill, scope: :seat_fill, url: preview_carousel_seat_fill_path(@carousel), method: :post, class: "form", data: { turbo: false } do |form| %>
+  <%= form_with model: @fill, scope: :seat_fill, url: preview_carousel_seat_fill_path(@carousel, deck_id: params[:deck_id]), method: :post, class: "form", data: { turbo: false } do |form| %>
     <div class="field-row">
       <div class="field">
         <%= form.label :figure_type_id, "Figure type" %>

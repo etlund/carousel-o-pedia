@@ -29,6 +29,7 @@ module VideoAnalysesHelper
 
   # Seats the reviewer is likely to accept start ticked; doubtful ones start unticked.
   def video_analysis_seat_checked?(proposal, seat, carousel)
+    return false if carousel.carousel_decks.any?
     return false if proposal["state"] == "unknown" || proposal["confidence"] == "low"
 
     !carousel.layout_known? || (seat.present? && seat.figure.nil? && seat.state == "unknown")

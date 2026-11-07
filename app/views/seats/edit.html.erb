@@ -1,20 +1,20 @@
 <% content_for :title, "Edit #{@carousel.name} #{@seat.code}" %>
 <p class="muted"><%= link_to @carousel.name, @carousel %></p>
-<h1>Edit seat <%= @seat.code %></h1>
-<%= form_with model: @seat, url: carousel_seat_path(@carousel, @seat), method: :patch, class: "form" do |form| %>
+<h1>Edit seat <%= @seat.display_code %></h1>
+<%= form_with model: @seat, url: seat_record_path(@seat), method: :patch, class: "form" do |form| %>
   <%= render "shared/errors", record: @seat %>
   <div class="field">
     <%= form.label :figure_id, "Figure in this seat" %>
     <%= form.select :figure_id,
           options_for_select([ [ "Unknown", "" ], [ "Empty", SeatsController::EMPTY ] ], @seat.figure ? nil : (@seat.state == "empty" ? SeatsController::EMPTY : "")) +
           options_from_collection_for_select(@figures, :id,
-            ->(figure) { figure.seat && figure.seat != @seat ? "#{figure.name} (now #{figure.carousel.name} #{figure.seat.code})" : "#{figure.name} (#{figure.carousel.name})" }, @seat.figure&.id) %>
+            ->(figure) { figure.seat && figure.seat != @seat ? "#{figure.name} (now #{figure.carousel.name} #{figure.seat.display_code})" : "#{figure.name} (#{figure.carousel.name})" }, @seat.figure&.id) %>
     <p class="hint">Only this carousel's researched and unseated figures are listed. Choosing a figure seated elsewhere moves it here and leaves its old seat empty. Replacing an auto-filled draft figure removes that placeholder; researched figures remain in inventory. Missing a figure? <%= link_to "Add it first", new_figure_path(carousel_id: @carousel.id) %>.</p>
   </div>
   <div class="field-row">
     <div class="field">
       <%= form.label :rows_spanned, "Rows it fills" %>
-      <%= form.number_field :rows_spanned, min: 1, max: @carousel.rows_count - @seat.row_index %>
+      <%= form.number_field :rows_spanned, min: 1, max: @seat.layout.rows_count - @seat.row_index %>
       <p class="hint">More than 1 for a tub or chariot that fills several rows, counted inward from row <%= @seat.row %>. Expanding across auto-filled draft figures removes those placeholders, but researched figures are protected.</p>
     </div>
     <div class="field">

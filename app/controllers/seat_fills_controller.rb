@@ -6,11 +6,11 @@ class SeatFillsController < ApplicationController
     attributes = params[:seat_fill].present? ? seat_fill_params : {
       figure_type_id: FigureType.find_by(name: "Horse")&.id, mount: "jumper"
     }
-    @fill = SeatFill.new(@carousel, attributes)
+    @fill = SeatFill.new(@layout, attributes)
   end
 
   def preview
-    @fill = SeatFill.new(@carousel, seat_fill_params)
+    @fill = SeatFill.new(@layout, seat_fill_params)
     if @fill.valid?
       render :preview
     else
@@ -19,11 +19,11 @@ class SeatFillsController < ApplicationController
   end
 
   def create
-    @fill, snapshot = SeatFill.from_preview(@carousel, params.expect(:preview_token))
+    @fill, snapshot = SeatFill.from_preview(@layout, params.expect(:preview_token))
     added = @fill.apply!(expected_snapshot: snapshot)
     redirect_to @carousel, notice: "Added #{added} #{"draft figure".pluralize(added)}. All new placements are best readings; existing figures and empty seats were left unchanged."
   rescue SeatFill::Conflict => error
-    redirect_to new_carousel_seat_fill_path(@carousel), alert: error.message
+    redirect_to new_carousel_seat_fill_path(@carousel, deck_id: params[:deck_id]), alert: error.message
   rescue ActiveModel::ValidationError
     render :new, status: :unprocessable_entity
   rescue ActiveRecord::RecordInvalid => error
@@ -34,6 +34,7 @@ class SeatFillsController < ApplicationController
   private
     def set_carousel
       @carousel = Carousel.find_by!(slug: params[:carousel_id])
+      @layout = params[:deck_id].present? ? @carousel.carousel_decks.find(params[:deck_id]) : @carousel
     end
 
     def seat_fill_params

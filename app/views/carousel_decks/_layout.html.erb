@@ -1,0 +1,29 @@
+<section class="deck-layout" id="<%= dom_id(deck) %>" data-deck-id="<%= deck.id %>">
+  <p><%= carousel_platform_label(deck) || "Geometry unknown" %></p>
+  <% if deck.layout_provisional? %><p class="provisional-layout"><strong>Provisional seating layout.</strong> This deck's geometry and chariot positions are assumptions.</p><% end %>
+  <% if can_edit?(deck) %>
+    <% if !deck.layout_known? && deck.seats.empty? %>
+      <p><%= link_to "Create draft layout for #{deck.name}", new_carousel_layout_draft_path(deck.carousel, deck_id: deck.id) %></p>
+    <% elsif deck.seats.unknown.exists? %>
+      <p><%= link_to "Fill unknown seats on #{deck.name}", new_carousel_seat_fill_path(deck.carousel, deck_id: deck.id) %></p>
+    <% end %>
+  <% end %>
+  <% if deck.layout_known? %>
+    <%= render "carousels/seat_chart", carousel: deck %>
+    <h3>Seats on <%= deck.name %></h3>
+    <div class="table-scroll"><table class="deck-seats">
+      <thead><tr><th>Seat</th><th>Figure</th><th>Confidence</th></tr></thead>
+      <tbody><% deck.seats.includes(current_placement: :figure).each do |seat| %>
+        <tr><td><%= link_to seat.display_code, seat_record_path(seat) %></td><td><%= seat.figure&.name || seat.state.capitalize %></td><td><%= seat.confidence.humanize %></td></tr>
+      <% end %></tbody>
+    </table></div>
+  <% else %>
+    <p class="layout-unknown">No seating layout has been recorded for this deck.</p>
+  <% end %>
+  <dl class="facts">
+    <% deck.published_category_totals.each do |category, count| %>
+      <dt><%= category_label(category) %> (published on this deck)</dt><dd><%= count.nil? ? "Unknown" : count %></dd>
+    <% end %>
+  </dl>
+  <% if deck.summary_sources.present? %><section class="prose"><h3>Deck sources</h3><%= wiki_body(deck.summary_sources) %></section><% end %>
+</section>

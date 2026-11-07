@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   resource :database_export, path: "database-export", only: :show
 
   resources :carousels, except: :destroy, concerns: :historical do
+    resources :decks, controller: :carousel_decks, only: %i[ new create show edit update ], concerns: :historical
     resource :layout_draft, path: "draft-layout", only: %i[ new create ] do
       post :preview
     end
@@ -30,6 +31,13 @@ Rails.application.routes.draw do
         post :retry
       end
     end
+  end
+
+  scope "carousels/:carousel_id/decks/:deck_id/seats/:code", constraints: { code: /\d+[A-Za-z]/ }, controller: :seats do
+    get "", action: :show, as: :deck_seat
+    patch "", action: :update
+    get "edit", action: :edit, as: :edit_deck_seat
+    get "history", action: :history, as: :history_deck_seat
   end
 
   # Seat codes are section number plus row letter, e.g. /carousels/great-northern-carousel/5A
