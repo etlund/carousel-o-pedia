@@ -3,6 +3,39 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "an editor corrects a one-row chart to three rows through the carousel form" do
+    carousel = build_carousel(sections: 3, rows: 1)
+    figure = create_figure("Original outer-row figure", carousel:)
+    SeatAssignment.new(carousel.seat("2A"), figure).save!
+    visit new_session_path
+    fill_in "Email", with: users(:editor).email_address
+    fill_in "Password", with: "password"
+    click_button "Sign in"
+    assert_button "Sign out"
+
+    visit carousel_path(carousel)
+    click_link "Edit", exact: true
+    assert_current_path edit_carousel_path(carousel)
+    assert_no_selector "html[data-turbo-preview]", visible: :all
+    assert_field "Rows", with: "1"
+    page.evaluate_async_script("document.fonts.ready.then(() => arguments[0](true))")
+    fill_in "Rows", with: "3"
+    assert_field "Rows", with: "3"
+    click_button "Update Carousel"
+
+    assert_current_path carousel_path(carousel)
+    assert_selector "h1", text: carousel.name, exact_text: true
+    assert_text "Saved."
+    assert_selector "svg.seat-chart a.seat", count: 9
+    assert_selector "table.sections thead th", text: "C", exact_text: true
+    assert_equal 3, carousel.reload.rows_count
+    assert_equal "2A", figure.reload.seat.code
+
+    visit edit_carousel_path(carousel)
+    assert_field "Rows", with: "3"
+    assert_equal 3, carousel.reload.sections_count
+  end
+
   test "browser-width chart preserves the chart and supports closing and seat navigation" do
     carousel = Carousel.find_by!(slug: "spokane-looff-carrousel")
     visit carousel_path(carousel)

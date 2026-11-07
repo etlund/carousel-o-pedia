@@ -225,7 +225,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_select "svg.seat-chart a.seat.unknown", 6
     assert_select "table.sections tbody tr", 3
     get edit_carousel_path(carousel)
-    assert_select "input[name='carousel[sections_count]']", 0
+    assert_select "input[name='carousel[sections_count]'][value='3']"
     assert_select "select[name='carousel[lead_seat_id]']"
   end
 
@@ -241,6 +241,15 @@ class EditingTest < ActionDispatch::IntegrationTest
       assert_not carousel.reload.layout_known?
       assert_empty carousel.seats
     end
+  end
+
+  test "creating a three-row carousel saves all three rows" do
+    sign_in_as users(:editor)
+    post carousels_path, params: { carousel: { name: "Three-row carousel", sections_count: 3, rows_count: 3 } }
+    carousel = Carousel.find_by!(name: "Three-row carousel")
+    assert_redirected_to carousel_path(carousel)
+    assert_equal 3, carousel.rows_count
+    assert_equal %w[ 1A 1B 1C 2A 2B 2C 3A 3B 3C ], carousel.seats.map(&:code)
   end
 
   test "editors can record partial layout facts and published totals with sources" do
@@ -320,10 +329,62 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_equal original, @carousel.reload.official_url
   end
 
-  test "the platform size can't change after the carousel is made" do
+  test "an editor can correct one row to three while keeping figures and recording history" do
     sign_in_as users(:editor)
-    patch carousel_path(@carousel), params: { carousel: { name: "Great Northern Carousel", sections_count: 20 } }
-    assert_equal 14, @carousel.reload.sections_count
+    carousel = build_carousel(sections: 3, rows: 1)
+    figure = create_figure("Existing figure", carousel:)
+    SeatAssignment.new(carousel.seat("2A"), figure).save!
+    original_ids = carousel.seats.ids
+
+    get edit_carousel_path(carousel)
+    assert_select "input[name='carousel[sections_count]'][value='3']"
+    assert_select "input[name='carousel[rows_count]'][value='1']"
+    patch carousel_path(carousel), params: { carousel: { rows_count: 3 } }
+    assert_redirected_to carousel_path(carousel)
+    assert_equal 3, carousel.reload.rows_count
+    assert_equal 9, carousel.seats.count
+    assert_empty original_ids - carousel.seats.ids
+    assert_equal figure, carousel.seat("2A").figure
+    assert_equal "unknown", carousel.seat("2C").state
+    get carousel_path(carousel)
+    assert_select "svg.seat-chart a.seat", 9
+    get history_carousel_path(carousel)
+    assert_select ".version-line", /Ed Editor\s+edited/
+    assert_select ".changes", text: /Rows count/
+  end
+
+  test "editors can expand sections and shrink untouched positions" do
+    sign_in_as users(:editor)
+    carousel = build_carousel(sections: 2, rows: 1)
+    patch carousel_path(carousel), params: { carousel: { sections_count: 3, rows_count: 3 } }
+    assert_redirected_to carousel_path(carousel)
+    assert_equal 9, carousel.reload.seats.count
+    patch carousel_path(carousel), params: { carousel: { sections_count: 2, rows_count: 1 } }
+    assert_redirected_to carousel_path(carousel)
+    assert_equal %w[ 1A 2A ], carousel.reload.seats.map(&:code)
+  end
+
+  test "unsafe and invalid layout corrections show errors and retain editable dimensions" do
+    sign_in_as users(:editor)
+    [ { sections_count: 1 }, { rows_count: 0 }, { rows_count: 7 }, { rows_count: "" } ].each do |dimensions|
+      assert_no_difference "PaperTrail::Version.count" do
+        patch carousel_path(@carousel), params: { carousel: dimensions }
+      end
+      assert_response :unprocessable_entity
+      assert_select "[role=alert]"
+      assert_select "input[name='carousel[sections_count]']"
+      assert_select "input[name='carousel[rows_count]']"
+      assert_equal [ 14, 3 ], @carousel.reload.attributes.values_at("sections_count", "rows_count")
+    end
+  end
+
+  test "shrinking cannot remove the selected lead section" do
+    sign_in_as users(:editor)
+    carousel = build_carousel(sections: 3, rows: 1)
+    patch carousel_path(carousel), params: { carousel: { sections_count: 2, lead_seat_id: carousel.seat("3A").id } }
+    assert_response :unprocessable_entity
+    assert_select "[role=alert]", text: /Choose a lead figure/
+    assert_equal 3, carousel.reload.sections_count
   end
 
   test "an editor sets the lead figure from the carousel form" do

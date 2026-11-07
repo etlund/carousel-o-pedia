@@ -80,7 +80,7 @@ class Carousel < ApplicationRecord
   normalizes :other_names, with: ->(value) { value.lines.map(&:strip).compact_blank.uniq.join("\n").presence }
   validate :website_urls_are_http
 
-  after_save :fill_missing_seats, if: :layout_added?
+  after_save :resize_layout, if: :layout_changed?
 
   def layout_known? = sections_count.present? && rows_count.present?
 
@@ -168,46 +168,73 @@ class Carousel < ApplicationRecord
       end
     end
 
-    def layout_added?
-      layout_known? && (saved_change_to_sections_count?(from: nil) || saved_change_to_rows_count?(from: nil))
+    def layout_changed?
+      layout_known? && (saved_change_to_sections_count? || saved_change_to_rows_count?)
+    end
+
+    def seats_outside_layout
+      seats.where("section > ? OR row > ?", sections_count, row_letters.last)
+    end
+
+    def untouched_unknown_seat?(seat)
+      seat.state == "unknown" && seat.confidence == "best_reading" && seat.rows_spanned == 1 &&
+        seat.placements.empty? && !seat.versions.where(event: "update").exists?
+    end
+
+    def resize_layout
+      seats_outside_layout.each(&:destroy!)
+      fill_missing_seats
     end
 
     def layout_dimensions_are_consistent
       if !layout_known? && seats.exists?
         errors.add(:base, "The layout cannot be cleared while seats exist")
       end
+      return unless layout_known? && errors[:sections_count].empty? && errors[:rows_count].empty?
 
-      def ring_details_are_consistent
-        unless ring_details.is_a?(Hash)
-          errors.add(:ring_details, "must describe rows from the outside in")
-          return
+      outside = seats_outside_layout.includes(:placements).to_a
+      protected_codes = outside.reject { untouched_unknown_seat?(_1) }.map(&:code)
+      if protected_codes.any?
+        errors.add(:base, "The layout cannot remove #{protected_codes.to_sentence}: only untouched unknown seats can be removed")
+      end
+      spanning_codes = seats.where.not(id: outside.map(&:id)).select do |seat|
+        seat.row_index + seat.rows_spanned > rows_count
+      end.map(&:code)
+      if spanning_codes.any?
+        errors.add(:base, "The layout would cut off spanning seats #{spanning_codes.to_sentence}; edit their row spans first")
+      end
+    end
+
+    def ring_details_are_consistent
+      unless ring_details.is_a?(Hash)
+        errors.add(:ring_details, "must describe rows from the outside in")
+        return
+      end
+      return if ring_details.empty?
+
+      unless rows_count.is_a?(Integer) && rows_count.between?(1, MAX_ROWS)
+        errors.add(:ring_details, "require a verified row count")
+        return
+      end
+
+      letters = ("A"..).first(rows_count)
+      ring_details.each do |letter, details|
+        unless letters.include?(letter) && details.is_a?(Hash) && (details.keys - RING_FIELDS).empty?
+          errors.add(:ring_details, "contain an invalid row or field")
+          next
         end
-        return if ring_details.empty?
-
-        unless rows_count.is_a?(Integer) && rows_count.between?(1, MAX_ROWS)
-          errors.add(:ring_details, "require a verified row count")
-          return
+        %w[ positions_count horses_count ].each do |field|
+          value = details[field]
+          if value && !(value.is_a?(Integer) && value >= 0)
+            errors.add(:ring_details, "#{letter} #{field.humanize.downcase} must be a nonnegative integer")
+          end
         end
-
-        letters = ("A"..).first(rows_count)
-        ring_details.each do |letter, details|
-          unless letters.include?(letter) && details.is_a?(Hash) && (details.keys - RING_FIELDS).empty?
-            errors.add(:ring_details, "contain an invalid row or field")
-            next
-          end
-          %w[ positions_count horses_count ].each do |field|
-            value = details[field]
-            if value && !(value.is_a?(Integer) && value >= 0)
-              errors.add(:ring_details, "#{letter} #{field.humanize.downcase} must be a nonnegative integer")
-            end
-          end
-          if details["mount"] && !RING_MOUNTS.include?(details["mount"])
-            errors.add(:ring_details, "#{letter} horse motion must be stander or jumper")
-          end
-          positions, horses = details.values_at("positions_count", "horses_count")
-          if positions.is_a?(Integer) && horses.is_a?(Integer) && horses > positions
-            errors.add(:ring_details, "#{letter} cannot have more horses than positions")
-          end
+        if details["mount"] && !RING_MOUNTS.include?(details["mount"])
+          errors.add(:ring_details, "#{letter} horse motion must be stander or jumper")
+        end
+        positions, horses = details.values_at("positions_count", "horses_count")
+        if positions.is_a?(Integer) && horses.is_a?(Integer) && horses > positions
+          errors.add(:ring_details, "#{letter} cannot have more horses than positions")
         end
       end
     end

@@ -283,6 +283,89 @@ class CarouselTest < ActiveSupport::TestCase
     assert carousel.reload.layout_known?
   end
 
+  test "expanding dimensions preserves existing seats placements and spans" do
+    carousel = build_carousel(sections: 2, rows: 2)
+    spanning = carousel.seat("1A")
+    spanning.update!(rows_spanned: 2)
+    figure = create_figure("Vehicle", category: "chariot", carousel:)
+    SeatAssignment.new(spanning, figure).save!
+    existing = carousel.seats.map { [ _1.id, _1.code ] }
+    placement_ids = spanning.placements.ids
+
+    carousel.update!(sections_count: 3, rows_count: 3)
+
+    assert_equal existing, carousel.seats.where(id: existing.map(&:first)).map { [ _1.id, _1.code ] }
+    assert_equal placement_ids, spanning.placements.ids
+    assert_equal figure, carousel.seat("1A").figure
+    assert_nil carousel.seat("1B")
+    assert_equal "unknown", carousel.seat("1C").state
+    assert_equal 8, carousel.seats.count
+    assert_equal [ 2, 3 ], carousel.versions.last.changeset["rows_count"]
+    assert_no_difference "Seat.count" do
+      carousel.update!(name: "Expanded layout")
+    end
+  end
+
+  test "shrinking removes only untouched unknown seats and keeps destruction history" do
+    carousel = build_carousel(sections: 3, rows: 3)
+    kept_ids = carousel.seats.where(section: 1..2, row: %w[ A B ]).ids
+    removed = carousel.seat("3C")
+
+    carousel.update!(sections_count: 2, rows_count: 2)
+
+    assert_equal kept_ids, carousel.seats.reload.ids
+    assert_equal %w[ 1A 1B 2A 2B ], carousel.seats.map(&:code)
+    assert_equal "destroy", removed.versions.last.event
+  end
+
+  test "shrinking protects empty confirmed previously edited and historically occupied seats" do
+    %i[ empty confirmed edited history ].each do |kind|
+      carousel = build_carousel(sections: 2, rows: 2)
+      seat = carousel.seat("2B")
+      case kind
+      when :empty then seat.update!(state: "empty")
+      when :confirmed then seat.update!(confidence: "confirmed")
+      when :edited
+        seat.update!(confidence: "confirmed")
+        seat.update!(confidence: "best_reading")
+      when :history
+        figure = create_figure("Former figure", carousel:)
+        Placement.create!(seat:, figure:, ended_on: Date.current)
+      end
+      seat_ids = carousel.seats.ids
+      assert_no_difference "PaperTrail::Version.count" do
+        assert_not carousel.update(sections_count: 1, rows_count: 1), kind
+      end
+      assert_match(/2B.*only untouched unknown seats/, carousel.errors[:base].join)
+      assert_equal seat_ids, carousel.seats.reload.ids
+      assert_equal [ 2, 2 ], carousel.reload.attributes.values_at("sections_count", "rows_count")
+    end
+  end
+
+  test "shrinking protects occupied seats and spanning footprints" do
+    carousel = build_carousel(sections: 2, rows: 3)
+    figure = create_figure("Spanning chariot", category: "chariot", carousel:)
+    seat = carousel.seat("2A")
+    seat.update!(rows_spanned: 3)
+    SeatAssignment.new(seat, figure).save!
+    assert_not carousel.update(sections_count: 1)
+    assert_match(/2A.*only untouched unknown seats/, carousel.errors[:base].join)
+    carousel.reload
+    assert_not carousel.update(rows_count: 2)
+    assert_match(/cut off spanning seats 2A/, carousel.errors[:base].join)
+    assert_equal figure, carousel.reload.seat("2A").figure
+    assert_equal 3, seat.reload.rows_spanned
+  end
+
+  test "shrinking cannot discard independent ring research" do
+    carousel = build_carousel(rows: 3)
+    carousel.update!(ring_details: { "C" => { "positions_count" => 4 } }, summary_sources: "Operator")
+    assert_not carousel.update(rows_count: 2)
+    assert_includes carousel.errors[:ring_details], "contain an invalid row or field"
+    assert_equal 3, carousel.reload.rows_count
+    assert_equal 12, carousel.seats.count
+  end
+
   test "rotation can remain unknown but cannot use an invalid value" do
     carousel = build_carousel
     assert carousel.update(rotation: "")

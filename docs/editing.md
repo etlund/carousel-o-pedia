@@ -182,8 +182,17 @@ multiple rows, not multiple figure records.
 
 Both section and row counts are needed to create seats and a full seating
 chart. Until then, each known dimension can be recorded independently without
-inventing the rest. Once both are recorded, platform size is fixed in the
-editor. Rotation is optional and is never guessed.
+inventing the rest. Rotation is optional and is never guessed.
+
+To correct an existing layout, open the carousel's **Edit** page and change
+**Sections** or **Rows** under **Platform**. Increasing either count preserves
+existing seat codes, figures, and placements and creates unknown seats at the
+new positions. Decreasing a count removes only untouched unknown seats.
+Figures, researched seats, placement history, and spanning seats are protected;
+an unsafe decrease shows an error without saving. Update a spanning seat's
+**Rows it fills** first if its footprint would extend beyond the new row count.
+Independent ring research must also fit within the new row count.
+CSV imports still cannot change an existing known layout; use the editor.
 
 A newly recorded layout starts with unknown seats. Click a seat to assign a
 figure; choosing one already seated elsewhere moves it and leaves its old seat
@@ -217,9 +226,9 @@ any failure rolls back the entire draft. Existing charts are never replaced.
 Every placement is a best reading, and the chart and directory explicitly label
 the geometry **provisional**. Rotation is preserved, not inferred.
 
-Platform size remains fixed in the standard editor once seats exist. Confirm
-the dimensions before applying; individual placements and spans can be
-corrected afterward. After verifying the geometry and recording evidence in
+Confirm the dimensions before applying; dimensions, individual placements, and
+spans can be corrected afterward using the safeguards above.
+After verifying the geometry and recording evidence in
 **Summary sources**, uncheck **Provisional layout** in the carousel editor.
 That removes the geometry warning but does not confirm individual placements.
 

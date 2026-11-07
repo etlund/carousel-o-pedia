@@ -71,7 +71,11 @@ class CarouselsController < ApplicationController
 
   def update
     lead_seat = @carousel.seats.find_by(id: params.dig(:carousel, :lead_seat_id))
-    if @carousel.update(carousel_params)
+    @carousel.assign_attributes(carousel_params)
+    if lead_seat && @carousel.sections_count && lead_seat.section > @carousel.sections_count
+      @carousel.errors.add(:base, "Choose a lead figure in a section that remains in the layout")
+      render :edit, status: :unprocessable_entity
+    elsif @carousel.save
       @carousel.renumber_from!(lead_seat) if lead_seat
       redirect_to @carousel, notice: "Saved."
     else
@@ -86,14 +90,11 @@ class CarouselsController < ApplicationController
 
     def history_record = Carousel.find_by!(slug: params[:id])
 
-    # The platform's size is fixed once seats exist; changing it would orphan seat codes.
     def carousel_params
       permitted = %i[ name other_names street_address city region postal_code country address_sources venue status year_built year_opened maker_id rotation body official_url wikipedia_url other_links
-        published_horses_count published_other_animals_count published_chariots_count summary_sources ]
+        published_horses_count published_other_animals_count published_chariots_count summary_sources sections_count rows_count ]
       if @carousel&.layout_known?
         permitted << :layout_provisional
-      else
-        permitted += %i[ sections_count rows_count ]
       end
       permitted << { ring_details: ("A"..).first(Carousel::MAX_ROWS).index_with { Carousel::RING_FIELDS } }
       params.expect(carousel: permitted)

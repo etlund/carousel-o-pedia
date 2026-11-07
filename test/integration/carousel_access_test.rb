@@ -134,6 +134,19 @@ class CarouselAccessTest < ActionDispatch::IntegrationTest
     assert_denied
   end
 
+  test "layout corrections are limited to the assigned carousel" do
+    patch carousel_path(@carousel), params: { carousel: { rows_count: 3 } }
+    assert_redirected_to carousel_path(@carousel)
+    assert_equal 3, @carousel.reload.rows_count
+    assert_equal 12, @carousel.seats.count
+
+    assert_no_difference "Seat.count" do
+      patch carousel_path(@other), params: { carousel: { rows_count: 3 } }
+    end
+    assert_denied
+    assert_equal 2, @other.reload.rows_count
+  end
+
   test "figure editing and creation stay within the assigned carousel" do
     get new_figure_path
     assert_response :success
