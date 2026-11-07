@@ -1,6 +1,6 @@
 class DraftSeatAssignment
   def self.create!(seat, figure_type:, mount:, source_notes:)
-    figure = seat.carousel.figures.create!(name: "#{figure_type.name} #{seat.code}", short_name: figure_type.name,
+    figure = seat.carousel.figures.create!(name: "#{figure_type.name} #{seat.display_code}", short_name: figure_type.name,
       figure_type:, mount:,
       draft_placeholder: true,
       description: "Provisional seat-based name; individual identity and decoration have not been verified.",

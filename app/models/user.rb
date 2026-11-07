@@ -43,7 +43,7 @@ class User < ApplicationRecord
 
     carousel_id = case record
     when Carousel then record.id
-    when Figure, Seat then record.carousel_id
+    when Figure, Seat, CarouselDeck then record.carousel_id
     end
     editable_carousel_id.present? && carousel_id == editable_carousel_id
   end

@@ -117,7 +117,7 @@ class LayoutDraft
       "All remaining positions use #{figure_type.name} with #{mount.presence || 'unknown'} motion."
     end
     [
-      "Provisional #{sections_count}-section, #{rows_count}-row regular grid; equal spacing and cross-ring alignment are assumptions.",
+      "Provisional #{sections_count}-section, #{rows_count}-row regular grid#{@carousel.is_a?(CarouselDeck) ? " on #{@carousel.name}" : ''}; equal spacing and cross-ring alignment are assumptions.",
       "Chariots start at #{codes(:chariot_seats).presence&.join(', ') || 'no seats'} and each spans #{chariot_rows_spanned} adjacent rows inward. Their positions, fixed motion, and footprints are drafting assumptions, not verified observations.",
       "Empty positions: #{codes(:empty_seats).presence&.join(', ') || 'none'}. #{sketch? ? 'These are assumed gaps to fit the requested counts into a regular grid, not observed empty seats. Gaps are placed immediately inward of chariots in the same section, distributed across chariots first; any remaining gaps use the last available positions. ' : ''}#{animals}",
       "Figure names and section 1 are editorial references. Every placement is a best reading, not confirmed."
@@ -125,7 +125,7 @@ class LayoutDraft
   end
 
   def preview_carousel
-    @preview_carousel ||= Carousel.new(name: @carousel.name, sections_count:, rows_count:, rotation: @carousel.rotation)
+    @preview_carousel ||= Carousel.new(name: @carousel.display_name, sections_count:, rows_count:, rotation: @carousel.rotation)
   end
 
   def preview_seats

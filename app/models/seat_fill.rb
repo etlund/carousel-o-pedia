@@ -27,7 +27,7 @@ class SeatFill
 
   def seats = @seats ||= @carousel.seats.unknown.to_a
 
-  def figure_name(seat) = "#{figure_type.name} #{seat.code}"
+  def figure_name(seat) = "#{figure_type.name} #{seat.display_code}"
 
   def apply!(expected_snapshot:)
     @carousel.with_lock do

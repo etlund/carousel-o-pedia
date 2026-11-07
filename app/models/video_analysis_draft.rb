@@ -16,6 +16,9 @@ class VideoAnalysisDraft
   def apply!
     added, emptied, skipped = [], [], []
     ActiveRecord::Base.transaction do
+      if @carousel.carousel_decks.any?
+        raise Conflict, "Video drafts cannot assign seats across decks. Use the individual deck editor and cite this analysis as research."
+      end
       apply_layout if @apply_layout
       raise Conflict, "The draft's layout doesn't match this carousel's #{@carousel.sections_count} sections and #{@carousel.rows_count} rows" if @analysis.layout_conflict? && @seats.any?
       raise Conflict, "Record the carousel's layout before adding seats" if !@carousel.layout_known? && @seats.any?

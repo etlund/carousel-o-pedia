@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_185320) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_07_211500) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -46,6 +46,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_185320) do
     t.datetime "updated_at", null: false
     t.index ["token_digest"], name: "index_carousel_csv_import_receipts_on_token_digest", unique: true
     t.index ["user_id"], name: "index_carousel_csv_import_receipts_on_user_id"
+  end
+
+  create_table "carousel_decks", force: :cascade do |t|
+    t.integer "carousel_id", null: false
+    t.string "name", null: false
+    t.integer "position", null: false
+    t.integer "sections_count"
+    t.integer "rows_count"
+    t.boolean "layout_provisional", default: false, null: false
+    t.integer "published_horses_count"
+    t.integer "published_other_animals_count"
+    t.integer "published_chariots_count"
+    t.text "summary_sources"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["carousel_id", "position"], name: "index_carousel_decks_on_carousel_id_and_position", unique: true
+    t.index ["carousel_id"], name: "index_carousel_decks_on_carousel_id"
   end
 
   create_table "carousels", force: :cascade do |t|
@@ -160,7 +177,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_185320) do
     t.string "confidence", default: "best_reading", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["carousel_id", "section", "row"], name: "index_seats_on_carousel_id_and_section_and_row", unique: true
+    t.integer "carousel_deck_id"
+    t.index ["carousel_deck_id", "section", "row"], name: "index_seats_on_deck_position", unique: true, where: "carousel_deck_id IS NOT NULL"
+    t.index ["carousel_deck_id"], name: "index_seats_on_carousel_deck_id"
+    t.index ["carousel_id", "section", "row"], name: "index_seats_on_main_platform", unique: true, where: "carousel_deck_id IS NULL"
     t.index ["carousel_id"], name: "index_seats_on_carousel_id"
   end
 
@@ -230,6 +250,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_185320) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "carousel_csv_import_receipts", "users"
+  add_foreign_key "carousel_decks", "carousels"
   add_foreign_key "carousels", "makers"
   add_foreign_key "figures", "carousels"
   add_foreign_key "figures", "figure_types"
@@ -238,6 +259,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_185320) do
   add_foreign_key "invitations", "users", column: "invited_by_id"
   add_foreign_key "placements", "figures"
   add_foreign_key "placements", "seats"
+  add_foreign_key "seats", "carousel_decks"
   add_foreign_key "seats", "carousels"
   add_foreign_key "sessions", "users"
   add_foreign_key "users", "carousels", column: "editable_carousel_id"

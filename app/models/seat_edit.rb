@@ -18,7 +18,7 @@ class SeatEdit
   private
     def remove_covered_draft_placeholders
       desired_rows.drop(1).each do |row|
-        figure = @seat.carousel.seats.find_by(section: @seat.section, row:)&.figure
+        figure = @seat.layout.seats.find_by(section: @seat.section, row:)&.figure
         figure.destroy! if figure&.draft_placeholder?
       end
     end
@@ -29,6 +29,6 @@ class SeatEdit
     end
 
     def desired_rows
-      @seat.carousel.row_letters.slice(@seat.row_index, @attributes[:rows_spanned].to_i) || []
+      @seat.layout.row_letters.slice(@seat.row_index, @attributes[:rows_spanned].to_i) || []
     end
 end

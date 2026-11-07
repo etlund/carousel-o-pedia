@@ -1,6 +1,18 @@
 require "test_helper"
 
 class VideoAnalysisDraftTest < ActiveSupport::TestCase
+  test "video drafts cannot silently allocate a multi-deck carousel" do
+    carousel = Carousel.create!(name: "Multi-deck ride")
+    carousel.carousel_decks.create!(name: "Upper", position: 1)
+    analysis = complete_analysis(carousel)
+    assert_no_difference [ "Seat.count", "Figure.count" ] do
+      error = assert_raises(VideoAnalysisDraft::Conflict) do
+        VideoAnalysisDraft.new(analysis, seats: form_seats(analysis), apply_layout: true).apply!
+      end
+      assert_includes error.message, "individual deck editor"
+    end
+    assert_nil carousel.reload.sections_count
+  end
   test "records the layout and fills every ticked seat on a carousel with no layout" do
     carousel = Carousel.create!(name: "Unmapped Carousel")
     analysis = complete_analysis(carousel)
