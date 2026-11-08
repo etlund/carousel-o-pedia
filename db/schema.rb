@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_230554) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_000757) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -96,6 +96,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_230554) do
     t.text "other_names"
     t.boolean "layout_provisional", default: false, null: false
     t.integer "decks_count"
+    t.string "music_type"
+    t.text "music_description"
     t.index ["maker_id"], name: "index_carousels_on_maker_id"
     t.index ["slug"], name: "index_carousels_on_slug", unique: true
   end

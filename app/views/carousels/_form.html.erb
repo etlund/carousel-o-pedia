@@ -38,6 +38,14 @@
     </div>
   </fieldset>
   <fieldset>
+    <legend>Music</legend>
+    <div class="field"><%= form.label :music_type, "Type" %><%= form.text_field :music_type %></div>
+    <div class="field">
+      <%= form.label :music_description, "Description" %>
+      <%= form.text_area :music_description, rows: 4 %>
+    </div>
+  </fieldset>
+  <fieldset>
     <legend>Platform</legend>
     <% if carousel.persisted? && carousel.carousel_decks.any? %>
       <p class="hint">These dimensions describe only the legacy main platform, not the combined decks.

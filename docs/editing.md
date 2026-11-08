@@ -60,6 +60,8 @@ access, choose an existing carousel or leave the carousel blank to allow creatio
 of exactly one new carousel. The first successful creation assigns that carousel
 to the editor; failed submissions do not consume the permission. A name is enough
 to create the initial blank record; layout and inventory can be added later.
+Carousel records can also store optional music type, year, and description
+without requiring a known seating layout.
 The editor can edit that carousel and create/edit its figures and seats, but
 cannot edit shared makers or figure types, transfer figures to/from another
 carousel, or create a second carousel. Reading other records and history remains

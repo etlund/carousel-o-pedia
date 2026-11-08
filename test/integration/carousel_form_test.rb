@@ -84,7 +84,8 @@ class CarouselFormTest < ActionDispatch::IntegrationTest
     def assert_field_order(layout_known:)
       fields = %w[ name other_names status maker_id year_built year_opened
         venue street_address city region postal_code country address_sources body
-        official_url wikipedia_url other_links decks_count sections_count rows_count ]
+        official_url wikipedia_url other_links music_type music_description
+        decks_count sections_count rows_count ]
       fields += %w[ lead_seat_id layout_provisional ] if layout_known
       fields += %w[ rotation published_horses_count published_other_animals_count
         published_chariots_count summary_sources ]
@@ -93,5 +94,30 @@ class CarouselFormTest < ActionDispatch::IntegrationTest
         css_select("form.form input[id], form.form select[id], form.form textarea[id]").map { _1["id"] }
       assert_select "form.form legend", text: "Independent ring research", count: 0
       assert_select "form.form [name^='carousel[ring_details]']", count: 0
+    end
+
+    test "music details can be edited and appear on the carousel page" do
+      carousel = Carousel.create!(name: "Musical carousel")
+
+      get edit_carousel_path(carousel)
+      assert_response :success
+      assert_select "#carousel_music_type"
+      assert_select "#carousel_music_year", count: 0
+      assert_select "#carousel_music_description"
+
+      patch carousel_path(carousel), params: { carousel: {
+        music_type: "Band organ", music_description: "Original instrument (1912); [archive](https://example.com/)."
+      } }
+
+      assert_redirected_to carousel_path(carousel)
+      carousel.reload
+      assert_equal "Band organ", carousel.music_type
+      assert_equal "Original instrument (1912); [archive](https://example.com/).", carousel.music_description
+
+      get carousel_path(carousel)
+      assert_response :success
+      assert_select "dt", text: "Music type"
+      assert_select "dd", text: "Band organ"
+      assert_select "dd.prose a[href='https://example.com/']", text: "archive"
     end
 end
