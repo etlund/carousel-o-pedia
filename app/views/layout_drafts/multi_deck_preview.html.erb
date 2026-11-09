@@ -1,0 +1,47 @@
+<% content_for :title, "Preview decks for #{@carousel.name}" %>
+<p class="muted"><%= link_to @carousel.name, @carousel %></p>
+<h1>Preview all decks</h1>
+<p><strong>Provisional geometry, not a verified seating survey.</strong> No changes have been saved.
+  Each deck has an independent chart, with row labels starting at A.</p>
+<p class="hint">Blue: horses; orange: other animals; red: chariots and tubs. Unclassified animal positions and assumed empty gaps are unfilled.
+  All placements are best readings.</p>
+<h2>Combined inventory check</h2>
+<% totals = @draft.requested_totals %>
+<% published = @carousel.published_category_totals %>
+<% if published.any? { |category, count| !count.nil? && count != totals.fetch(category) } %>
+  <p class="flash alert" role="status">Combined draft totals differ from the published carousel inventory. Review each deck's allocation and explain discrepancies in the source notes.</p>
+<% end %>
+<table class="draft-totals">
+  <thead><tr><th>Kind</th><th>All decks</th><th>Published</th></tr></thead>
+  <tbody>
+    <% FigureType::CATEGORIES.each do |category| %>
+      <tr><th scope="row"><%= category_label(category) %></th><td><%= totals.fetch(category) %></td><td><%= published.fetch(category).nil? ? "Unknown" : published.fetch(category) %></td></tr>
+    <% end %>
+  </tbody>
+</table>
+<% @draft.entries.each do |entry| %>
+  <section class="deck-draft-preview">
+    <h2><%= entry.deck.name %></h2>
+    <p class="draft-geometry"><%= pluralize(entry.draft.sections_count, "section") %>, <%= pluralize(entry.draft.rows_count, "row") %>.</p>
+    <svg class="seat-chart draft-layout-chart" viewBox="0 0 <%= SeatChart::SIZE %> <%= SeatChart::SIZE %>" role="img"
+      aria-label="Provisional seating preview for <%= entry.deck.name %>: <%= entry.draft.sections_count %> sections, <%= entry.draft.rows_count %> rows">
+      <%= render "carousels/seat_wedges", carousel: entry.draft.preview_carousel, seats: entry.draft.preview_seats %>
+    </svg>
+    <p><%= pluralize(entry.draft.horses_count, "horse") %>, <%= pluralize(entry.draft.other_animals_count, "other animal") %>,
+      <%= pluralize(entry.draft.chariots_count, "chariot") %>;
+      <%= pluralize(entry.draft.proposals.count { _1.state == "empty" }, "assumed empty position") %>.</p>
+    <% if entry.draft.mixed_animals? %>
+      <p>Mixed animal positions remain unclassified; no animal figures are invented.</p>
+    <% end %>
+    <div class="prose"><h3>Draft assumptions</h3><%= wiki_body(entry.draft.assumptions) %></div>
+    <div class="prose"><h3>Source and research notes</h3><%= wiki_body(entry.draft.source_notes) %></div>
+  </section>
+<% end %>
+<%= form_with url: carousel_layout_draft_path(@carousel), method: :post, class: "form" do |form| %>
+  <%= hidden_field_tag :preview_token, @draft.preview_token %>
+  <div class="actions">
+    <%= form.submit "Create provisional layouts for all decks" %>
+    <%= link_to "Change choices", new_carousel_layout_draft_path(@carousel, multi_deck_layout_draft: @draft.attributes) %>
+    <%= link_to "Cancel", @carousel %>
+  </div>
+<% end %>

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-08
+
+- Added combined multi-deck draft previews with independent deck allocations and charts, an aggregate inventory check, and atomic confirmation.
+- Added provisional even inventory splits and editable three-row starting layouts for comparing multi-deck sketches.
+
 ## 2026-11-07
 
 - Added carousel layout editing, seat corrections, and missing figure types to the editing workflow.

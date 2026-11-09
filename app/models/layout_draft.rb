@@ -165,6 +165,13 @@ class LayoutDraft
     category_totals.values.sum
   end
 
+  def snapshot
+    Digest::SHA256.hexdigest([
+      @carousel.cache_key_with_version, figure_type&.cache_key_with_version, chariot_type&.cache_key_with_version,
+      @carousel.seats.order(:id).pluck(:id, :updated_at)
+    ].to_json)
+  end
+
   private
     def build_sketch
       self.sections_count = nil
@@ -206,13 +213,6 @@ class LayoutDraft
       preferred = inward_positions.first(gaps)
       remaining = (positions - preferred).last(gaps - preferred.size)
       self.empty_seats = (preferred + remaining).join(", ")
-    end
-
-    def snapshot
-      Digest::SHA256.hexdigest([
-        @carousel.cache_key_with_version, figure_type&.cache_key_with_version, chariot_type&.cache_key_with_version,
-        @carousel.seats.order(:id).pluck(:id, :updated_at)
-      ].to_json)
     end
 
     def codes(attribute) = public_send(attribute).to_s.split(/[,\s]+/).map(&:upcase)

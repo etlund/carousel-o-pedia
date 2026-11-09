@@ -180,6 +180,28 @@ not part of these forms; saving everyday details preserves existing ring researc
 
 ### Multi-deck carousels
 
+When the carousel's **Number of decks** is greater than one (or multiple deck
+records exist), **Create draft
+layout** opens a combined counts-first builder. Enter a name, animal and chariot
+counts, rows, chariot footprint, and source notes separately for each deck.
+Missing allocations start with an explicitly provisional even split of known
+carousel-wide totals, with integer remainders assigned to lower decks first.
+Recorded deck allocations are preserved and subtracted before splitting the
+remainder among unallocated decks. Unknown totals stay blank; if recorded
+allocations exceed a published total, missing allocations stay blank for review.
+Unknown deck row counts start at three, not the carousel-wide row count.
+Change any deck's rows or counts and preview again to compare possible layouts.
+These defaults and their uncertainty are recorded in the draft source notes.
+Review each independent chart and the combined inventory check before saving all
+decks together. Zero means none are intended in the sketch, not a substitute for
+unknown carousel-wide totals. Draft counts do not overwrite published totals. Mixed-animal positions stay
+unclassified, and row letters restart at A on each independent deck.
+
+The combined workflow also supports existing blank decks. It never replaces
+recorded charts or moves main-platform seats to decks; use the individual deck
+workflow when another deck already has a layout. Confirmation saves everything
+in one transaction and rejects expired previews or changes made since preview.
+
 For genuinely separate seating decks, open the carousel and choose **Add deck**.
 Give each deck a name (for example, Lower or Upper) and a display order, lowest
 first. Each deck has its own independently editable section and row counts,
@@ -188,7 +210,7 @@ geometry and per-deck counts can remain blank. Do not divide carousel-wide
 counts between decks or copy an aggregate row count onto each deck.
 
 Open a deck's page to **Edit deck**, review its history, create a draft layout,
-or fill its unknown seats. Draft previews and signed confirmations apply to
+or fill its unknown seats. Individual deck previews and signed confirmations apply to
 only the selected deck. They use that deck's recorded counts, not the whole
 carousel's counts. The existing resizing safeguards also apply independently
 to each deck; a chariot can span adjacent rows on its deck but never cross

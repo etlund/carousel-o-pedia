@@ -1,0 +1,44 @@
+<% content_for :title, "Sketch decks for #{@carousel.name}" %>
+<p class="muted"><%= link_to @carousel.name, @carousel %></p>
+<h1>Sketch multiple decks</h1>
+<p>Enter counts and rows separately for each independent deck. Missing deck allocations are initially split evenly from known
+  carousel-wide totals, with remainders on lower decks first. Recorded deck counts are preserved; unknown totals stay blank.
+  This split is a drafting assumption, not researched inventory. Unknown row counts start at three.
+  Change counts or rows and preview again to compare arrangements.
+  Row labels restart at A on each deck. No changes are saved until you review and confirm all decks together.</p>
+<p>Published carousel totals:
+  <%= @carousel.published_horses_count || "Unknown" %> horses,
+  <%= @carousel.published_other_animals_count || "Unknown" %> other animals,
+  <%= @carousel.published_chariots_count || "Unknown" %> chariots.</p>
+<%= render "shared/errors", record: @draft %>
+<%= form_with url: preview_carousel_layout_draft_path(@carousel), method: :post, class: "form", data: { turbo: false } do |form| %>
+  <% @draft.entries.each_with_index do |entry, index| %>
+    <% prefix = "multi_deck_layout_draft[decks][]" %>
+    <% field_id = "draft_deck_#{index}" %>
+    <fieldset class="deck-draft-fields">
+      <legend>Deck <%= index + 1 %> (lowest first)</legend>
+      <%= hidden_field_tag "#{prefix}[id]", entry.deck.id %>
+      <div class="field"><%= label_tag "#{field_id}_name", "Deck name" %><%= text_field_tag "#{prefix}[name]", entry.deck.name, id: "#{field_id}_name", required: true %></div>
+      <% if entry.deck.persisted? %>
+        <p><%= link_to "Draft this deck individually", new_carousel_layout_draft_path(@carousel, deck_id: entry.deck.id) %></p>
+      <% end %>
+      <div class="field-row">
+        <% { horses_count: "Horses", other_animals_count: "Other animals", chariots_count: "Chariots", rows_count: "Rows", chariot_rows_spanned: "Rows per chariot" }.each do |attribute, label| %>
+          <div class="field">
+            <%= label_tag "#{field_id}_#{attribute}", label %>
+            <%= number_field_tag "#{prefix}[#{attribute}]", entry.draft.public_send(attribute), id: "#{field_id}_#{attribute}",
+              min: attribute.in?([ :rows_count, :chariot_rows_spanned ]) ? 1 : 0,
+              max: attribute.in?([ :rows_count, :chariot_rows_spanned ]) ? Carousel::MAX_ROWS : nil, required: true %>
+          </div>
+        <% end %>
+      </div>
+      <p class="hint">Enter zero only when none are intended in this sketch. Suggested allocations are provisional, not verified counts.
+        Counts size a provisional regular grid. Mixed animal positions remain unclassified. Chariot locations and row spans are assumptions.</p>
+      <div class="field">
+        <%= label_tag "#{field_id}_source_notes", "Source and research notes" %>
+        <%= text_area_tag "#{prefix}[source_notes]", entry.draft.source_notes, id: "#{field_id}_source_notes", rows: 4, required: true %>
+      </div>
+    </fieldset>
+  <% end %>
+  <div class="actions"><%= form.submit "Preview all decks" %> <%= link_to "Cancel", @carousel %></div>
+<% end %>
