@@ -156,4 +156,101 @@ class CarouselDirectoryTest < ActionDispatch::IntegrationTest
 
     assert_select "nav.pagy", count: 0
   end
+
+  test "directory restores filters sorting and current page from a persistent cookie" do
+    14.times do |i|
+      Carousel.create!(name: "Carousel #{format("%02d", i)}", region: "Montana", country: "United States")
+    end
+    preferences = { q: "Carousel", region: "Montana", country: "United States", sort: "name", page: 2 }
+    get carousels_path, params: preferences
+    assert_response :success
+    cookie = response.headers["Set-Cookie"].to_s
+    assert_match(/carousel_directory=.*expires=/i, cookie)
+    assert_match(/httponly/i, cookie)
+    assert_match(/samesite=lax/i, cookie)
+
+    [ root_path, carousels_path ].each do |path|
+      get path
+      assert_redirected_to carousels_path(preferences)
+      follow_redirect!
+      assert_response :success
+      assert_select ".cards > .card", count: 2
+      assert_select ".card h2 a", text: "Carousel 13"
+      assert_select "input[name=q][value=Carousel]"
+      assert_select "select[name=region] option[selected][value=Montana]"
+      assert_select "select[name=country] option[selected][value='United States']"
+      assert_select "select[name=sort] option[selected][value=name]"
+      assert_select "nav.pagy a[href*=?][href*=?]", "page=1", "region=Montana"
+    end
+  end
+
+  test "explicit filters replace saved filters and reset paging including blank values" do
+    13.times { |i| Carousel.create!(name: "Carousel #{i}", region: "Montana", country: "United States") }
+    Carousel.create!(name: "Other", region: "Colorado", country: "Canada")
+    get carousels_path, params: { q: "Carousel", region: "Montana", country: "United States", sort: "name", page: 2 }
+
+    get carousels_path, params: { country: "Canada" }
+    assert_response :success
+    assert_select ".card h2 a", text: "Other"
+    assert_select "input[name=q][value]", count: 0
+    assert_select "select[name=region] option[selected]", count: 0
+    assert_select "select[name=sort] option[selected][value=completeness]"
+    get carousels_path
+    assert_redirected_to carousels_path(country: "Canada")
+    follow_redirect!
+
+    get carousels_path, params: { country: "", q: "", region: "", sort: "completeness" }
+    assert_response :success
+    assert_select ".cards > .card", count: 12
+    assert_select "nav.pagy a[aria-current=page]", text: "1"
+    get carousels_path
+    assert_response :success
+    assert_select ".carousel-count", text: "14 carousels listed"
+  end
+
+  test "clearing filters clears the cookie and restores defaults on later visits" do
+    Carousel.create!(name: "Northern Carousel", region: "Montana")
+    Carousel.create!(name: "Southern Carousel", region: "Colorado")
+    get carousels_path, params: { q: "Northern", region: "Montana", sort: "name" }
+
+    get carousels_path, params: { clear_filters: 1 }
+    assert_redirected_to carousels_path
+    follow_redirect!
+    assert_response :success
+    assert_not cookies[:carousel_directory].present?
+    assert_select ".cards > .card", count: 2
+    assert_select "select[name=sort] option[selected][value=completeness]"
+
+    get root_path
+    assert_response :success
+    assert_select ".cards > .card", count: 2
+  end
+
+  test "invalid requests do not replace saved preferences and tampered cookies are ignored" do
+    Carousel.create!(name: "Northern Carousel", region: "Montana")
+    get carousels_path, params: { region: "Montana" }
+    get carousels_path, params: { sort: "invalid" }
+    assert_response :bad_request
+    get carousels_path
+    assert_redirected_to carousels_path(region: "Montana")
+    follow_redirect!
+
+    cookies[:carousel_directory] = "tampered"
+    get carousels_path
+    assert_response :success
+    assert_select ".cards > .card", count: 1
+  end
+
+  test "saved locations removed from the directory no longer block returning visitors" do
+    carousel = Carousel.create!(name: "Northern Carousel", region: "Montana")
+    get carousels_path, params: { region: "Montana" }
+    carousel.update!(region: "Colorado")
+
+    get carousels_path
+    assert_redirected_to carousels_path
+    follow_redirect!
+    assert_response :success
+    assert_select ".cards > .card", count: 1
+    assert_select "select[name=region] option[selected]", count: 0
+  end
 end

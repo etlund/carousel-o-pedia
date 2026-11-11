@@ -7,8 +7,11 @@
 The carousel directory supports case-insensitive partial searches of primary and
 other names, plus country and state/region filters. Choose **Filter** to apply
 any combination. Filters and sort
-order stay in the URL for sharing; **Clear filters** restores the full directory
-and default **Most complete** sort.
+order stay in the URL for sharing. A cookie remembers filters, sorting, and the
+current page for one year, restoring them when you return to the directory.
+Explicit URL filters replace the saved selection; applying filters starts at
+page one. **Clear filters** clears the saved selection and restores the full
+directory and default **Most complete** sort.
 
 Country and state options include directory-wide carousel counts, such as
 **Montana (2)**. These counts stay the same when filters are applied; the state

@@ -23,7 +23,7 @@
       <%= form.select :sort, [ [ "Name (A-Z)", "name" ], [ "Last updated", "updated" ], [ "Most complete", "completeness" ] ], selected: @sort %>
     </div>
   </div>
-  <div class="actions"><%= form.submit "Filter" %> <%= link_to "Clear filters", carousels_path %></div>
+  <div class="actions"><%= form.submit "Filter" %> <%= link_to "Clear filters", carousels_path(clear_filters: 1) %></div>
 <% end %>
 <p class="muted carousel-count">
   <% if @query || @selected_region || @selected_country %><%= number_with_delimiter(@pagy.count) %> of <% end %><%= number_with_delimiter(@total_carousels) %> <%= "carousel".pluralize(@total_carousels) %> listed

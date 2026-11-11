@@ -12,6 +12,8 @@ class CarouselsController < ApplicationController
     @total_carousels = Carousel.count
     @region_counts = Carousel.where.not(region: [ nil, "" ]).group(:region).order(:region).count
     @country_counts = Carousel.where.not(country: [ nil, "" ]).group(:country).order(:country).count
+    return if restore_directory_preferences
+
     @query = params.expect(:q).strip.presence if params[:q].present?
     @selected_region = params.expect(:region).strip.presence if params[:region].present?
     @selected_country = params.expect(:country).strip.presence if params[:country].present?
@@ -41,6 +43,7 @@ class CarouselsController < ApplicationController
     @category_counts = Placement.current.joins(:seat, figure: :figure_type)
       .where(seats: { carousel_id: @carousels.map(&:id) })
       .group("seats.carousel_id", "figure_types.category").count
+    save_directory_preferences
   end
 
   def show
@@ -86,6 +89,39 @@ class CarouselsController < ApplicationController
   end
 
   private
+    def restore_directory_preferences
+      if params[:clear_filters].present?
+        cookies.delete(:carousel_directory)
+        return redirect_to carousels_path
+      end
+      return if %w[ q region country sort page ].any? { |key| params.key?(key) }
+
+      saved = cookies.signed[:carousel_directory]
+      return if saved.blank?
+
+      { "region" => @region_counts, "country" => @country_counts }.each do |key, counts|
+        if saved[key] && !counts.key?(saved[key])
+          Rails.logger.info("Removing unavailable carousel directory #{key} preference")
+          saved.delete(key)
+          saved.delete("page")
+        end
+      end
+      cookies.delete(:carousel_directory) if saved.empty?
+      redirect_to carousels_path(saved)
+    end
+
+    def save_directory_preferences
+      preferences = { q: @query, region: @selected_region, country: @selected_country,
+        sort: (@sort unless @sort == "completeness"), page: (@pagy.page if @pagy.page > 1) }.compact
+      if preferences.empty?
+        cookies.delete(:carousel_directory)
+      else
+        cookies.signed[:carousel_directory] = {
+          value: preferences, expires: 1.year.from_now, httponly: true, same_site: :lax, secure: request.ssl?
+        }
+      end
+    end
+
     def edit_section
       section = params[:section].presence || "basic"
       raise ActionController::BadRequest, "Unknown carousel edit section" unless %w[ basic location details ].include?(section)

@@ -559,6 +559,12 @@ class SeatChartTest < ApplicationSystemTestCase
       }
     end
     assert_carousel_order names.last(1)
+
+    visit root_path
+    assert_carousel_order names.last(1)
+    within ".pagy" do
+      assert_selector "a[aria-current='page']", exact_text: "2"
+    end
     assert_field "Name", with: "Pagination carousel"
     assert_selector :select, "Country", selected: "Testland (#{names.size})"
     assert_selector :select, "State", selected: "Testshire (#{names.size})"

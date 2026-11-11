@@ -255,7 +255,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_equal [ "Looff Carrousel", "Santa Cruz Beach Boardwalk Looff Carousel" ], css_select(".cards h2 a").map(&:text)
     assert_select "input[type=search][name=q][value=?]", "lOoFf"
     assert_select "form[action=?][method=get]", carousels_path
-    assert_select "a[href=?]", carousels_path, text: "Clear filters"
+    assert_select "a[href=?]", carousels_path(clear_filters: 1), text: "Clear filters"
 
     get carousels_path, params: { q: "CAFESJIAN'S" }
     assert_response :success
