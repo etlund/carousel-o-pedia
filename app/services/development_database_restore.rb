@@ -13,7 +13,7 @@ class DevelopmentDatabaseRestore
     raise ArgumentError, "Development database must be an existing regular file, not a symlink." unless File.file?(target) && !File.symlink?(target)
     raise ArgumentError, "Source must be a different existing file." unless File.file?(source_path) && File.realpath(source_path) != File.realpath(target)
 
-    expected = ActiveRecord::Base.connection.migration_context.migrations.map(&:version).map(&:to_s).sort
+    expected = ActiveRecord::Base.connection_pool.migration_context.migrations.map(&:version).map(&:to_s).sort
     backup_path = Rails.root.join("storage", "development-before-restore-#{Time.current.utc.strftime('%Y%m%dT%H%M%SZ')}-#{SecureRandom.hex(4)}.sqlite3").to_s
     ActiveRecord::Base.connection_pool.disconnect!
     restore_files(source_path, target, backup_path, expected)

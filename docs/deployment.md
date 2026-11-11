@@ -197,8 +197,10 @@ bin/rails users:reset_password EMAIL=your-admin-email
 ```
 
 The restore validates the snapshot and replaces only the standard development
-database. It first saves a private snapshot of the old database in `storage/`;
-this backup also contains sensitive data. It removes copied sessions and
+database. Snapshots whose migration versions do not match the checkout are
+rejected before the development database is changed. It first saves a private
+snapshot of the old database in `storage/`; this backup also contains sensitive
+data. It removes copied sessions and
 unaccepted invitations and disables all copied passwords. Reset a local
 administrator's password before signing in; do not reuse a production password.
 The source download is not modified. Keep local services stopped through the
