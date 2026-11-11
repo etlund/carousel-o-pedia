@@ -31,6 +31,7 @@
 <% if @pagy.count.zero? %>
   <p>No carousels match these filters.</p>
 <% else %>
+<% if @pagy.last > 1 %><%== @pagy.series_nav %><% end %>
 <ul class="cards">
   <% @carousels.each do |carousel| %>
     <li class="card">
