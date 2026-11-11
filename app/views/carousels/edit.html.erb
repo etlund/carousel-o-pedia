@@ -1,3 +1,13 @@
 <% content_for :title, "Edit #{@carousel.name}" %>
 <h1>Edit <%= @carousel.name %></h1>
-<%= render "form", carousel: @carousel %>
+<nav class="edit-sections" aria-label="Carousel edit sections">
+  <% { "basic" => "Basics", "location" => "Location", "details" => "Details" }.each do |section, label| %>
+    <% if section == @edit_section %>
+      <strong aria-current="page"><%= label %></strong>
+    <% else %>
+      <%= link_to label, edit_carousel_path(@carousel, section:) %>
+    <% end %>
+  <% end %>
+</nav>
+<p class="hint edit-sections-hint">Save changes in this section before switching to another.</p>
+<%= render "form", carousel: @carousel, section: @edit_section %>

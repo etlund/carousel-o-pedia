@@ -6,7 +6,7 @@
 
 <% if !@layout.layout_known? %>
   <p>Record the carousel's sections and rows before filling unknown seats.</p>
-  <p><%= link_to "Edit carousel layout", @layout.is_a?(CarouselDeck) ? edit_carousel_deck_path(@carousel, @layout) : edit_carousel_path(@carousel) %></p>
+  <p><%= link_to "Edit carousel layout", @layout.is_a?(CarouselDeck) ? edit_carousel_deck_path(@carousel, @layout) : edit_carousel_path(@carousel, section: "details") %></p>
   <p>Working from approximate inventory instead? <%= link_to "Create draft layout", new_carousel_layout_draft_path(@carousel, deck_id: params[:deck_id]) %> and review the assumptions before saving.</p>
 <% elsif @fill.seats.empty? %>
   <p>There are no unknown seats to fill. Existing figures and empty seats will not be changed.</p>

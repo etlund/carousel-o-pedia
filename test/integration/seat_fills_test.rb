@@ -116,7 +116,7 @@ class SeatFillsTest < ActionDispatch::IntegrationTest
     unmapped = Carousel.create!(name: "No layout yet", rows_count: 3)
     get new_carousel_seat_fill_path(unmapped)
     assert_response :success
-    assert_select "a[href=?]", edit_carousel_path(unmapped), text: "Edit carousel layout"
+    assert_select "a[href=?]", edit_carousel_path(unmapped, section: "details"), text: "Edit carousel layout"
     assert_select "input[type=submit]", 0
     post preview_carousel_seat_fill_path(unmapped), params: { seat_fill: @attributes }
     assert_response :unprocessable_entity

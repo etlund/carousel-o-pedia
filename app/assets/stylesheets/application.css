@@ -135,6 +135,11 @@ body:has(.chart-dialog[open]) { overflow: hidden; }
 @media (prefers-color-scheme: dark) { .link-button { color: var(--head); } }
 
 /* Forms */
+.edit-sections { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.edit-sections a, .edit-sections [aria-current] { border: 1px solid var(--line); border-radius: 8px; padding: 8px 16px; font-weight: 600; text-decoration: none; }
+.edit-sections a:hover { border-color: var(--head); background: color-mix(in srgb, var(--head) 10%, var(--panel)); }
+.edit-sections a:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; }
+.edit-sections [aria-current] { color: #fff; background: var(--blue); border-color: var(--blue); }
 .form { display: grid; gap: 16px; max-width: 760px; }
 .form.narrow { max-width: 420px; }
 .inline-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
@@ -147,6 +152,7 @@ body:has(.chart-dialog[open]) { overflow: hidden; }
 .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: 2px solid var(--hi); outline-offset: 1px; }
 fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 16px; display: grid; gap: 12px; margin: 0; }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
+.edit-sections-hint { margin-bottom: 16px; }
 .actions { display: flex; gap: 16px; align-items: center; }
 .agreement { display: flex; align-items: start; gap: 8px; }
 .agreement input { flex: none; margin-top: 5px; }

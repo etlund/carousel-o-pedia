@@ -61,7 +61,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_equal "02045-1234", carousel.postal_code
     get history_carousel_path(carousel)
     assert_select ".changes ins", "2 Main Street"
-    get edit_carousel_path(carousel)
+    get edit_carousel_path(carousel, section: "location")
     assert_select "input[name='carousel[postal_code]'][value='02045-1234']"
 
     patch carousel_path(carousel), params: { carousel: { street_address: " ", postal_code: "", address_sources: "" } }
@@ -292,7 +292,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_nil carousel.rotation
     assert_empty carousel.seats
 
-    get edit_carousel_path(carousel)
+    get edit_carousel_path(carousel, section: "details")
     assert_select "input[name='carousel[sections_count]']"
     assert_select "input[name='carousel[rows_count]']"
     assert_select "select[name='carousel[lead_seat_id]']", 0
@@ -303,7 +303,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     get carousel_path(carousel)
     assert_select "svg.seat-chart a.seat.unknown", 6
     assert_select "table.sections tbody tr", 3
-    get edit_carousel_path(carousel)
+    get edit_carousel_path(carousel, section: "details")
     assert_select "input[name='carousel[sections_count]'][value='3']"
     assert_select "select[name='carousel[lead_seat_id]']"
   end
@@ -312,7 +312,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     sign_in_as users(:editor)
     carousel = Carousel.create!(name: "Directory entry")
     [ { sections_count: 3, rows_count: 0 }, { sections_count: 3, rows_count: 7 } ].each do |dimensions|
-      patch carousel_path(carousel), params: { carousel: dimensions }
+      patch carousel_path(carousel), params: { section: "details", carousel: dimensions }
       assert_response :unprocessable_entity
       assert_select "[role=alert]"
       assert_select "input[name='carousel[sections_count]'][value='3']"
@@ -343,7 +343,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     assert_equal 68, carousel.published_horses_count
     assert_equal 0, carousel.published_other_animals_count
     assert_empty carousel.seats
-    get edit_carousel_path(carousel)
+    get edit_carousel_path(carousel, section: "details")
     assert_select "input[name='carousel[sections_count]'][value='18']"
     assert_select "input[name='carousel[rows_count]']"
     assert_select "input[name='carousel[published_horses_count]'][value='68']"
@@ -415,7 +415,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     SeatAssignment.new(carousel.seat("2A"), figure).save!
     original_ids = carousel.seats.ids
 
-    get edit_carousel_path(carousel)
+    get edit_carousel_path(carousel, section: "details")
     assert_select "input[name='carousel[sections_count]'][value='3']"
     assert_select "input[name='carousel[rows_count]'][value='1']"
     patch carousel_path(carousel), params: { carousel: { rows_count: 3 } }
@@ -447,7 +447,7 @@ class EditingTest < ActionDispatch::IntegrationTest
     sign_in_as users(:editor)
     [ { sections_count: 1 }, { rows_count: 0 }, { rows_count: 7 }, { rows_count: "" } ].each do |dimensions|
       assert_no_difference "PaperTrail::Version.count" do
-        patch carousel_path(@carousel), params: { carousel: dimensions }
+        patch carousel_path(@carousel), params: { section: "details", carousel: dimensions }
       end
       assert_response :unprocessable_entity
       assert_select "[role=alert]"
@@ -460,9 +460,11 @@ class EditingTest < ActionDispatch::IntegrationTest
   test "shrinking cannot remove the selected lead section" do
     sign_in_as users(:editor)
     carousel = build_carousel(sections: 3, rows: 1)
-    patch carousel_path(carousel), params: { carousel: { sections_count: 2, lead_seat_id: carousel.seat("3A").id } }
+    lead_seat = carousel.seat("3A")
+    patch carousel_path(carousel), params: { section: "details", carousel: { sections_count: 2, lead_seat_id: lead_seat.id } }
     assert_response :unprocessable_entity
     assert_select "[role=alert]", text: /Choose a lead figure/
+    assert_select "select[name='carousel[lead_seat_id]'] option[selected][value=?]", lead_seat.id.to_s
     assert_equal 3, carousel.reload.sections_count
   end
 

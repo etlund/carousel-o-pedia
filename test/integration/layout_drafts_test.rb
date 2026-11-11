@@ -285,7 +285,7 @@ class LayoutDraftsTest < ActionDispatch::IntegrationTest
   test "verifying draft geometry removes its warning without confirming placements" do
     token = preview
     post carousel_layout_draft_path(@carousel), params: { preview_token: token }
-    get edit_carousel_path(@carousel)
+    get edit_carousel_path(@carousel, section: "details")
     assert_select "input[name='carousel[layout_provisional]'][type=checkbox][checked]"
     assert_select "input[name='carousel[sections_count]'][value=?]", @attributes[:sections_count]
     assert_select "input[name='carousel[rows_count]'][value=?]", @attributes[:rows_count]

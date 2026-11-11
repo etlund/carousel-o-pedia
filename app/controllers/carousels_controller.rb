@@ -67,9 +67,11 @@ class CarouselsController < ApplicationController
   end
 
   def edit
+    @edit_section = edit_section
   end
 
   def update
+    @edit_section = edit_section
     lead_seat = @carousel.seats.find_by(id: params.dig(:carousel, :lead_seat_id))
     @carousel.assign_attributes(carousel_params)
     if lead_seat && @carousel.sections_count && lead_seat.section > @carousel.sections_count
@@ -84,6 +86,13 @@ class CarouselsController < ApplicationController
   end
 
   private
+    def edit_section
+      section = params[:section].presence || "basic"
+      raise ActionController::BadRequest, "Unknown carousel edit section" unless %w[ basic location details ].include?(section)
+
+      section
+    end
+
     def set_carousel
       @carousel = Carousel.find_by!(slug: params[:id])
     end

@@ -155,10 +155,11 @@ Missing rows never delete records. Confirmations recheck the preview, execute
 transactionally, record normal history attribution, and cannot be replayed.
 These safeguards do not replace a tested database backup or offer batch undo.
 
-The new and edit carousel forms put everyday details first: names, status,
-maker and years, venue and address, then page text and website links. Platform
-details and published totals and sources follow. Per-ring research fields are
-not part of these forms; saving everyday details preserves existing ring research.
+The carousel edit page has separate forms for basic information, page text and
+website links; address and location; and carousel details (music, platform and
+published totals). Save each section before switching to another. The new
+carousel form retains all fields. Per-ring research fields are not part of
+these forms; saving everyday details preserves existing ring research.
 
 - **Other names**: on the carousel form, enter alternate or historical names for
   the same carousel, one per line. Blank lines and exact duplicates are removed.

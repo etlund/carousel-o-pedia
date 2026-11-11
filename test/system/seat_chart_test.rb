@@ -3,6 +3,25 @@ require "application_system_test_case"
 class SeatChartTest < ApplicationSystemTestCase
   setup { load_seeds }
 
+  test "carousel edit sections remain usable on a narrow screen" do
+    carousel = build_carousel
+    visit new_session_path
+    fill_in "Email", with: users(:editor).email_address
+    fill_in "Password", with: "password"
+    click_button "Sign in"
+
+    page.current_window.resize_to(320, 844)
+    visit edit_carousel_path(carousel)
+    assert_selector ".edit-sections [aria-current=page]", text: "Basics"
+    assert_selector ".edit-sections a", count: 2
+    assert page.evaluate_script("document.documentElement.scrollWidth <= window.innerWidth")
+    assert_operator find(".edit-sections-hint").evaluate_script("this.getBoundingClientRect().top - document.querySelector('.edit-sections').getBoundingClientRect().bottom"), :>=, 16
+    assert_operator find("form.form").evaluate_script("this.getBoundingClientRect().top - document.querySelector('.edit-sections-hint').getBoundingClientRect().bottom"), :>=, 16
+    click_link "Location"
+    assert_selector ".edit-sections [aria-current=page]", text: "Location"
+    assert_field "City"
+  end
+
   test "an editor corrects a one-row chart to three rows through the carousel form" do
     carousel = build_carousel(sections: 3, rows: 1)
     figure = create_figure("Original outer-row figure", carousel:)
@@ -16,6 +35,7 @@ class SeatChartTest < ApplicationSystemTestCase
     visit carousel_path(carousel)
     click_link "Edit", exact: true
     assert_current_path edit_carousel_path(carousel)
+    click_link "Details"
     assert_no_selector "html[data-turbo-preview]", visible: :all
     assert_field "Rows", with: "1"
     page.evaluate_async_script("document.fonts.ready.then(() => arguments[0](true))")
@@ -31,7 +51,7 @@ class SeatChartTest < ApplicationSystemTestCase
     assert_equal 3, carousel.reload.rows_count
     assert_equal "2A", figure.reload.seat.code
 
-    visit edit_carousel_path(carousel)
+    visit edit_carousel_path(carousel, section: "details")
     assert_field "Rows", with: "3"
     assert_equal 3, carousel.reload.sections_count
   end

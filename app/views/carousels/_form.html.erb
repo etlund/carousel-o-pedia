@@ -1,5 +1,7 @@
 <%= form_with model: carousel, class: "form" do |form| %>
+  <%= hidden_field_tag :section, section if section %>
   <%= render "shared/errors", record: carousel %>
+  <% if section.nil? || section == "basic" %>
   <div class="field"><%= form.label :name %><%= form.text_field :name, required: true %></div>
   <div class="field">
     <%= form.label :other_names %><%= form.text_area :other_names, rows: 3 %>
@@ -11,6 +13,8 @@
     <div class="field"><%= form.label :year_built %><%= form.number_field :year_built %></div>
     <div class="field"><%= form.label :year_opened %><%= form.number_field :year_opened %></div>
   </div>
+  <% end %>
+  <% if section.nil? || section == "location" %>
   <div class="field"><%= form.label :venue %><%= form.text_field :venue %></div>
   <div class="field">
     <%= form.label :street_address %><%= form.text_field :street_address, autocomplete: "street-address" %>
@@ -26,6 +30,8 @@
     <%= form.label :address_sources, "Address sources and notes" %><%= form.text_area :address_sources, rows: 3 %>
     <p class="hint">Use Markdown links, a review date, and any entrance or address-precision caveats. An address does not establish the carousel's exact map coordinates.</p>
   </div>
+  <% end %>
+  <% if section.nil? || section == "basic" %>
   <%= render "shared/body_field", form: %>
   <fieldset>
     <legend>Website links</legend>
@@ -37,6 +43,8 @@
       <p class="hint">Optional named links, one per line. Use Markdown, for example [NCA gallery](https://carousels.org/). The official website URL appears as a separate link on carousel summary cards.</p>
     </div>
   </fieldset>
+  <% end %>
+  <% if section.nil? || section == "details" %>
   <fieldset>
     <legend>Music</legend>
     <div class="field"><%= form.label :music_type, "Type" %><%= form.text_field :music_type %></div>
@@ -70,7 +78,7 @@
         <%= form.label :lead_seat_id, "Lead figure (section 1)" %>
         <%= form.select :lead_seat_id,
               carousel.seats.where(row: "A").includes(current_placement: :figure).map { |seat| [ "#{seat.code} · #{seat.figure&.name || seat.state.capitalize}", seat.id ] },
-              { selected: carousel.lead_seat&.id } %>
+              { selected: params.dig(:carousel, :lead_seat_id) || carousel.lead_seat&.id } %>
         <p class="hint">The lead figure's section becomes section 1 and its outer-row seat becomes 1A. Every other section is renumbered from there, in the order figures pass the rail.</p>
       </div>
       <div>
@@ -96,5 +104,6 @@
       <p class="hint">Required for published totals. Use Markdown links, source dates, and any caveats; also cite partial layout facts here.</p>
     </div>
   </fieldset>
+  <% end %>
   <div class="actions"><%= form.submit %> <%= link_to "Cancel", carousel.persisted? ? carousel : carousels_path %></div>
 <% end %>
