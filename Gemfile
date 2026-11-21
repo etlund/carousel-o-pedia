@@ -70,6 +70,6 @@ gem "redcarpet", "~> 3.6"
 gem "dotenv-rails", "~> 3.2"
 gem "aws-sdk-s3", require: false
 
-gem "ruby_llm", "~> 2.1"
+gem "ruby_llm", "~> 2.2"
 
 gem "pagy", "~> 43.8"
